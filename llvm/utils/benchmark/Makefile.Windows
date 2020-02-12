@@ -74,6 +74,10 @@ include $(TOP_DIR)/Common.Windows
 CFLAGS += -I./include \
           -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
 
+ifeq ($(CXX),clang-cl)
+  CFLAGS += -Wno-unused-variable
+endif
+
 #
 # Untested:
 #
@@ -122,9 +126,11 @@ $(BUILD_DIR)/lib/benchmark.lib: $(LIB_OBJ)
 
 benchmark_gtest.exe: $(OBJ_DIR)/benchmark_gtest.obj $(BUILD_DIR)/lib/benchmark.lib $(GTEST_ROOT)/lib/gtest32.lib $(GTEST_ROOT)/lib/gtest32_main.lib
 	$(call link_EXE, $@, $^ shLwapi.Lib)
+	@echo
 
 %.exe: $(OBJ_DIR)/%.obj $(BUILD_DIR)/lib/benchmark.lib
 	$(call link_EXE, $@, $^ shLwapi.Lib)
+	@echo
 
 -include .depend.Windows
 
