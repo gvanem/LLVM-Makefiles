@@ -1,0 +1,31 @@
+#
+# GNU Makefile for 'llvm/utils/FileCheck'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/FileCheck.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = FileCheck.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+#
+# Internal libraries needed.
+#
+LIBS = $(BUILD_DIR)/lib/LLVMSupport.lib
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/bin/FileCheck.exe: $(OBJECTS) $(OBJ_DIR)/FileCheck.res $(LIBS)
+	 $(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/FileCheck.rc: $(MDEPEND)
+	$(call make_rc, $@, FileCheck.exe, VFT_APP, Check that File Contents match what is expected.)
+
+-include .depend.Windows
+
