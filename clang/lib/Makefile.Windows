@@ -1,0 +1,29 @@
+#
+# LLVM top-level makefile for 'tools/Clang/lib'.
+#
+TOP_DIR = ../../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, Analysis,         $@)
+	$(call do_make, ARCMigrate,       $@)
+	$(call do_make, AST,              $@)
+	$(call do_make, ASTMatchers,      $@)
+	$(call do_make, Basic,            $@)
+	$(call do_make, CodeGen,          $@)
+	$(call do_make, CrossTU,          $@)
+	$(call do_make, Driver,           $@)
+	$(call do_make, Edit,             $@)
+	$(call do_make, Format,           $@)
+	$(call do_make, Frontend,         $@)
+	$(call do_make, Frontend/Rewrite, $@)
+	$(call do_make, FrontendTool,     $@)
+	$(call do_make, Index,            $@)
+	$(call do_make, Lex,              $@)
+	$(call do_make, Parse,            $@)
+	$(call do_make, Rewrite,          $@)
+	$(call do_make, Sema,             $@)
+	$(call do_make, Serialization,    $@)
+	$(call do_make, StaticAnalyzer,   $@)
+	$(call do_make, Tooling,          $@)

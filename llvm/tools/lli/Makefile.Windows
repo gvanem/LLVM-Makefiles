@@ -1,0 +1,87 @@
+#
+# GNU Makefile for 'llvm/tools/lli'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/lli.exe \
+          $(BUILD_DIR)/bin/lli-child-target.exe
+
+VPATH = ChildTarget
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = lli.cpp ChildTarget/ChildTarget.cpp
+
+lli-OBJ              = $(call cpp_to_obj, lli.cpp)
+lli-child-target-OBJ = $(call cpp_to_obj, ChildTarget/ChildTarget.cpp)
+
+all: $(GENERATED) $(TARGETS)
+
+lli-LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+             LLVMAnalysis.lib             \
+             LLVMAsmParser.lib            \
+             LLVMAsmPrinter.lib           \
+             LLVMBinaryFormat.lib         \
+             LLVMBitstreamReader.lib      \
+             LLVMBitReader.lib            \
+             LLVMBitWriter.lib            \
+             LLVMCFGuard.lib              \
+             LLVMCodeGen.lib              \
+             LLVMCore.lib                 \
+             LLVMDebugInfoCodeView.lib    \
+             LLVMDebugInfoDwarf.lib       \
+             LLVMDemangle.lib             \
+             LLVMExecutionEngine.lib      \
+             LLVMGlobalISel.lib           \
+             LLVMIRReader.lib             \
+             LLVMInterpreter.lib          \
+             LLVMJITLink.lib              \
+             LLVMMC.lib                   \
+             LLVMMCDisassembler.lib       \
+             LLVMMCJIT.lib                \
+             LLVMMCParser.lib             \
+             LLVMObject.lib               \
+             LLVMOrcJIT.lib               \
+             LLVMOrcError.lib             \
+             LLVMProfileData.lib          \
+             LLVMRemarks.lib              \
+             LLVMRuntimeDyld.lib          \
+             LLVMScalarOpts.lib           \
+             LLVMSelectionDAG.lib         \
+             LLVMSupport.lib              \
+             LLVMTarget.lib               \
+             LLVMTextAPI.lib              \
+             LLVMTransformUtils.lib       \
+             LLVMX86AsmParser.lib         \
+             LLVMX86CodeGen.lib           \
+             LLVMX86Desc.lib              \
+             LLVMX86Info.lib              \
+             LLVMX86Utils.lib)
+
+lli-child-target-LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+                          LLVMOrcError.lib             \
+                          LLVMRuntimeDyld.lib          \
+                          LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  lli-LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/lli.exe: $(lli-OBJ) $(lli-LIBS) $(OBJ_DIR)/lli.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(BUILD_DIR)/bin/lli-child-target.exe: $(lli-child-target-OBJ) $(lli-child-target-LIBS) $(OBJ_DIR)/lli-child-target.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/lli.rc: $(MDEPEND)
+	$(call make_rc, $@, lli.exe, VFT_APP, LLVM interpreter & dynamic compiler.)
+
+$(OBJ_DIR)/lli-child-target.rc: $(MDEPEND)
+	$(call make_rc, $@, lli-child-target.exe, VFT_APP, Some internal LLVM tool.)
+
+-include .depend.Windows
+

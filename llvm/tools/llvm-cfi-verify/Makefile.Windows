@@ -1,0 +1,114 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-cfi-verify'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-cfi-verify.exe
+VPATH   = lib
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-cfi-verify.cpp  \
+              lib/FileAnalysis.cpp \
+              lib/GraphBuilder.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         LLVMAArch64AsmParser.lib        \
+         LLVMAArch64Desc.lib             \
+         LLVMAArch64Disassembler.lib     \
+         LLVMAArch64Info.lib             \
+         LLVMAArch64Utils.lib            \
+         LLVMAMDGPUAsmParser.lib         \
+         LLVMAMDGPUDesc.lib              \
+         LLVMAMDGPUDisassembler.lib      \
+         LLVMAMDGPUInfo.lib              \
+         LLVMAMDGPUUtils.lib             \
+         LLVMARMAsmParser.lib            \
+         LLVMARMDesc.lib                 \
+         LLVMARMDisassembler.lib         \
+         LLVMARMInfo.lib                 \
+         LLVMARMUtils.lib                \
+         LLVMBPFAsmParser.lib            \
+         LLVMBPFDesc.lib                 \
+         LLVMBPFDisassembler.lib         \
+         LLVMBPFInfo.lib                 \
+         LLVMBinaryFormat.lib            \
+         LLVMBitReader.lib               \
+         LLVMBitstreamReader.lib         \
+         LLVMCore.lib                    \
+         LLVMDebugInfoCodeView.lib       \
+         LLVMDebugInfoDwarf.lib          \
+         LLVMDebugInfoMSF.lib            \
+         LLVMDebugInfoPDB.lib            \
+         LLVMDemangle.lib                \
+         LLVMHexagonAsmParser.lib        \
+         LLVMHexagonDesc.lib             \
+         LLVMHexagonDisassembler.lib     \
+         LLVMHexagonInfo.lib             \
+         LLVMLanaiAsmParser.lib          \
+         LLVMLanaiDesc.lib               \
+         LLVMLanaiDisassembler.lib       \
+         LLVMLanaiInfo.lib               \
+         LLVMMC.lib                      \
+         LLVMMCDisassembler.lib          \
+         LLVMMCParser.lib                \
+         LLVMMSP430AsmParser.lib         \
+         LLVMMSP430Desc.lib              \
+         LLVMMSP430Disassembler.lib      \
+         LLVMMSP430Info.lib              \
+         LLVMMipsAsmParser.lib           \
+         LLVMMipsDesc.lib                \
+         LLVMMipsDisassembler.lib        \
+         LLVMMipsInfo.lib                \
+         LLVMNVPTXDesc.lib               \
+         LLVMNVPTXInfo.lib               \
+         LLVMObject.lib                  \
+         LLVMPowerPCAsmParser.lib        \
+         LLVMPowerPCDesc.lib             \
+         LLVMPowerPCDisassembler.lib     \
+         LLVMPowerPCInfo.lib             \
+         LLVMRemarks.lib                 \
+         LLVMSparcAsmParser.lib          \
+         LLVMSparcDesc.lib               \
+         LLVMSparcDisassembler.lib       \
+         LLVMSparcInfo.lib               \
+         LLVMSupport.lib                 \
+         LLVMSymbolize.lib               \
+         LLVMSystemZAsmParser.lib        \
+         LLVMSystemZDesc.lib             \
+         LLVMSystemZDisassembler.lib     \
+         LLVMSystemZInfo.lib             \
+         LLVMTextAPI.lib                 \
+         LLVMWebAssemblyAsmParser.lib    \
+         LLVMWebAssemblyDesc.lib         \
+         LLVMWebAssemblyDisassembler.lib \
+         LLVMWebAssemblyInfo.lib         \
+         LLVMX86AsmParser.lib            \
+         LLVMX86Desc.lib                 \
+         LLVMX86Disassembler.lib         \
+         LLVMX86Info.lib                 \
+         LLVMX86Utils.lib                \
+         LLVMXCoreDesc.lib               \
+         LLVMXCoreDisassembler.lib       \
+         LLVMXCoreInfo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = $(DIA_LIB) advapi32.lib ole32.lib shell32.lib user32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-cfi-verify.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cfi-verify.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-cfi-verify.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-cfi-verify.exe, VFT_APP, LLVM tool; verifies Control Flow Integrity (CFI) instrumentation.)
+
+-include .depend.Windows
+

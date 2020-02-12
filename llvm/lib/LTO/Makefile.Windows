@@ -1,0 +1,35 @@
+#
+# GNU Makefile for 'llvm/lib/LTO'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMLTO.lib
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += $(TOP_DIR)/llvm/include/llvm/Support/VCSRevision.h
+
+LIB_SRC = Caching.cpp                   \
+          LTO.cpp                       \
+          LTOBackend.cpp                \
+          LTOModule.cpp                 \
+          LTOCodeGenerator.cpp          \
+          SummaryBasedOptimizations.cpp \
+          ThinLTOCodeGenerator.cpp      \
+          UpdateCompilerUsed.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMLTO.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

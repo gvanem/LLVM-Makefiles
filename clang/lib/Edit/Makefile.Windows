@@ -1,0 +1,49 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/Edit'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangEdit.lib
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/AST/Attrs.inc                     \
+            $(CLANG_INC)/AST/AttrVisitor.inc               \
+            $(CLANG_INC)/AST/DeclNodes.inc                 \
+            $(CLANG_INC)/AST/StmtNodes.inc                 \
+            $(CLANG_INC)/AST/CommentCommandList.inc        \
+            $(CLANG_INC)/Basic/AttrList.inc                \
+            $(CLANG_INC)/Basic/DiagnosticASTKinds.inc      \
+            $(CLANG_INC)/Basic/DiagnosticCommentKinds.inc  \
+            $(CLANG_INC)/Basic/DiagnosticFrontendKinds.inc \
+            $(CLANG_INC)/Basic/DiagnosticGroups.inc        \
+            $(CLANG_INC)/Basic/DiagnosticSemaKinds.inc     \
+            $(CLANG_INC)/Basic/Version.inc
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = Commit.cpp       \
+          EditedSource.cpp \
+          RewriteObjCFoundationAPI.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangEdit.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

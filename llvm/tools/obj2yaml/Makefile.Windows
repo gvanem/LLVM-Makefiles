@@ -1,0 +1,59 @@
+#
+# GNU Makefile for 'llvm/tools/obj2yaml'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/obj2yaml.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = coff2yaml.cpp     \
+              dwarf2yaml.cpp    \
+              elf2yaml.cpp      \
+              Error.cpp         \
+              macho2yaml.cpp    \
+              minidump2yaml.cpp \
+              obj2yaml.cpp      \
+              wasm2yaml.cpp     \
+              xcoff2yaml.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMObjectYAML.lib           \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+
+$(BUILD_DIR)/bin/obj2yaml.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/obj2yaml.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/obj2yaml.rc: $(MDEPEND)
+	$(call make_rc, $@, obj2yaml.exe, VFT_APP, LLVM tool; object to YAML tool.)
+
+-include .depend.Windows
+

@@ -1,0 +1,27 @@
+#
+# GNU Makefile for 'llvm/utils/not'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/not.exe
+
+include $(TOP_DIR)/Common.Windows
+
+SOURCES     = not.cpp
+OBJECTS     = $(call cpp_to_obj, $(SOURCES))
+ALL_SOURCES = $(SOURCES)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/bin/not.exe: $(OBJECTS) $(OBJ_DIR)/not.res $(BUILD_DIR)/lib/LLVMSupport.lib
+	 $(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/not.rc: $(THIS_FILE) $(TOP_DIR)/Common.Windows
+	$(call make_rc, $@, not.exe, VFT_APP, The 'not' testing tool.)
+
+-include .depend.Windows
+

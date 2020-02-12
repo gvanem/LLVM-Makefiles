@@ -1,0 +1,1972 @@
+#
+# Common defines and macros for the GNU Makefiles for
+# LLVM (MSVC + clang-cl).
+#
+# A good introduction to LLVM basics:
+#   http://www.aosabook.org/en/llvm.html
+#
+DATE := $(shell date +%d-%B-%Y)
+NOW  := $(shell date "+%d-%B-%Y %T")
+
+#
+# The full name of the makefile that includes this '$(TOP_DIR)/Common.Windows'.
+#
+THIS_FILE = $(firstword $(MAKEFILE_LIST))
+
+ifeq ($(TOP_DIR),)
+  $(error Specify 'TOP_DIR' before including me.)
+endif
+
+#
+# Change this to whatever you like:
+#
+BUILD_DIR = $(TOP_DIR)/gv-build
+
+#
+# Choose your weapons:
+# You better do a 'make -f Makefile.Windows clean' after changing *any* of these.
+#
+# Options for compiler + linker:
+#
+USE_CRT_DEBUG      ?= 1
+USE_CRT_STATIC     ?= 0
+USE_MP_COMPILE     ?= 1
+USE_CLANG_CL       ?= 1
+USE_CLANG_FORMATER ?= 1
+USE_GOOGLE_TEST    ?= 0
+USE_ASM_TEST       ?= 0
+USE_ILK            ?= 0
+USE_XML2           ?= 1
+USE_ZLIB           ?= 1
+
+ifeq ($(USE_CRT_DEBUG),1)
+  D = d
+else
+  D =
+endif
+
+#
+# The 'all' target is in respective 'Makefile.Windows'.
+#
+default: all
+
+#
+# TODO: extract these from 'CMakeLists.txt':
+#   set(LLVM_VERSION_MAJOR 10)
+#   set(LLVM_VERSION_MINOR 0)
+#   set(LLVM_VERSION_PATCH 0)
+#
+VER_MAJOR = 10
+VER_MINOR = 0
+VER_MICRO = 0
+VERSION   = $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32
+
+#
+# The dependency on the makefile invoked for 'TARGETS'.
+# Handy to use when that makefile created some files. Use
+# it sparsely.
+#
+MDEPEND ?= # $(THIS_FILE) $(TOP_DIR)/Common.Windows
+
+#
+# Location of required + optional packages.
+# Change to suite.
+#
+ZLIB_ROOT  ?= f:/MinGW32/src/Compression/zlib-1.2.8
+XML2_ROOT  ?= f:/MinGW32/src/Parsers/libxml2
+ICONV_ROOT ?= f:/MinGW32/src/libiconv-for-windows
+GTEST_ROOT ?= f:/MinGW32/src/inet/GoogleCode/gtest
+
+#
+# Add this to 'EX_LIBS' if 'USE_ZLIB = 1'.
+#
+ZLIB_LIB = $(ZLIB_ROOT)/lib/$(CPU)/zlib$(D).lib
+
+#
+# Add this to 'EX_LIBS' if 'USE_XML2 = 1'.
+# May also need 'Iconv' if 'LIBXML_ICONV_ENABLED' was defined.
+# May also need 'ws2_32.lib'.
+#
+XML2_LIB = $(XML2_ROOT)/xml2$(D).lib
+
+#
+# 'LLVM_ENABLE_DIA_SDK = 1' in below generated 'llvm-config.h'.
+#
+# Add this to 'EX_LIBS' as needed.
+#
+# The location of 'diaguids.lib' should be in your MSVC tree which
+# is installed at '$(VSINSTALLDIR)' (in my case 'VSINSTALLDIR = f:\gv\VC_2019').
+# and is version dependent          (in my case 'VC_VER = 14.22.27905').
+#
+# Thus, 'DIA_LIB = f:\gv\vc_2019\VC\Tools\MSVC\14.22.27905\lib\onecore\x86\diaguids.lib'
+#
+DIA_LIB = $(realpath $(VSINSTALLDIR))/VC/Tools/MSVC/$(VC_VER)/lib/onecore/$(CPU)/diaguids.lib
+
+#
+# The following codes used in macro 'colour_msg' assumes you have
+# MSys/Cygwin's echo with colour support.
+#
+BRIGHT_RED    = \e[1;31m
+BRIGHT_GREEN  = \e[1;32m
+BRIGHT_YELLOW = \e[1;33m
+BRIGHT_WHITE  = \e[1;37m
+
+colour_msg = @echo -e "$(1)\e[0m"
+green_msg  = $(call colour_msg,$(BRIGHT_GREEN)$(1))
+yellow_msg = $(call colour_msg,$(BRIGHT_YELLOW)$(1))
+
+define Warning
+  $(strip $(1))
+  $(strip $(1)) This file was automatically generated from
+  $(strip $(1)) $(realpath $(THIS_FILE)) at
+  $(strip $(1)) $(NOW).
+  $(strip $(1)) DO NOT EDIT!
+  $(strip $(1))
+endef
+
+define Generating
+  $(call green_msg,Generating $(strip $(1)))
+  $(file > $(1),$(call Warning,$(2)))
+endef
+
+#
+# 'CFLAGS' and 'LDFLAGS' common to *all* included 'Makefile.Windows' files.
+#
+CFLAGS += -nologo -Ot -Z7 -EHsc -GF -GS -GR -Fo$(OBJ_DIR)\\
+       # was '-Zi -Zo' ^
+
+#
+# Reduce the noise.
+#
+CFLAGS += -D_CRT_SECURE_NO_WARNINGS \
+          -D_CRT_NONSTDC_NO_WARNINGS
+
+#
+# These are some of the additional Cmake 'CXX_DEFINES' as generated into 'flags.make':
+#
+# -DGTEST_HAS_RTTI=0
+# -DUNICODE
+# -D_UNICODE
+# -D_CRT_NONSTDC_NO_DEPRECATE
+# -D_CRT_SECURE_NO_DEPRECATE
+# -D_FILE_OFFSET_BITS=64
+# -D_HAS_EXCEPTIONS=0
+# -D_LARGEFILE_SOURCE
+# -D_SCL_SECURE_NO_DEPRECATE
+# -D_SCL_SECURE_NO_WARNINGS
+# -D__STDC_CONSTANT_MACROS
+# -D__STDC_FORMAT_MACROS
+# -D__STDC_LIMIT_MACROS
+
+ifeq ($(USE_CRT_DEBUG),1)
+  CFLAGS += -FIcrtdbg.h -D_CRT_MAP_ALLOC
+
+  #
+  # Without these, there are lots of causes for Runtime errors.
+  #
+  CFLAGS += -D_HAS_ITERATOR_DEBUGGING=0 -D_SECURE_SCL=0
+endif
+
+#
+# The 'ZLIB_LIB' and 'XML2_LIB' *must* match this.
+# Otherwise one have to use the dynamic versions of those.
+#
+ifeq ($(USE_CRT_STATIC),1)
+  CFLAGS += -MT$(D)
+else
+  CFLAGS += -MD$(D)
+endif
+
+#
+# Compile using 'clang-cl'?
+#
+ifeq ($(USE_CLANG_CL),1)
+  CXX_NAME = clang-cl
+  CXX      = clang-cl
+  CFLAGS  += -fms-compatibility               \
+             -W4 -ferror-limit=5              \
+             -Wno-unused-parameter            \
+             -Wno-nonportable-include-path    \
+             -Wno-ignored-attributes          \
+             -Wno-pragma-pack                 \
+             -Wno-inconsistent-missing-override
+
+  USE_MP_COMPILE = 0
+  export CL=
+else
+  CXX_NAME = MSVC
+  CXX      = cl
+  CFLAGS  += -W3 -wd4141 -wd4146 -wd4244 -wd4267 -wd4624 -wd4291 -wd4805 # -guard:cf
+  endif
+
+#
+# Support 64-bit some day?
+#
+CXX_BITS = 32
+
+#
+# Symbol prefix; a '_' for x86. None for x64.
+#
+ifeq ($(CXX_BITS),32)
+  uscore := _
+else
+  uscore :=
+endif
+
+#
+# '-debug:fastlink' needs 'Visual Studio 2019' I think.
+#
+# Ref: https://devblogs.microsoft.com/cppblog/linker-throughput-improvement-in-visual-studio-2019/
+#
+LDFLAGS += -nologo -debug:fastlink -map -verbose
+
+#
+# Normally not of any use. Except when linking with MANY large .lib-files.
+#
+ifeq ($(USE_ILK),0)
+  LDFLAGS += -incremental:no
+else
+  LDFLAGS += -incremental
+endif
+
+#
+# Some .h-file(s) are adding some '#pragma comment()' for these libraries.
+# Get rid of these and add them to 'EX_LIBS' explicitly as needed.
+#
+LDFLAGS += -nodefaultlib:advapi32.lib \
+           -nodefaultlib:ole32.lib    \
+           -nodefaultlib:psapi.lib    \
+           -nodefaultlib:shell32.lib  \
+           -nodefaultlib:shlwapi.lib  \
+           -nodefaultlib:user32.lib   \
+           -nodefaultlib:uuid.lib
+
+#
+# These include-directories are used in most places.
+#
+CFLAGS += -I. -I$(TOP_DIR)/llvm/include
+
+#
+# All .obj-files are created under the 'objects' directory by
+# the respective 'Makefile.Windows' files.
+#
+OBJ_DIR = objects
+
+#
+# Make a list of .obj from .cpp/.cc/.c-files.
+#
+cpp_to_obj = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.cpp=.obj)))
+cc_to_obj  = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.cc=.obj)))
+c_to_obj   = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.c=.obj)))
+
+#
+# Similarily; lists of preprocessed .i-files from .cpp/.cc/.c-files.
+#
+cpp_to_i   = $(notdir $(1:.cpp=.i))
+cc_to_i    = $(notdir $(1:.cc=.i))
+c_to_i     = $(notdir $(1:.c=.i))
+
+#
+# Only used in the C/C++ preprocess rule below.
+#
+PYTHON ?= python
+
+GENERATED += dirs
+
+#
+# These are *always* needed in every 'Makefile.Windows' file.
+#
+GENERATED += $(CXX).args                                        \
+             $(TOP_DIR)/llvm/include/llvm/Config/abi-breaking.h \
+             $(TOP_DIR)/llvm/include/llvm/Config/config.h       \
+             $(TOP_DIR)/llvm/include/llvm/Config/llvm-config.h
+
+$(CXX).args: $(THIS_FILE) $(TOP_DIR)/Common.Windows
+	$(call yellow_msg,All CFLAGS are in $@)
+	$(call create_rsp_file, $@, -c $(CFLAGS))
+
+$(OBJ_DIR)/%.obj: %.cpp $(MDEPEND)
+	$(call CPP_compile, $<)
+
+$(OBJ_DIR)/%.obj: %.cc $(MDEPEND)
+	$(call CPP_compile, $<)
+
+$(OBJ_DIR)/%.obj: %.c $(MDEPEND)
+	$(call C_compile, -Tc $<)
+
+$(OBJ_DIR)/%.res: $(OBJ_DIR)/%.rc
+	$(call make_res, $@, $<)
+
+dirs: $(OBJ_DIR) $(BUILD_DIR)/lib $(BUILD_DIR)/bin
+
+$(OBJ_DIR) $(BUILD_DIR)/lib $(BUILD_DIR)/bin:
+	- @mkdir --parents $@
+
+#
+# Directories for LLVM / Clang headers and libraries used when installed:
+#
+CLANG_INCLUDE_DIR   = $(BUILD_DIR)/lib/clang/$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)/include
+CLANG_LIB_DIR       = $(BUILD_DIR)/lib/clang/$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)/lib/windows
+CLANG_C_INCLUDE_DIR = $(BUILD_DIR)/include/clang-c
+LLVM_C_INCLUDE_DIR  = $(BUILD_DIR)/include/llvm-c
+
+install_dirs: $(CLANG_INCLUDE_DIR) $(CLANG_C_INCLUDE_DIR) $(LLVM_C_INCLUDE_DIR) $(CLANG_LIB_DIR)
+	- @mkdir --parents $@
+
+###########################################################################################
+
+ifeq ($(USE_CLANG_FORMATER),1)
+  C_FORMATER   = | clang-format -style=Mozilla -assume-filename=c
+  CPP_FORMATER = | clang-format -style=Mozilla -assume-filename=cpp
+endif
+
+#
+# Add stuff like '-Dsdrbase_EXPORTS' to 'EXTRA_CFLAGS'.
+# But only while compiling/preprocessing those .cpp-file that will export
+# stuff to the outside world.
+#
+define C_preprocess
+  @echo "The result of preprocessing $(strip $(1)) with these CFLAGS:" > $(2)
+  cat $(CXX).args                            >> $(2)
+  @echo "\$$(EXTRA_CFLAGS): $(EXTRA_CFLAGS)" >> $(2)
+  @echo "--------------------------------- " >> $(2)
+  $(CXX) @$(CXX).args $(EXTRA_CFLAGS) $(1) -E | $(PYTHON) $(TOP_DIR)/cpp_filter.py $(3) >> $(2)
+endef
+
+%.i: %.c FORCE $(GENERATED) $(TOP_DIR)/cpp_filter.py
+	$(call C_preprocess, $<, $@, $(C_FORMATER))
+
+%.i: %.cpp FORCE $(GENERATED) $(TOP_DIR)/cpp_filter.py
+	$(call C_preprocess, $<, $@, $(CPP_FORMATER))
+
+%.i: %.cc FORCE $(GENERATED) $(TOP_DIR)/cpp_filter.py
+	$(call C_preprocess, $<, $@, $(CPP_FORMATER))
+
+FORCE:
+
+###################################################################################
+#
+# Descend into directory '$(1)' making target '$(2)'.
+#
+define do_make
+  $(call green_msg,Descending into $(BRIGHT_WHITE)$(realpath $(1)) $(BRIGHT_GREEN)making target $(BRIGHT_WHITE)$(strip $(2)).)
+  @$(MAKE) -f Makefile.Windows -C $(1) $(2)
+endef
+
+#
+# The commands to build .lib-files unless the 'TARGETS' specify that
+# .lib-file itself. Used by other Makefile.Windows that need these libraries.
+#
+# Note: an incomplete list of rules.
+#
+
+########### Various $(BUILD_DIR)/lib/*.lib files ##################################
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/benchmark.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/benchmark.lib:
+	$(call do_make, $(TOP_DIR)/utils/benchmark, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/gtest.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/gtest.lib:
+	$(call do_make, $(TOP_DIR)/utils/unittest, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/gtest_main.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/gtest_main.lib:
+	$(call do_make, $(TOP_DIR)/utils/unittest, all)
+endif
+
+########### $(BUILD_DIR)/lib/clang*.lib ###########################################
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangAnalysis.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangAnalysis.lib:
+	$(call do_make, $(TOP_DIR)/llvm/tools/Clang/lib/Analysis, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangARCMigrate.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangARCMigrate.lib:
+	$(call do_make, $(TOP_DIR)/clang/lib/ARCMigrate, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangAST.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangAST.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/AST, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangASTMatchers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangASTMatchers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangBasic.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangBasic.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Basic, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangCrossTU.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangCrossTU.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CrossTU, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangDriver.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangDriver.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Driver, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangDynamicASTMatchers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangDynamicASTMatchers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangEdit.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangEdit.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Edit, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFormat.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFormat.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Format, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontendTool.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFrontendTool.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/FrontendTool, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangIndex.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangIndex.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Index, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangLex.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangLex.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Lex, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangParse.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangParse.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Parse, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewrite.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangRewrite.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Rewrite, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewriteFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangRewriteFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangSema.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangSema.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Sema, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangSerialization.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangSerialization.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Serialization, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangTooling.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangTooling.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingASTDiff.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingASTDiff.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingCore.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingCore.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingInclusions.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingInclusions.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingRefactor.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingRefactor.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingSyntax.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingSyntax.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+########### $(BUILD_DIR)/lib/LLVM*.lib ############################################
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAggressiveInstCombine.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAggressiveInstCombine.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Transforms/AggressiveInstCombine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBPFAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBPFAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAnalysis.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAnalysis.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Analysis, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64CodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64CodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64AsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64AsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64Desc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64Desc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64Disassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64Disassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64Info.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64Info.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAArch64Utils.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAArch64Utils.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUUtils.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUUtils.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAMDGPUInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAMDGPUInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARCCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARCCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARCDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARCDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARCDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARCDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARCInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARCInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMARMUtils.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMARMUtils.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBPFCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBPFCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBPFDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBPFDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBPFDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBPFDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBPFInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBPFInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMHexagonCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMHexagonCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMHexagonAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMHexagonAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMHexagonDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMHexagonDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMHexagonDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMHexagonDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMHexagonInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMHexagonInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLanaiCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLanaiCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLanaiAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLanaiAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLanaiDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLanaiDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLanaiDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLanaiDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLanaiInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLanaiInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMipsCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMipsCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMipsAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMipsAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMipsDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMipsDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMipsDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMipsDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMipsInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMipsInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMSP430CodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMSP430CodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMSP430Desc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMSP430Desc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMSP430Info.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMSP430Info.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMSP430AsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMSP430AsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMSP430Disassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMSP430Disassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMNVPTXCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMNVPTXCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMNVPTXDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMNVPTXDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMNVPTXInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMNVPTXInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPowerPCCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPowerPCCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPowerPCAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPowerPCAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPowerPCDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPowerPCDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPowerPCDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPowerPCDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPowerPCInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPowerPCInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSystemZCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSystemZCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSystemZAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSystemZAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSystemZDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSystemZDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSystemZDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSystemZDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSystemZInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSystemZInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWebAssemblyAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWebAssemblyAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWebAssemblyDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWebAssemblyDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86CodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86CodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86AsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86AsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86Disassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86Disassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86Desc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86Desc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86Info.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86Info.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMX86Utils.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMX86Utils.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMXCoreCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMXCoreCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMXCoreDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMXCoreDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMXCoreDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMXCoreDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMXCoreInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMXCoreInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/AsmParser, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBitReader.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBitReader.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Bitcode, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBitWriter.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBitWriter.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Bitcode, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBitstreamReader.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBitstreamReader.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Bitstream, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMCoverage.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMCoverage.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ProfileData, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMCore.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMCore.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/IR, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMCFGuard.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMCFGuard.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Transforms/CFGuard, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDemangle.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDemangle.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Demangle, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMFuzzMutate.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMFuzzMutate.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/FuzzMutate, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMIRParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMIRParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSelectionDAG.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSelectionDAG.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMGlobalISel.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMGlobalISel.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSupport.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSupport.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Support, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMTableGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMTableGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/TableGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDlltoolDriver.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDlltoolDriver.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ToolDrivers/llvm-dlltool, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMLibDriver.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMLibDriver.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ToolDrivers/llvm-lib, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDebugInfoCodeView.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDebugInfoCodeView.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDebugInfoDwarf.lib,$(TARGETS)))
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDebugInfoMSF.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDebugInfoMSF.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDebugInfoPDB.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDebugInfoPDB.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSymbolize.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSymbolize.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMExecutionEngine.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMExecutionEngine.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMInterpreter.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMInterpreter.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMCJIT.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMCJIT.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMOrcJIT.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMOrcJIT.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMOrcError.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMOrcError.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMRuntimeDyld.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMRuntimeDyld.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ExecutionEngine, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSparcAsmParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSparcAsmParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSparcCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSparcCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSparcDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSparcDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSparcDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSparcDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMSparcInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMSparcInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Target, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMC.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMC.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/MC, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMCParser.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMCParser.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/MC, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMMCDisassembler.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMMCDisassembler.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/MC, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMObject.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMObject.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Object, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMObjectYAML.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMObjectYAML.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ObjectYAML, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMOption.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMOption.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Option, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMRemarks.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMRemarks.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Remarks, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMPasses.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMPasses.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Passes, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMProfileData.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMProfileData.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/ProfileData, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWindowsManifest.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWindowsManifest.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/WindowsManifest, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMXRay.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMXRay.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/XRay, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWebAssemblyCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWebAssemblyCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Targets, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWebAssemblyDesc.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWebAssemblyDesc.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Targets, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMWebAssemblyInfo.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMWebAssemblyInfo.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Targets, all)
+endif
+
+########### $(BUILD_DIR)/bin/*.exe ################################################
+
+ifeq (,$(findstring $(BUILD_DIR)/bin/clang-tblgen.exe,$(TARGETS)))
+$(BUILD_DIR)/bin/clang-tblgen.exe:
+	$(call do_make, $(TOP_DIR)/tools/Clang/utils/TableGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/bin/llvm-config.exe,$(TARGETS)))
+$(BUILD_DIR)/bin/llvm-config.exe:
+	$(call do_make, $(TOP_DIR)/tools/llvm-config, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/bin/llvm-tblgen.exe,$(TARGETS)))
+$(BUILD_DIR)/bin/llvm-tblgen.exe:
+	$(call do_make, $(TOP_DIR)/llvm/utils/TableGen, all)
+endif
+
+########### Tidying up ############################################################
+
+clean: $(EXTRA_CLEAN)
+	- rm -f $(OBJ_DIR)/*.{obj,cpp,rc,res} link.tmp vc1*.pdb
+	- rm -f $(GENERATED) $(TOP_DIR)/cpp_filter.py cl.args clang-cl.args link.args link.tmp .depend.Windows
+	- rmdir $(OBJ_DIR)
+
+#
+# A '$(sort ..)' will make a unique list of files.
+#
+realclean vclean: clean
+	- rm -f $(TARGETS) \
+	        $(sort $(TARGETS:.exe=.map) $(TARGETS:.dll=.map) \
+	               $(TARGETS:.exe=.pdb) $(TARGETS:.dll=.pdb))
+ifeq ($(USE_ILK),1)
+	- rm -f $(sort $(TARGETS:.exe=.ilk) $(TARGETS:.dll=.ilk))
+endif
+
+#
+# Macro to create an EXE from objects.
+# Syntax: $(call link_EXE, ...):
+#   arg1, $(1): The .exe file.
+#   arg2, $(2): The .obj file(s), extra args and libs.
+#
+define link_EXE
+  $(call green_msg,Linking $(strip $(1)))
+  $(call create_rsp_file, link.args, $(LDFLAGS) $(2))
+  link -out:$(strip $(1)) @link.args > link.tmp
+  @cat link.tmp >> $(1:.exe=.map)
+  @rm -f link.tmp
+endef
+
+#
+# Macro to create a DLL + import-lib from objects.
+# Syntax: $(call link_DLL, ...):
+#   arg1, $(1): The .dll file.
+#   arg2, $(2): The import-lib.
+#   arg3, $(3): The .obj file(s), extra args and libs.
+#
+define link_DLL
+  $(call green_msg,Linking $(strip $(1)))
+  $(call create_rsp_file, link.args, $(LDFLAGS) $(3))
+  link -dll -out:$(strip $(1)) -implib:$(strip $(2)) @link.args > link.tmp
+  @cat link.tmp >> $(1:.dll=.map)
+  @rm -f $(2:.lib=.exp) link.tmp
+endef
+
+#
+# Compile macros:
+#   many .cpp-files, single .cpp-file and single .c-file.
+#
+define MP_compile
+  $(call colour_msg,Compiling $(BRIGHT_GREEN)$(words $(1)) .cpp files:)
+  $(call CPP_compile, -MP $(1))
+endef
+
+define CPP_compile
+  $(CXX) @$(CXX).args $(EXTRA_CFLAGS) $(1)
+  @echo
+endef
+
+define C_compile
+  $(CXX) @$(CXX).args $(EXTRA_CFLAGS) $(1)
+  @echo
+endef
+
+#
+# Create a static library:
+#   arg1: $(1): the .lib file.
+#   arg2: $(2): the .obj files to put in it.
+#
+define create_lib
+  $(call colour_msg,Creating $(BRIGHT_GREEN)$(strip $(1)))
+  lib -nologo -out:$(strip $(1)) $(2)
+  @echo
+  $(call create_lib_list_CPP_0, $(1:.lib=.list), $(1))
+endef
+
+#
+# TODO: extract only the demangled symbols?
+#
+define create_lib_list_CPP_1
+  $(file  > $(1),$(call Warning,#))
+  $(file >> $(1),# Public demangled C++ symbols in $(strip $(2)):)
+  $(file >> $(1),#)
+  dumpbin -nologo -symbols $(2) | grep --only-matching ' Static       | ?.*' | \
+                                              sed -e 's@ Static       |@@'   | \
+                                              sort                           | \
+                                              uniq                   >> $(1).tmp
+  undname $(1).tmp >> $(1)
+  @rm -f $(1).tmp
+endef
+
+define create_lib_list_CPP_2
+  $(file  > $(1),$(call Warning,#))
+  $(file >> $(1),# Public demangled C++ symbols in $(strip $(2)):)
+  $(file >> $(1),#)
+  objdump --syms --wide $(2) | grep --only-matching '??.*' | sort | uniq >> $(1).tmp
+  undname $(1).tmp >> $(1)
+  rm -f $(1).tmp
+endef
+
+#
+# A NOOP.
+#
+create_lib_list_CPP_0 =
+
+#
+# Works for plain, old C only.
+# (Not used).
+#
+extract_code_syms = nm $(1) | grep -e ' T _.*' | sed 's/^.* _/  /'
+extract_data_syms = nm $(1) | grep -e ' [BDCGR] _.*' | sed -e 's/^.* _\([_a-zA-Z0-9]*\)/  \1  DATA/'
+
+define create_lib_list
+  $(call Generating, $(1), #)
+  echo '# Code symbols:'                 >> $(1)
+  $(call extract_code_syms, $(2)) | sort >> $(1)
+  echo '# Data symbols:'                 >> $(1)
+  $(call extract_data_syms, $(2)) | sort >> $(1)
+endef
+
+#
+# .rc compile macro:
+#   arg1: $(1): the .res file.
+#   arg2: $(2): the .rc to compile.
+#
+define make_res
+  rc -nologo -D_MSC_VER -I$(TOP_DIR)/llvm/include -fo $(1) $(2)
+  @echo
+endef
+
+#
+# Create an '$(OBJ_DIR)/*.rc' file.
+# Use as:
+#   $(OBJ_DIR)/llvm-objdump.rc: $(THIS_FILE)
+#      $(call make_rc, $@, llvm-objdump.exe, VFT_APP, display information about object files.)
+#
+define make_rc
+  $(call Generating, $(1), //)
+  $(file >> $@,  #define RC_DEBUG_RELEASE  $(USE_CRT_DEBUG))
+  $(file >> $@,  #define RC_DESCRIPTION   "$(strip $(4))")
+  $(file >> $@,  #define RC_BASENAME      "$(strip $(2))")
+  $(file >> $@,  #define RC_FILETYPE      $(3))
+  $(file >> $@, $(LLVM_RC_COMMON))
+endef
+
+define create_rsp_file
+  $(file > $(1))
+  $(foreach f, $(2), $(file >> $(1),$(strip $(f))) )
+endef
+
+define append_rsp_file
+  $(foreach f, $(2), $(file >> $(1),$(strip $(f))) )
+endef
+
+#
+# Generated files.
+#
+$(TOP_DIR)/llvm/include/llvm/Config/abi-breaking.h: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(abi_breaking_H))
+
+$(TOP_DIR)/llvm/include/llvm/Config/config.h: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(config_H))
+
+$(TOP_DIR)/llvm/include/llvm/Config/llvm-config.h: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(llvm_config_H))
+
+define abi_breaking_H
+  #ifndef LLVM_ABI_BREAKING_CHECKS_H
+  #define LLVM_ABI_BREAKING_CHECKS_H
+
+  /* Define to enable checks that alter the LLVM C++ ABI
+   */
+  #define LLVM_ENABLE_ABI_BREAKING_CHECKS 1
+
+  /* Define to enable reverse iteration of unordered llvm containers
+   */
+  #define LLVM_ENABLE_REVERSE_ITERATION   0
+
+  /* Allow selectively disabling link-time mismatch checking so that header-only
+   * ADT content from LLVM can be used without linking libSupport.
+   */
+  #if !LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING
+
+    // ABI_BREAKING_CHECKS protection: provides link-time failure when clients build
+    // mismatch with LLVM
+    #if defined(_MSC_VER)
+      // Use pragma with MSVC
+      #define LLVM_XSTR(s)  LLVM_STR(s)
+      #define LLVM_STR(s)   #s
+      #pragma detect_mismatch("LLVM_ENABLE_ABI_BREAKING_CHECKS", LLVM_XSTR(LLVM_ENABLE_ABI_BREAKING_CHECKS))
+      #undef LLVM_XSTR
+      #undef LLVM_STR
+
+    #elif defined(_WIN32) || defined(__CYGWIN__) // Win32 w/o #pragma detect_mismatch
+      // FIXME: Implement checks without weak.
+
+    #elif defined(__cplusplus)
+      namespace llvm {
+      #if LLVM_ENABLE_ABI_BREAKING_CHECKS
+        extern int EnableABIBreakingChecks;
+        __attribute__((weak, visibility ("hidden"))) int *VerifyEnableABIBreakingChecks = &EnableABIBreakingChecks;
+      #else
+        extern int DisableABIBreakingChecks;
+        __attribute__((weak, visibility ("hidden"))) int *VerifyDisableABIBreakingChecks = &DisableABIBreakingChecks;
+      #endif
+    }
+    #endif // _MSC_VER
+  #endif   // LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING
+  #endif   // LLVM_ABI_BREAKING_CHECKS_H
+endef
+
+define config_H
+  #ifndef CONFIG_H
+  #define CONFIG_H
+
+  #include "llvm/Config/llvm-config.h"
+
+  #define ENABLE_BACKTRACES          1
+  #define ENABLE_CRASH_OVERRIDES     1
+  #define BACKTRACE_HEADER           <execinfo.h>
+  #define HAVE_CRASHREPORTER_INFO    0
+  #define HAVE_DECL_ARC4RANDOM       0
+  #define HAVE_DECL_FE_ALL_EXCEPT    1
+  #define HAVE_DECL_FE_INEXACT       1
+  #define HAVE_DECL_STRERROR_S       1
+  #define HAVE_ERRNO_H               1
+  #define HAVE_FCNTL_H               1
+  #define HAVE_FENV_H                1
+
+//#define HAVE_FFI_CALL              1
+//#define HAVE_FFI_FFI_H             1
+//#define HAVE_FFI_H                 1
+
+  #define HAVE_MALLOC_H              1
+  #define HAVE_SIGNAL_H              1
+  #define HAVE_STRERROR              1
+  #define HAVE_SYS_STAT_H            1
+  #define HAVE_SYS_TYPES_H           1
+
+//#define HAVE__ALLOCA               1
+  #define HAVE__CHSIZE_S             1
+
+  #if (LLVM_ENABLE_ZLIB == 1)
+    #define HAVE_ZLIB_H              1
+    #define HAVE_LIBZ                1
+  #endif
+
+  #define LTDL_SHLIB_EXT             ".dll"
+  #define PACKAGE_BUGREPORT          "https://bugs.llvm.org/"
+  #define BUG_REPORT_URL             "https://bugs.llvm.org/"
+
+  #define PACKAGE_NAME               "LLVM"
+  #define PACKAGE_STRING             "LLVM $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
+  #define PACKAGE_VERSION            "$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
+
+  #define RETSIGTYPE                  void
+  #define stricmp                    _stricmp
+  #define strdup                     _strdup
+
+  #endif  /* CONFIG_H */
+endef
+
+define llvm_config_H
+  #ifndef LLVM_CONFIG_H
+  #define LLVM_CONFIG_H
+
+  #define LLVM_ENABLE_THREADS          1
+  #define LLVM_ENABLE_DIA_SDK          1
+  #define LLVM_ENABLE_CRASH_DUMPS      0
+  #define LLVM_ENABLE_ZLIB             $(USE_ZLIB)
+  #define LLVM_ENABLE_LIBXML2          $(USE_XML2)
+  #define LLVM_LIBXML2_ENABLED         $(USE_XML2)
+  #define LLVM_HAS_ATOMICS             1
+  #define LLVM_HOST_TRIPLE            "i686-pc-windows-$(CXX_NAME)"
+  #define LLVM_DEFAULT_TARGET_TRIPLE   LLVM_HOST_TRIPLE
+  #define LLVM_NATIVE_ARCH             X86
+  #define LLVM_NATIVE_ASMPARSER        LLVMInitializeX86AsmParser
+  #define LLVM_NATIVE_ASMPRINTER       LLVMInitializeX86AsmPrinter
+  #define LLVM_NATIVE_DISASSEMBLER     LLVMInitializeX86Disassembler
+  #define LLVM_NATIVE_TARGET           LLVMInitializeX86Target
+  #define LLVM_NATIVE_TARGETINFO       LLVMInitializeX86TargetInfo
+  #define LLVM_NATIVE_TARGETMC         LLVMInitializeX86TargetMC
+  #define LLVM_USE_INTEL_JITEVENTS     0
+  #define LLVM_USE_OPROFILE            0
+  #define LLVM_USE_PERF                0
+  #define LLVM_FORCE_ENABLE_STATS      0
+  #define LLVM_VERSION_MAJOR           $(VER_MAJOR)
+  #define LLVM_VERSION_MINOR           $(VER_MINOR)
+  #define LLVM_VERSION_PATCH           $(VER_MICRO)
+  #define LLVM_VERSION_STRING         "$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
+
+  #define LLVM_GISEL_COV_ENABLED                     0
+  #define LLVM_VERSION_PRINTER_SHOW_HOST_TARGET_INFO 1
+
+  #endif  /* LLVM_CONFIG_H */
+endef
+
+$(TOP_DIR)/llvm/include/llvm/Config/AsmParsers.def: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(AsmParsers_DEF))
+
+$(TOP_DIR)/llvm/include/llvm/Config/AsmPrinters.def: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(AsmPrinters_DEF))
+
+$(TOP_DIR)/llvm/include/llvm/Config/Disassemblers.def: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(Disassemblers_DEF))
+
+$(TOP_DIR)/llvm/include/llvm/Config/Targets.def: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(Targets_DEF))
+
+$(TOP_DIR)/llvm/include/llvm/Support/VCSRevision.h: $(TOP_DIR)/Common.Windows
+	$(call Generating, $@, //)
+	$(file >> $@,$(VCSRevision_H))
+
+define AsmParsers_DEF
+  /*
+   * This file enumerates all of the assembly-language parsers
+   * supported by this build of LLVM. Clients of this file should define
+   * the LLVM_ASM_PARSER macro to be a function-like macro with a
+   * single parameter (the name of the target whose assembly can be
+   * generated); including this file will then enumerate all of the
+   * targets with assembly parsers.
+   *
+   * The set of targets supported by LLVM is generated at configuration
+   * time, at which point this header is generated. Do not modify this
+   * header directly.
+   */
+  #ifndef LLVM_ASM_PARSER
+    #error Please define the macro LLVM_ASM_PARSER(TargetName)
+  #endif
+
+  LLVM_ASM_PARSER (AArch64)
+  LLVM_ASM_PARSER (AMDGPU)
+  LLVM_ASM_PARSER (ARM)
+  LLVM_ASM_PARSER (BPF)
+  LLVM_ASM_PARSER (Hexagon)
+  LLVM_ASM_PARSER (Lanai)
+  LLVM_ASM_PARSER (Mips)
+  LLVM_ASM_PARSER (MSP430)
+  LLVM_ASM_PARSER (PowerPC)
+  LLVM_ASM_PARSER (Sparc)
+  LLVM_ASM_PARSER (SystemZ)
+  LLVM_ASM_PARSER (WebAssembly)
+  LLVM_ASM_PARSER (X86)
+
+  #undef LLVM_ASM_PARSER
+endef
+
+define AsmPrinters_DEF
+  /*
+   * This file enumerates all of the assembly-language printers
+   * supported by this build of LLVM. Clients of this file should define
+   * the LLVM_ASM_PRINTER macro to be a function-like macro with a
+   * single parameter (the name of the target whose assembly can be
+   * generated); including this file will then enumerate all of the
+   * targets with assembly printers.
+   *
+   * The set of targets supported by LLVM is generated at configuration
+   * time, at which point this header is generated. Do not modify this
+   * header directly.
+   */
+  #ifndef LLVM_ASM_PRINTER
+    #error Please define the macro LLVM_ASM_PRINTER(TargetName)
+  #endif
+
+  LLVM_ASM_PRINTER (AArch64)
+  LLVM_ASM_PRINTER (AMDGPU)
+  LLVM_ASM_PRINTER (ARM)
+  LLVM_ASM_PRINTER (BPF)
+  LLVM_ASM_PRINTER (Hexagon)
+  LLVM_ASM_PRINTER (Lanai)
+  LLVM_ASM_PRINTER (Mips)
+  LLVM_ASM_PRINTER (MSP430)
+  LLVM_ASM_PRINTER (NVPTX)
+  LLVM_ASM_PRINTER (PowerPC)
+  LLVM_ASM_PRINTER (Sparc)
+  LLVM_ASM_PRINTER (SystemZ)
+  LLVM_ASM_PRINTER (WebAssembly)
+  LLVM_ASM_PRINTER (X86)
+  LLVM_ASM_PRINTER (XCore)
+
+  #undef LLVM_ASM_PRINTER
+endef
+
+define Disassemblers_DEF
+ /*
+  * This file enumerates all of the assembly-language parsers
+  * supported by this build of LLVM. Clients of this file should define
+  * the LLVM_DISASSEMBLER macro to be a function-like macro with a
+  * single parameter (the name of the target whose assembly can be
+  * generated); including this file will then enumerate all of the
+  * targets with assembly parsers.
+  *
+  * The set of targets supported by LLVM is generated at configuration
+  * time, at which point this header is generated. Do not modify this
+  * header directly.
+  */
+  #ifndef LLVM_DISASSEMBLER
+    #error Please define the macro LLVM_DISASSEMBLER(TargetName)
+  #endif
+
+  LLVM_DISASSEMBLER (AArch64)
+  LLVM_DISASSEMBLER (AMDGPU)
+  LLVM_DISASSEMBLER (ARM)
+  LLVM_DISASSEMBLER (BPF)
+  LLVM_DISASSEMBLER (Hexagon)
+  LLVM_DISASSEMBLER (Lanai)
+  LLVM_DISASSEMBLER (Mips)
+  LLVM_DISASSEMBLER (MSP430)
+  LLVM_DISASSEMBLER (PowerPC)
+  LLVM_DISASSEMBLER (Sparc)
+  LLVM_DISASSEMBLER (SystemZ)
+  LLVM_DISASSEMBLER (WebAssembly)
+  LLVM_DISASSEMBLER (X86)
+  LLVM_DISASSEMBLER (XCore)
+
+  #undef LLVM_DISASSEMBLER
+endef
+
+define Targets_DEF
+ /*
+  * This file enumerates all of the target architectures supported by
+  * this build of LLVM. Clients of this file should define the
+  * LLVM_TARGET macro to be a function-like macro with a single
+  * parameter (the name of the target); including this file will then
+  * enumerate all of the targets.
+  *
+  * The set of targets supported by LLVM is generated at configuration
+  * time, at which point this header is generated. Do not modify this
+  * header directly.
+  */
+
+  #ifndef LLVM_TARGET
+    #error Please define the macro LLVM_TARGET(TargetName)
+  #endif
+
+  LLVM_TARGET (AArch64)
+  LLVM_TARGET (AMDGPU)
+  LLVM_TARGET (ARM)
+  LLVM_TARGET (BPF)
+  LLVM_TARGET (Hexagon)
+  LLVM_TARGET (Lanai)
+  LLVM_TARGET (Mips)
+  LLVM_TARGET (MSP430)
+  LLVM_TARGET (NVPTX)
+  LLVM_TARGET (PowerPC)
+  LLVM_TARGET (Sparc)
+  LLVM_TARGET (SystemZ)
+  LLVM_TARGET (WebAssembly)
+  LLVM_TARGET (X86)
+  LLVM_TARGET (XCore)
+
+  #undef LLVM_TARGET
+endef
+
+define VCSRevision_H
+  #undef LLVM_REVISION
+endef
+
+define sys_time_H
+  #ifndef _sys_time_H
+  #define _sys_time_H
+
+  #include <winsock2.h>   /* For 'struct timeval' */
+  #include <time.h>       /* For 'time_t' */
+
+  #if !defined(_TIMESPEC_DEFINED) && !defined(HAVE_STRUCT_TIMESPEC)
+    #define _TIMESPEC_DEFINED
+    struct timespec {
+           time_t tv_sec;
+           long   tv_nsec;
+     };
+  #endif
+
+  #ifndef CLOCK_REALTIME
+  #define CLOCK_REALTIME 0
+  #endif
+
+  #if defined(_MSC_VER)
+    int  msvc_gettimeofday (struct timeval *tv, void *tz);
+    void msvc_clock_gettime (int clock_id, struct timespec *ts);
+
+    #define gettimeofday(tv,tz)    msvc_gettimeofday (tv,tz)
+    #define clock_gettime(clk,ts)  msvc_clock_gettime (clk,ts)
+
+  #else
+    #include_next <sys/time.h>
+  #endif
+
+  #endif
+endef
+
+define sys_time_CPP
+  #include <sys/time.h>
+  #include <windows.h>
+
+  #if defined(_MSC_VER) || defined(__clang__) /* Rest of file */
+
+  #define uint64 unsigned      __int64
+  #define DELTA_EPOCH_IN_USEC  11644473600000000Ui64
+
+  static uint64 FILETIME_to_unix_epoch (const FILETIME *ft)
+  {
+    uint64 res = ((uint64)ft->dwHighDateTime << 32) + (uint64)ft->dwLowDateTime;
+
+    res /= 10;                   /* from 100 nano-sec periods to usec */
+    res -= DELTA_EPOCH_IN_USEC;  /* from Windows epoch to Unix epoch */
+    return (res);
+  }
+
+  int msvc_gettimeofday (struct timeval *tv, void *tz)
+  {
+    FILETIME ft;
+    uint64   tim;
+
+    GetSystemTimeAsFileTime (&ft);
+    tim = FILETIME_to_unix_epoch (&ft);
+    tv->tv_sec  = (long) (tim / 1000000L);
+    tv->tv_usec = (long) (tim % 1000000L);
+    (void) tz;
+    return (0);
+  }
+
+  void msvc_clock_gettime (int clock_id, struct timespec *ts)
+  {
+    struct timeval tv;
+
+    msvc_gettimeofday (&tv, NULL);
+    ts->tv_sec  = tv.tv_sec;
+    ts->tv_nsec = tv.tv_usec * 1000;
+    (void) clock_id;
+  }
+  #endif  /* _MSC_VER || __clang__ */
+endef
+
+#
+# Some global rules and dependency stuff for generated .inc-files:
+#
+$(TOP_DIR)/llvm/include/llvm/Target/Target.td: \
+  $(addprefix $(TOP_DIR)/llvm/include/llvm/,   \
+    IR/Intrinsics.td                           \
+    Target/TargetInstrPredicate.td             \
+    Target/TargetSchedule.td                   \
+    Target/GenericOpcodes.td                   \
+    Target/TargetCallingConv.td                \
+    Target/TargetSelectionDAG.td               \
+    Target/GlobalISel/RegisterBank.td          \
+    Target/GlobalISel/Target.td                \
+    Target/GlobalISel/SelectionDAGCompat.td    \
+    Target/TargetPfmCounters.td)
+
+#
+# Dependencies for .inc-files:
+#
+INC_DEPS = $(MDEPEND)
+
+#
+# This 'Target.td' is included in almost all other .td files.
+# It also includes the .td-files above.
+#
+INC_DEPS += $(TOP_DIR)/llvm/include/llvm/Target/Target.td
+
+#
+# Add a dependency of 'llvm-tblgen.exe' only if it doesn't exist.
+# (assuming it's stable and generates the same output even if it was relinked).
+#
+INC_DEPS += | $(BUILD_DIR)/bin/llvm-tblgen.exe
+
+#
+# Generate an '*.inc file from a '*.td' file.
+#  arg1: $(1): the .inc-file
+#  arg2: $(2): the action to perform ('-gen-XX' and extra arguments) and the .td-file
+#
+# Use 'touch' on the generated portion of the file in case 'llvm-tblgen.exe' crashes
+# (use the first .td file as time-reference).
+#
+define llvm_tblgen
+  $(call Generating, $(1), //)
+  @touch --reference=$(word 1, $(filter %.td, $(2))) $(1)
+  $(BUILD_DIR)/bin/llvm-tblgen.exe -I $(TOP_DIR)/llvm/include -I $(dir $(1)) $(2) >> $(1)
+  @echo
+endef
+
+define clang_tblgen
+  $(call Generating, $(1), //)
+  @touch --reference=$(word 1, $(filter %.td, $(2))) $(1)
+  $(BUILD_DIR)/bin/clang-tblgen.exe -I$(TOP_DIR)/llvm/include $(2) >> $(1)
+  @echo
+endef
+
+$(TOP_DIR)/llvm/include/llvm/IR/Attributes.inc: $(TOP_DIR)/llvm/include/llvm/IR/Attributes.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-attrs $<)
+
+$(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc: $(TOP_DIR)/llvm/include/llvm/IR/Attributes.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-attrs $<)
+
+# $(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc: $(TOP_DIR)/llvm/include/llvm/IR/AttributesCompatFunc.td $(TOP_DIR)/llvm/include/llvm/IR/Attributes.td $(INC_DEPS)
+#	$(call llvm_tblgen, $@, -gen-attrs $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicEnums.inc: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicImpl.inc: $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-impl $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsARM.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=arm $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsX86.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=x86 $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsAArch64.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=aarch64 $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsAMDGPU.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=amdgcn $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsBPF.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=bpf $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsHexagon.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=hexagon $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsMips.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=mips $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsNVPTX.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=nvvm $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsPowerPC.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=ppc $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsR600.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=r600 $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsRISCV.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=riscv $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsS390.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=s390 $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsWebAssembly.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=wasm $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsXCore.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=xcore $<)
+
+#
+# Used to generate $(TOP_DIR)/cpp_filter.py' used in C/C++ preprocessing.
+#
+define CPP_FILTER_PY
+  import sys, os
+
+  try:
+    import ntpath
+  except ImportError as e:
+    print ("Failed to import ntpath: %s" % e)
+    sys.exit(1)
+
+  def _win32_abspath (path):
+    path = ntpath.abspath (path)
+    return path.replace ('\\', '/')
+
+  def skip_cwd (s1, s2):
+    ''' Skip the leading part that is in common with s1 and s2
+    '''
+    i = 0
+    while i < len(s1) and s1[i] == s2[i]:
+       i += 1
+    return s2[i:]
+
+  cwd = _win32_abspath (os.getcwd()) + '/'
+
+  last_line  = '??'
+  last_fname = '??'
+  empty_lines = 0
+
+  while True:
+    line = sys.stdin.readline()
+    if not line:
+      break
+    if line.startswith('\n') or line.startswith('\r'):
+      empty_lines += 1
+      continue
+
+    if line.lstrip().startswith("#line"):
+      line = line.replace ("\\\\", "/")
+    fname = None
+    quote = line.find ('\"')
+
+    if line.startswith ("#line ") and quote > 0:
+      fname = _win32_abspath (line[quote:])
+      last_fname = fname
+
+    if line.strip() != '' and last_line != '':
+      if fname is None or fname != last_fname:
+        print (line, end="")
+
+      if line.strip() == '}' or line.strip() == '};':  # Print a newline after a functions or structs
+        print ("")
+
+    last_line = line
+
+  if empty_lines > 0:
+    sys.stderr.write ("Removed %d empty lines." % empty_lines)
+
+endef
+
+$(TOP_DIR)/cpp_filter.py: $(THIS_FILE)
+	@echo 'Generating $@...'
+	$(file >  $@,#!/usr/bin/env python)
+	$(file >> $@,#)
+	$(file >> $@,# DO NOT EDIT! This file was generated automatically)
+	$(file >> $@,# from $(realpath $<). Edit that file instead.)
+	$(file >> $@,#)
+	$(file >> $@,from __future__ import print_function)
+	$(file >> $@,if 1:)
+	$(file >> $@,$(CPP_FILTER_PY))
+
+#
+# Stuff common to all .rc-files.
+#
+# They all have the same version since it's rather hard to parse that
+# information out of a CMakeLists.txt file. If that is even defined.
+#
+# The stuff that are different for each
+#   '$(TOP_DIR)/bin/*.dll' or
+#   '$(TOP_DIR)/bin/plugin/*.dll'
+#
+# must be defined by another GNU-make macro in the respective Makefile.
+#
+define LLVM_RC_COMMON
+
+  #include <winver.h>
+  #include <llvm/Config/llvm-config.h>
+
+  #define RC_VERSION     $(VER_MAJOR),$(VER_MINOR),$(VER_MICRO),0
+  #define RC_VER_STRING  LLVM_VERSION_STRING
+
+  #ifndef RC_BASENAME
+  #error "Add a '-DRC_BASENAME' before including me."
+  #endif
+
+  #ifndef RC_FILETYPE
+  #error "Add a '-DRC_FILETYPE' before including me."
+  #endif
+
+  #ifndef RC_DESCRIPTION
+  #error "Add a '-DRC_DESCRIPTION' before including me."
+  #endif
+
+  #ifndef RC_COMMENT_EXTRA
+  #define RC_COMMENT_EXTRA ""
+  #endif
+
+  #if (RC_DEBUG_RELEASE == 1)
+    #define RC_DEBUG_RELEASE_STR  "debug"
+  #else
+    #define RC_DEBUG_RELEASE_STR  "release"
+  #endif
+
+  VS_VERSION_INFO VERSIONINFO
+    FILEVERSION     RC_VERSION
+    PRODUCTVERSION  RC_VERSION
+    FILEFLAGSMASK   0x3fL
+    FILEOS          VOS__WINDOWS32
+    FILESUBTYPE     0
+    FILEFLAGS       RC_DEBUG_RELEASE
+    FILETYPE        RC_FILETYPE  /* A 'VFT_APP' (an .exe-file) or 'VFT_DLL' */
+
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "040904b0"
+      BEGIN
+        VALUE "CompanyName",      "LLVM; http://llvm.org"
+        VALUE "FileDescription",  RC_DESCRIPTION
+        VALUE "ProductName",      "The LLVM Compiler Infrastructure"
+        VALUE "FileVersion",      RC_VER_STRING " ($(CXX_NAME), $(CXX_BITS)-bit " RC_DEBUG_RELEASE_STR ")"
+        VALUE "ProductVersion",   RC_VER_STRING " ($(CXX_NAME), $(CXX_BITS)-bit " RC_DEBUG_RELEASE_STR ")"
+        VALUE "InternalName",     RC_BASENAME
+        VALUE "OriginalFilename", RC_BASENAME
+        VALUE "LegalCopyright",   "'University of Illinois' BSD-Style license."
+        VALUE "PrivateBuild",     "The private build of <gvanem@yahoo.no>."
+        VALUE "Comments",         "Built on $(DATE)" RC_COMMENT_EXTRA
+        VALUE "LegalTrademarks",  ""
+        VALUE "SpecialBuild",     ""
+      END
+    END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+  END
+endef
+
+#
+# Filter out these:
+#   $(TOP_DIR)/llvm/include/llvm/Config/abi-breaking.h
+#   $(TOP_DIR)/llvm/include/llvm/Config/config.h
+#   $(TOP_DIR)/llvm/include/llvm/Config/llvm-config.h
+#
+# to prevent GNU-make to do too much work if a '.depend.Windows' exists.
+#
+DEP_REPLACE = -e 's|$(TOP_DIR)/llvm/include/llvm/Config/abi-breaking.h||' \
+              -e 's|$(TOP_DIR)/llvm/include/llvm/Config/config.h||'       \
+              -e 's|$(TOP_DIR)/llvm/include/llvm/Config/llvm-config.h||'
+
+DEP_REPLACE += -e 's|\(.*\)\.o: |\n$$(OBJ_DIR)\/\1.obj: |'
+
+DEP_CFLAGS  = -MM -std=c++1y $(filter -I% -D%, $(CFLAGS) $(EXTRA_CFLAGS))
+
+depend: $(OBJ_DIR) $(GENERATED)
+	$(call Generating, .depend.Windows, #)
+	g++ $(DEP_CFLAGS) $(ALL_SOURCES) | sed $(DEP_REPLACE) >> .depend.Windows

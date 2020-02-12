@@ -1,0 +1,161 @@
+#
+# GNU Makefile for 'llvm/lib/Support'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMSupport.lib
+
+include $(TOP_DIR)/Common.Windows
+
+ifeq ($(USE_ZLIB),1)
+  CFLAGS += -I$(ZLIB_ROOT)
+endif
+
+LIB_C_SRC = regcomp.c  \
+            regerror.c \
+            regexec.c  \
+            regfree.c  \
+            regstrlcpy.c
+
+LIB_CPP_SRC = AArch64TargetParser.cpp          \
+              ABIBreak.cpp                     \
+              ARMTargetParser.cpp              \
+              AMDGPUMetadata.cpp               \
+              APFloat.cpp                      \
+              APInt.cpp                        \
+              APSInt.cpp                       \
+              ARMBuildAttrs.cpp                \
+              ARMAttributeParser.cpp           \
+              ARMWinEH.cpp                     \
+              Allocator.cpp                    \
+              BinaryStreamError.cpp            \
+              BinaryStreamReader.cpp           \
+              BinaryStreamRef.cpp              \
+              BinaryStreamWriter.cpp           \
+              BlockFrequency.cpp               \
+              BranchProbability.cpp            \
+              BuryPointer.cpp                  \
+              CachePruning.cpp                 \
+              circular_raw_ostream.cpp         \
+              Chrono.cpp                       \
+              COM.cpp                          \
+              CodeGenCoverage.cpp              \
+              CommandLine.cpp                  \
+              Compression.cpp                  \
+              ConvertUTF.cpp                   \
+              ConvertUTFWrapper.cpp            \
+              CrashRecoveryContext.cpp         \
+              CRC.cpp                          \
+              DataExtractor.cpp                \
+              Debug.cpp                        \
+              DebugCounter.cpp                 \
+              DeltaAlgorithm.cpp               \
+              DAGDeltaAlgorithm.cpp            \
+              DJB.cpp                          \
+              Error.cpp                        \
+              ErrorHandling.cpp                \
+              FileCheck.cpp                    \
+              FileUtilities.cpp                \
+              FileOutputBuffer.cpp             \
+              FoldingSet.cpp                   \
+              FormattedStream.cpp              \
+              FormatVariadic.cpp               \
+              GlobPattern.cpp                  \
+              GraphWriter.cpp                  \
+              Hashing.cpp                      \
+              InitLLVM.cpp                     \
+              IntEqClasses.cpp                 \
+              IntervalMap.cpp                  \
+              ItaniumManglingCanonicalizer.cpp \
+              JSON.cpp                         \
+              KnownBits.cpp                    \
+              LEB128.cpp                       \
+              LineIterator.cpp                 \
+              Locale.cpp                       \
+              LockFileManager.cpp              \
+              LowLevelType.cpp                 \
+              ManagedStatic.cpp                \
+              MathExtras.cpp                   \
+              MemoryBuffer.cpp                 \
+              MD5.cpp                          \
+              NativeFormatting.cpp             \
+              Optional.cpp                     \
+              Parallel.cpp                     \
+              PluginLoader.cpp                 \
+              PrettyStackTrace.cpp             \
+              RandomNumberGenerator.cpp        \
+              Regex.cpp                        \
+              ScaledNumber.cpp                 \
+              ScopedPrinter.cpp                \
+              SHA1.cpp                         \
+              Signposts.cpp                    \
+              SmallPtrSet.cpp                  \
+              SmallVector.cpp                  \
+              SourceMgr.cpp                    \
+              SpecialCaseList.cpp              \
+              Statistic.cpp                    \
+              StringExtras.cpp                 \
+              StringMap.cpp                    \
+              StringPool.cpp                   \
+              StringSaver.cpp                  \
+              StringRef.cpp                    \
+              SymbolRemappingReader.cpp        \
+              SystemUtils.cpp                  \
+              TarWriter.cpp                    \
+              TargetParser.cpp                 \
+              ThreadPool.cpp                   \
+              TimeProfiler.cpp                 \
+              Timer.cpp                        \
+              ToolOutputFile.cpp               \
+              TrigramIndex.cpp                 \
+              Triple.cpp                       \
+              Twine.cpp                        \
+              Unicode.cpp                      \
+              UnicodeCaseFold.cpp              \
+              VersionTuple.cpp                 \
+              VirtualFileSystem.cpp            \
+              WithColor.cpp                    \
+              YAMLParser.cpp                   \
+              YAMLTraits.cpp                   \
+              raw_os_ostream.cpp               \
+              raw_ostream.cpp                  \
+              xxhash.cpp                       \
+              Z3Solver.cpp
+
+#
+# System sources
+#
+LIB_CPP_SRC += Atomic.cpp         \
+               DynamicLibrary.cpp \
+               Errno.cpp          \
+               FileCollector.cpp  \
+               Host.cpp           \
+               Memory.cpp         \
+               Path.cpp           \
+               Process.cpp        \
+               Program.cpp        \
+               RWMutex.cpp        \
+               Signals.cpp        \
+               TargetRegistry.cpp \
+               ThreadLocal.cpp    \
+               Threading.cpp      \
+               Valgrind.cpp       \
+               Watchdog.cpp
+
+ALL_SOURCES = $(LIB_C_SRC) \
+              $(LIB_CPP_SRC)
+
+LIB_C_OBJ   = $(call c_to_obj,   $(LIB_C_SRC))
+LIB_CPP_OBJ = $(call cpp_to_obj, $(LIB_CPP_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_CPP_OBJ): $(LIB_CPP_SRC)
+	$(call MP_compile, $(LIB_CPP_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMSupport.lib: $(LIB_C_OBJ) $(LIB_CPP_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

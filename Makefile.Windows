@@ -1,0 +1,17 @@
+#
+# LLVM top-level makefile.
+#
+CC      ?= cl
+DO_MAKE = $(MAKE) CC=$(CC) -f Makefile.Windows
+DIRS    = llvm/lib llvm/tools llvm/utils
+
+default: all
+
+all clean vclean depend:
+	for d in $(DIRS) ; do        \
+		$(DO_MAKE) -C $$d $@   ; \
+		if [ $$? -ne 0 ]; then   \
+			echo "make failed" ; \
+			exit 1 ;             \
+		fi ;                     \
+	done

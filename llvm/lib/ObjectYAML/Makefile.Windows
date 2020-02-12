@@ -1,0 +1,46 @@
+#
+# GNU Makefile for 'llvm/lib/ObjectYAML'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMObjectYAML.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = CodeViewYAMLDebugSections.cpp \
+          CodeViewYAMLSymbols.cpp       \
+          CodeViewYAMLTypeHashing.cpp   \
+          CodeViewYAMLTypes.cpp         \
+          COFFEmitter.cpp               \
+          COFFYAML.cpp                  \
+          DWARFEmitter.cpp              \
+          DWARFVisitor.cpp              \
+          DWARFYAML.cpp                 \
+          ELFEmitter.cpp                \
+          ELFYAML.cpp                   \
+          MachOEmitter.cpp              \
+          MachOYAML.cpp                 \
+          MinidumpEmitter.cpp           \
+          MinidumpYAML.cpp              \
+          ObjectYAML.cpp                \
+          WasmEmitter.cpp               \
+          WasmYAML.cpp                  \
+          XCOFFYAML.cpp                 \
+          YAML.cpp                      \
+          yaml2obj.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMObjectYAML.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

@@ -1,0 +1,20 @@
+#
+# GNU Makefile for 'llvm/lib/Bitstream'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMBitstreamReader.lib
+
+VPATH = Reader
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = Reader/BitstreamReader.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/lib/LLVMBitstreamReader.lib: $(OBJECTS)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

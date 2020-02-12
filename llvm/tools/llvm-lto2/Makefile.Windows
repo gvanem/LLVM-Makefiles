@@ -1,0 +1,128 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-lto2'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-lto2.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-lto2.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         LLVMAArch64AsmParser.lib      \
+         LLVMAArch64CodeGen.lib        \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Info.lib           \
+         LLVMAArch64Utils.lib          \
+         LLVMAMDGPUAsmParser.lib       \
+         LLVMAMDGPUCodeGen.lib         \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUInfo.lib            \
+         LLVMAMDGPUUtils.lib           \
+         LLVMARMAsmParser.lib          \
+         LLVMARMCodeGen.lib            \
+         LLVMARMDesc.lib               \
+         LLVMARMInfo.lib               \
+         LLVMARMUtils.lib              \
+         LLVMAggressiveInstCombine.lib \
+         LLVMAnalysis.lib              \
+         LLVMAsmParser.lib             \
+         LLVMAsmPrinter.lib            \
+         LLVMBPFAsmParser.lib          \
+         LLVMBPFCodeGen.lib            \
+         LLVMBPFDesc.lib               \
+         LLVMBPFInfo.lib               \
+         LLVMBinaryFormat.lib          \
+         LLVMBitstreamReader.lib       \
+         LLVMBitReader.lib             \
+         LLVMBitWriter.lib             \
+         LLVMCodeGen.lib               \
+         LLVMCore.lib                  \
+         LLVMDebugInfoCodeView.lib     \
+         LLVMDebugInfoDwarf.lib        \
+         LLVMDemangle.lib              \
+         LLVMGlobalISel.lib            \
+         LLVMHexagonAsmParser.lib      \
+         LLVMHexagonCodeGen.lib        \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonInfo.lib           \
+         LLVMIRReader.lib              \
+         LLVMInstCombine.lib           \
+         LLVMInstrumentation.lib       \
+         LLVMLTO.lib                   \
+         LLVMLanaiAsmParser.lib        \
+         LLVMLanaiCodeGen.lib          \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiInfo.lib             \
+         LLVMLinker.lib                \
+         LLVMMIRParser.lib             \
+         LLVMMC.lib                    \
+         LLVMMCDisassembler.lib        \
+         LLVMMCParser.lib              \
+         LLVMMSP430AsmParser.lib       \
+         LLVMMSP430CodeGen.lib         \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Info.lib            \
+         LLVMMipsAsmParser.lib         \
+         LLVMMipsCodeGen.lib           \
+         LLVMMipsDesc.lib              \
+         LLVMMipsInfo.lib              \
+         LLVMNVPTXCodeGen.lib          \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXInfo.lib             \
+         LLVMObject.lib                \
+         LLVMPasses.lib                \
+         LLVMPowerPCAsmParser.lib      \
+         LLVMPowerPCCodeGen.lib        \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCInfo.lib           \
+         LLVMProfileData.lib           \
+         LLVMRemarks.lib               \
+         LLVMScalarOpts.lib            \
+         LLVMSelectionDAG.lib          \
+         LLVMSparcAsmParser.lib        \
+         LLVMSparcCodeGen.lib          \
+         LLVMSparcDesc.lib             \
+         LLVMSparcInfo.lib             \
+         LLVMSupport.lib               \
+         LLVMSystemZAsmParser.lib      \
+         LLVMSystemZCodeGen.lib        \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZInfo.lib           \
+         LLVMTarget.lib                \
+         LLVMTransformUtils.lib        \
+         LLVMVectorize.lib             \
+         LLVMWebAssemblyAsmParser.lib  \
+         LLVMWebAssemblyCodeGen.lib    \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyInfo.lib       \
+         LLVMX86AsmParser.lib          \
+         LLVMX86CodeGen.lib            \
+         LLVMX86Desc.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Utils.lib              \
+         LLVMXCoreCodeGen.lib          \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreInfo.lib             \
+         LLVMipo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-lto2.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-lto2.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-lto2.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-lto2.exe, VFT_APP, LLVM tool; link-time optimization of bitcode files (will replace 'llvm-lto.exe').)
+
+-include .depend.Windows
+

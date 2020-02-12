@@ -1,0 +1,31 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-bcanalyzer'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-bcanalyzer.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-bcanalyzer.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+$(BUILD_DIR)/bin/llvm-bcanalyzer.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-bcanalyzer.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-bcanalyzer.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-bcanalyzer.exe, VFT_APP, Analyzes information about a bitcode file.)
+
+-include .depend.Windows
+

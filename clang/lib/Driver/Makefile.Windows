@@ -1,0 +1,102 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/Driver'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangDriver.lib
+VPATH   = ToolChains ToolChains/Arch
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+EXTRA_CFLAGS = -DCLANG_DEFAULT_UNWINDLIB=\"none\"
+
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = Action.cpp        \
+          Compilation.cpp   \
+          DarwinSDKInfo.cpp \
+          Distro.cpp        \
+          Driver.cpp        \
+          DriverOptions.cpp \
+          Job.cpp           \
+          Multilib.cpp      \
+          Phases.cpp        \
+          SanitizerArgs.cpp \
+          Tool.cpp          \
+          ToolChain.cpp     \
+          Types.cpp         \
+          XRayArgs.cpp
+
+LIB_SRC += $(addprefix ToolChains/, \
+             AMDGPU.cpp             \
+             Ananas.cpp             \
+             AVR.cpp                \
+             BareMetal.cpp          \
+             Clang.cpp              \
+             CloudABI.cpp           \
+             CommonArgs.cpp         \
+             Contiki.cpp            \
+             CrossWindows.cpp       \
+             Cuda.cpp               \
+             Darwin.cpp             \
+             DragonFly.cpp          \
+             FreeBSD.cpp            \
+             Fuchsia.cpp            \
+             Gnu.cpp                \
+             Haiku.cpp              \
+             Hexagon.cpp            \
+             HIP.cpp                \
+             Hurd.cpp               \
+             Linux.cpp              \
+             MinGW.cpp              \
+             Minix.cpp              \
+             MipsLinux.cpp          \
+             MSP430.cpp             \
+             MSVC.cpp               \
+             Myriad.cpp             \
+             NaCl.cpp               \
+             NetBSD.cpp             \
+             OpenBSD.cpp            \
+             PPCLinux.cpp           \
+             PS4CPU.cpp             \
+             RISCVToolchain.cpp     \
+             Solaris.cpp            \
+             TCE.cpp                \
+             WebAssembly.cpp        \
+             XCore.cpp)
+
+LIB_SRC += $(addprefix ToolChains/Arch/, \
+             AArch64.cpp                 \
+             ARM.cpp                     \
+             Mips.cpp                    \
+             PPC.cpp                     \
+             RISCV.cpp                   \
+             Sparc.cpp                   \
+             SystemZ.cpp                 \
+             X86.cpp)
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+
+$(BUILD_DIR)/lib/clangDriver.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

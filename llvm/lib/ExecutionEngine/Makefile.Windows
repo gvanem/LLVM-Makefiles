@@ -1,0 +1,161 @@
+#
+# GNU Makefile for 'llvm/lib/ExecutionEngine'.
+#
+TOP_DIR = ../../..
+
+VPATH = Interpreter     \
+        JITLink         \
+        MCJIT           \
+        OProfileJIT Orc \
+        OrcError        \
+        RuntimeDyld     \
+        RuntimeDyld/Targets
+
+TARGETS = $(BUILD_DIR)/lib/LLVMExecutionEngine.lib \
+          $(BUILD_DIR)/lib/LLVMInterpreter.lib     \
+          $(BUILD_DIR)/lib/LLVMJITLink.lib         \
+          $(BUILD_DIR)/lib/LLVMMCJIT.lib           \
+          $(BUILD_DIR)/lib/LLVMOrcJIT.lib          \
+          $(BUILD_DIR)/lib/LLVMOrcError.lib        \
+          $(BUILD_DIR)/lib/LLVMRuntimeDyld.lib
+
+#
+# Needs 'opagent.h' which is nowhere.
+#
+# TARGETS += $(BUILD_DIR)/lib/LLVMOProfileJIT.lib
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += $(TOP_DIR)/llvm/include/llvm/Config/AsmParsers.def    \
+             $(TOP_DIR)/llvm/include/llvm/Config/AsmPrinters.def   \
+             $(TOP_DIR)/llvm/include/llvm/Config/Disassemblers.def \
+             $(TOP_DIR)/llvm/include/llvm/Config/Targets.def
+
+ExecutionEngine_SRC = ExecutionEngine.cpp         \
+                      ExecutionEngineBindings.cpp \
+                      GDBRegistrationListener.cpp \
+                      SectionMemoryManager.cpp    \
+                      TargetSelect.cpp
+
+
+Interpreter_SRC = $(addprefix Interpreter/, \
+                    Execution.cpp           \
+                    ExternalFunctions.cpp   \
+                    Interpreter.cpp)
+
+JITLink_SRC = $(addprefix JITLink/,      \
+                JITLink.cpp              \
+                JITLinkGeneric.cpp       \
+                JITLinkMemoryManager.cpp \
+                EHFrameSupport.cpp       \
+                MachO.cpp                \
+                MachO_arm64.cpp          \
+                MachO_x86_64.cpp         \
+                MachOLinkGraphBuilder.cpp)
+
+MCJIT_SRC = MCJIT/MCJIT.cpp
+
+OProfileJIT_SRC = OProfileJIT/OProfileJITEventListener.cpp \
+                  OProfileJIT/OProfileWrapper.cpp
+
+OrcJIT_SRC = $(addprefix Orc/,              \
+               CompileOnDemandLayer.cpp     \
+               CompileUtils.cpp             \
+               Core.cpp                     \
+               ExecutionUtils.cpp           \
+               IndirectionUtils.cpp         \
+               IRCompileLayer.cpp           \
+               IRTransformLayer.cpp         \
+               JITTargetMachineBuilder.cpp  \
+               LazyReexports.cpp            \
+               Legacy.cpp                   \
+               Layer.cpp                    \
+               LLJIT.cpp                    \
+               NullResolver.cpp             \
+               ObjectLinkingLayer.cpp       \
+               ObjectTransformLayer.cpp     \
+               OrcABISupport.cpp            \
+               OrcCBindings.cpp             \
+               OrcMCJITReplacement.cpp      \
+               RTDyldObjectLinkingLayer.cpp \
+               SpeculateAnalyses.cpp        \
+               Speculation.cpp              \
+               ThreadSafeModule.cpp)
+
+OrcError_SRC = $(addprefix OrcError/, \
+                 OrcError.cpp         \
+                 RPCError.cpp)
+
+RuntimeDyld_SRC = $(addprefix RuntimeDyld/, \
+                    JITSymbol.cpp           \
+                    RTDyldMemoryManager.cpp \
+                    RuntimeDyld.cpp         \
+                    RuntimeDyldChecker.cpp  \
+                    RuntimeDyldCOFF.cpp     \
+                    RuntimeDyldELF.cpp      \
+                    RuntimeDyldMachO.cpp    \
+                    Targets/RuntimeDyldELFMips.cpp)
+
+ALL_SOURCES = $(ExecutionEngine_SRC) \
+              $(Interpreter_SRC)     \
+              $(JITLink_SRC)         \
+              $(MCJIT_SRC)           \
+              $(OProfileJIT_SRC)     \
+              $(OrcJIT_SRC)          \
+              $(OrcError_SRC)        \
+              $(RuntimeDyld_SRC)
+
+ExecutionEngine_OBJ = $(call cpp_to_obj, $(ExecutionEngine_SRC))
+Interpreter_OBJ     = $(call cpp_to_obj, $(Interpreter_SRC))
+JITLink_OBJ         = $(call cpp_to_obj, $(JITLink_SRC))
+MCJIT_OBJ           = $(call cpp_to_obj, $(MCJIT_SRC))
+OProfileJIT_OBJ     = $(call cpp_to_obj, $(OProfileJIT_SRC))
+OrcJIT_OBJ          = $(call cpp_to_obj, $(OrcJIT_SRC))
+OrcError_OBJ        = $(call cpp_to_obj, $(OrcError_SRC))
+RuntimeDyld_OBJ     = $(call cpp_to_obj, $(RuntimeDyld_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(ExecutionEngine_OBJ): $(ExecutionEngine_SRC)
+	$(call MP_compile, $(ExecutionEngine_SRC))
+
+$(Interpreter_OBJ): $(Interpreter_SRC)
+	$(call MP_compile, $(Interpreter_SRC))
+
+$(JITLink_OBJ): $(JITLink_SRC)
+	$(call MP_compile, $(JITLink_SRC))
+
+$(OrcJIT_OBJ): $(OrcJIT_SRC)
+	$(call MP_compile, $(OrcJIT_SRC))
+
+$(RuntimeDyld_OBJ): $(RuntimeDyld_SRC)
+	$(call MP_compile, $(RuntimeDyld_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMExecutionEngine.lib: $(ExecutionEngine_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMInterpreter.lib: $(Interpreter_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMJITLink.lib: $(JITLink_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMCJIT.lib: $(MCJIT_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMOProfileJIT.lib: $(OProfileJIT_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMOrcJIT.lib: $(OrcJIT_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMOrcError.lib: $(OrcError_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMRuntimeDyld.lib: $(RuntimeDyld_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

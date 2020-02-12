@@ -1,0 +1,39 @@
+#
+# GNU Makefile for 'llvm/lib/XRay'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMXRay.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = BlockIndexer.cpp       \
+          BlockPrinter.cpp       \
+          BlockVerifier.cpp      \
+          FDRRecordProducer.cpp  \
+          FDRRecords.cpp         \
+          FDRTraceExpander.cpp   \
+          FDRTraceWriter.cpp     \
+          FileHeaderReader.cpp   \
+          InstrumentationMap.cpp \
+          LogBuilderConsumer.cpp \
+          Profile.cpp            \
+          RecordInitializer.cpp  \
+          RecordPrinter.cpp      \
+          Trace.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMXRay.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

@@ -1,0 +1,36 @@
+#
+# GNU Makefile for 'llvm/lib/OptRemark'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMRemarks.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = BitstreamRemarkParser.cpp     \
+          BitstreamRemarkSerializer.cpp \
+          Remark.cpp                    \
+          RemarkFormat.cpp              \
+          RemarkLinker.cpp              \
+          RemarkParser.cpp              \
+          RemarkSerializer.cpp          \
+          RemarkStreamer.cpp            \
+          RemarkStringTable.cpp         \
+          YAMLRemarkParser.cpp          \
+          YAMLRemarkSerializer.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMRemarks.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

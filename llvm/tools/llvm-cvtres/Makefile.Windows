@@ -1,0 +1,48 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-cvtres'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-cvtres.exe
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += Opts.inc
+
+ALL_SOURCES = llvm-cvtres.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMOption.lib               \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-cvtres.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cvtres.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-cvtres.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-cvtres.exe, VFT_APP, Serialize .res files into .obj files.)
+
+Opts.inc: Opts.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
+
+-include .depend.Windows
+

@@ -1,0 +1,38 @@
+#
+# GNU Makefile for 'llvm/lib/TextAPI'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMTextAPI.lib
+VPATH   = ELF MachO
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = $(addprefix ELF/,     \
+                ELFStub.cpp         \
+                TBEHandler.cpp)     \
+                                    \
+              $(addprefix MachO/,   \
+                Architecture.cpp    \
+                ArchitectureSet.cpp \
+                InterfaceFile.cpp   \
+                PackedVersion.cpp   \
+                Platform.cpp        \
+                Symbol.cpp          \
+                Target.cpp          \
+                TextStub.cpp        \
+                TextStubCommon.cpp)
+
+LIB_OBJ = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/lib/LLVMTextAPI.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

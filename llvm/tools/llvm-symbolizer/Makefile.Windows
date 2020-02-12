@@ -1,0 +1,50 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-symbolizer'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-symbolizer.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-symbolizer.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMDebugInfoMSF.lib         \
+         LLVMDebugInfoPDB.lib         \
+         LLVMDemangle.lib             \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib              \
+         LLVMSymbolize.lib)
+
+#
+# External libraries needed.
+# See Commn.Windows for the 'DIA_LIB' value.
+#
+EX_LIBS = $(DIA_LIB)
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+EX_LIBS += advapi32.lib ole32.lib shell32.lib user32.lib
+
+$(BUILD_DIR)/bin/llvm-symbolizer.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-symbolizer.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-symbolizer.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-symbolizer.exe, VFT_APP, Address to symbol location tool.)
+
+-include .depend.Windows
+

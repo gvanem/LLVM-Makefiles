@@ -1,0 +1,26 @@
+#
+# GNU Makefile for 'llvm/lib/ToolDrivers/llvm-lib'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMLibDriver.lib
+
+GENERATED = Options.inc
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = LibDriver.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+Options.inc: Options.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
+
+$(BUILD_DIR)/lib/LLVMLibDriver.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

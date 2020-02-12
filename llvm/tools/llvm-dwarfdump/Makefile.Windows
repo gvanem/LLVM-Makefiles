@@ -1,0 +1,102 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-dwarfdump'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-dwarfdump.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-dwarfdump.cpp \
+              Statistics.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMObject.lib               \
+         LLVMMC.lib                   \
+         LLVMMCDisassembler.lib       \
+         LLVMMCParser.lib             \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMAArch64Info.lib          \
+          LLVMAMDGPUInfo.lib           \
+          LLVMARMInfo.lib              \
+          LLVMBPFInfo.lib              \
+          LLVMHexagonInfo.lib          \
+          LLVMLanaiInfo.lib            \
+          LLVMMipsInfo.lib             \
+          LLVMMSP430Info.lib           \
+          LLVMNVPTXInfo.lib            \
+          LLVMPowerPCInfo.lib          \
+          LLVMSparcInfo.lib            \
+          LLVMSystemZInfo.lib          \
+          LLVMWebAssemblyInfo.lib      \
+          LLVMX86Info.lib              \
+          LLVMXCoreInfo.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMAArch64Desc.lib          \
+          LLVMAMDGPUDesc.lib           \
+          LLVMARMDesc.lib              \
+          LLVMBPFDesc.lib              \
+          LLVMHexagonDesc.lib          \
+          LLVMLanaiDesc.lib            \
+          LLVMMipsDesc.lib             \
+          LLVMMSP430Desc.lib           \
+          LLVMNVPTXDesc.lib            \
+          LLVMPowerPCDesc.lib          \
+          LLVMSparcDesc.lib            \
+          LLVMSystemZDesc.lib          \
+          LLVMWebAssemblyDesc.lib      \
+          LLVMX86Desc.lib              \
+          LLVMXCoreDesc.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
+          LLVMAArch64Desc.lib           \
+          LLVMAMDGPUDesc.lib            \
+          LLVMARMDesc.lib               \
+          LLVMBPFDesc.lib               \
+          LLVMHexagonDesc.lib           \
+          LLVMLanaiDesc.lib             \
+          LLVMMipsDesc.lib              \
+          LLVMMSP430Desc.lib            \
+          LLVMNVPTXDesc.lib             \
+          LLVMPowerPCDesc.lib           \
+          LLVMSparcDesc.lib             \
+          LLVMSystemZDesc.lib           \
+          LLVMWebAssemblyDesc.lib       \
+          LLVMX86Desc.lib               \
+          LLVMXCoreDesc.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
+          LLVMAArch64Utils.lib          \
+          LLVMAMDGPUUtils.lib           \
+          LLVMARMUtils.lib              \
+          LLVMX86Utils.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-dwarfdump.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-dwarfdump.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-dwarfdump.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-dwarfdump.exe, VFT_APP, LLVM tool; Dwarf dumper.)
+
+-include .depend.Windows
+

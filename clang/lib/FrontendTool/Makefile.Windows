@@ -1,0 +1,34 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/FrontendTool'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangFrontendTool.lib
+
+include $(TOP_DIR)/Common.Windows
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/AST/DeclNodes.inc  \
+            $(CLANG_INC)/AST/StmtNodes.inc  \
+            $(CLANG_INC)/Basic/AttrList.inc \
+            $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
+
+LIB_SRC = ExecuteCompilerInvocation.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+$(BUILD_DIR)/lib/clangFrontendTool.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

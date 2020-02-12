@@ -1,0 +1,42 @@
+#
+# LLVM top-level makefile for 'lib'.
+#
+TOP_DIR = ../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, Analysis,                 $@)
+	$(call do_make, AsmParser,                $@)
+	$(call do_make, BinaryFormat,             $@)
+	$(call do_make, Bitcode,                  $@)
+	$(call do_make, Bitstream,                $@)
+	$(call do_make, CodeGen,                  $@)
+	$(call do_make, DebugInfo,                $@)
+	$(call do_make, Demangle,                 $@)
+	$(call do_make, ExecutionEngine,          $@)
+	$(call do_make, Frontend,                 $@)
+	$(call do_make, FuzzMutate,               $@)
+	$(call do_make, IR,                       $@)
+	$(call do_make, IRReader,                 $@)
+	$(call do_make, LineEditor,               $@)
+	$(call do_make, Linker,                   $@)
+	$(call do_make, LTO,                      $@)
+	$(call do_make, MC,                       $@)
+	$(call do_make, MCA,                      $@)
+	$(call do_make, Object,                   $@)
+	$(call do_make, ObjectYAML,               $@)
+	$(call do_make, Option,                   $@)
+	$(call do_make, Passes,                   $@)
+	$(call do_make, ProfileData,              $@)
+	$(call do_make, Remarks,                  $@)
+	$(call do_make, Support,                  $@)
+	$(call do_make, TableGen,                 $@)
+	$(call do_make, Target,                   $@)
+	$(call do_make, Testing,                  $@)
+	$(call do_make, TextAPI,                  $@)
+	$(call do_make, Transforms,               $@)
+	$(call do_make, ToolDrivers/llvm-dlltool, $@)
+	$(call do_make, ToolDrivers/llvm-lib,     $@)
+	$(call do_make, WindowsManifest,          $@)
+	$(call do_make, XRay,                     $@)

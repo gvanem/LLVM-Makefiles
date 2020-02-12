@@ -1,0 +1,44 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/InstCombine'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMInstCombine.lib
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += InstCombineTables.inc
+
+LIB_SRC = InstructionCombining.cpp        \
+          InstCombineAddSub.cpp           \
+          InstCombineAndOrXor.cpp         \
+          InstCombineAtomicRMW.cpp        \
+          InstCombineCalls.cpp            \
+          InstCombineCasts.cpp            \
+          InstCombineCompares.cpp         \
+          InstCombineLoadStoreAlloca.cpp  \
+          InstCombineMulDivRem.cpp        \
+          InstCombinePHI.cpp              \
+          InstCombineSelect.cpp           \
+          InstCombineShifts.cpp           \
+          InstCombineSimplifyDemanded.cpp \
+          InstCombineVectorOps.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMInstCombine.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+InstCombineTables.inc: InstCombineTables.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
+
+-include .depend.Windows
+

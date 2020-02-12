@@ -1,0 +1,30 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-cxxfilt'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-cxxfilt.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-cxxfilt.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMDemangle.lib             \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+$(BUILD_DIR)/bin/llvm-cxxfilt.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cxxfilt.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-cxxfilt.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-cxxfilt.exe, VFT_APP, LLVM symbol undecoration tool.)
+
+-include .depend.Windows
+

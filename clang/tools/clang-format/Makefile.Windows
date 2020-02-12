@@ -1,0 +1,40 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/clang-format'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/clang-format.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = ClangFormat.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangBasic.lib               \
+         clangFormat.lib              \
+         clangLex.lib                 \
+         clangRewrite.lib             \
+         clangToolingInclusions.lib   \
+         clangToolingCore.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMCore.lib                 \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib              \
+          LLVMBinaryFormat.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+$(BUILD_DIR)/bin/clang-format.exe: $(OBJECTS) $(OBJ_DIR)/clang-format.res $(LIBS)
+	 $(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-format.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-format.exe, VFT_APP, A tool to format C/C++/Java/JavaScript/Objective-C/Protobuf code.)
+
+-include .depend.Windows
+

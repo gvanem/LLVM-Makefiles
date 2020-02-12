@@ -1,0 +1,92 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/CodeGen'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangCodeGen.lib
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/AST/DeclNodes.inc \
+            $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = BackendUtil.cpp                      \
+          CGAtomic.cpp                         \
+          CGBlocks.cpp                         \
+          CGBuiltin.cpp                        \
+          CGCUDANV.cpp                         \
+          CGCUDARuntime.cpp                    \
+          CGCXX.cpp                            \
+          CGCXXABI.cpp                         \
+          CGCall.cpp                           \
+          CGClass.cpp                          \
+          CGCleanup.cpp                        \
+          CGCoroutine.cpp                      \
+          CGDebugInfo.cpp                      \
+          CGDecl.cpp                           \
+          CGDeclCXX.cpp                        \
+          CGException.cpp                      \
+          CGExpr.cpp                           \
+          CGExprAgg.cpp                        \
+          CGExprCXX.cpp                        \
+          CGExprComplex.cpp                    \
+          CGExprConstant.cpp                   \
+          CGExprScalar.cpp                     \
+          CGGPUBuiltin.cpp                     \
+          CGLoopInfo.cpp                       \
+          CGNonTrivialStruct.cpp               \
+          CGObjC.cpp                           \
+          CGObjCGNU.cpp                        \
+          CGObjCMac.cpp                        \
+          CGObjCRuntime.cpp                    \
+          CGOpenCLRuntime.cpp                  \
+          CGOpenMPRuntime.cpp                  \
+          CGOpenMPRuntimeNVPTX.cpp             \
+          CGRecordLayoutBuilder.cpp            \
+          CGStmt.cpp                           \
+          CGStmtOpenMP.cpp                     \
+          CGVTT.cpp                            \
+          CGVTables.cpp                        \
+          CodeGenABITypes.cpp                  \
+          CodeGenAction.cpp                    \
+          CodeGenFunction.cpp                  \
+          CodeGenModule.cpp                    \
+          CodeGenPGO.cpp                       \
+          CodeGenTBAA.cpp                      \
+          CodeGenTypes.cpp                     \
+          ConstantInitBuilder.cpp              \
+          CoverageMappingGen.cpp               \
+          ItaniumCXXABI.cpp                    \
+          MacroPPCallbacks.cpp                 \
+          MicrosoftCXXABI.cpp                  \
+          ModuleBuilder.cpp                    \
+          ObjectFilePCHContainerOperations.cpp \
+          PatternInit.cpp                      \
+          SanitizerMetadata.cpp                \
+          SwiftCallingConv.cpp                 \
+          TargetInfo.cpp                       \
+          VarBypassDetector.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangCodeGen.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

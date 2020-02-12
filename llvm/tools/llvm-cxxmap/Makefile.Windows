@@ -1,0 +1,30 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-cxxmap'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-cxxmap.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-cxxmap.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMDemangle.lib             \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+$(BUILD_DIR)/bin/llvm-cxxmap.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cxxmap.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-cxxmap.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-cxxmap.exe, VFT_APP, Computes a correspondence between old symbol names and new symbol names.)
+
+-include .depend.Windows
+

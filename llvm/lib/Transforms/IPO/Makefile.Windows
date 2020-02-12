@@ -1,0 +1,63 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/IPO'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMipo.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = AlwaysInliner.cpp              \
+          ArgumentPromotion.cpp          \
+          Attributor.cpp                 \
+          BarrierNoopPass.cpp            \
+          BlockExtractor.cpp             \
+          CalledValuePropagation.cpp     \
+          ConstantMerge.cpp              \
+          CrossDSOCFI.cpp                \
+          DeadArgumentElimination.cpp    \
+          ElimAvailExtern.cpp            \
+          ExtractGV.cpp                  \
+          ForceFunctionAttrs.cpp         \
+          FunctionAttrs.cpp              \
+          FunctionImport.cpp             \
+          GlobalDCE.cpp                  \
+          GlobalOpt.cpp                  \
+          GlobalSplit.cpp                \
+          HotColdSplitting.cpp           \
+          InferFunctionAttrs.cpp         \
+          Inliner.cpp                    \
+          InlineSimple.cpp               \
+          Internalize.cpp                \
+          IPConstantPropagation.cpp      \
+          IPO.cpp                        \
+          LoopExtractor.cpp              \
+          LowerTypeTests.cpp             \
+          MergeFunctions.cpp             \
+          OpenMPOpt.cpp                  \
+          PartialInlining.cpp            \
+          PassManagerBuilder.cpp         \
+          PruneEH.cpp                    \
+          SampleProfile.cpp              \
+          SCCP.cpp                       \
+          StripDeadPrototypes.cpp        \
+          StripSymbols.cpp               \
+          SyntheticCountsPropagation.cpp \
+          ThinLTOBitcodeWriter.cpp       \
+          WholeProgramDevirt.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMipo.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

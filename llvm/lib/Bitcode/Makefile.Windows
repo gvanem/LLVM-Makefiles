@@ -1,0 +1,44 @@
+#
+# GNU Makefile for 'llvm/lib/Bitcode'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMBitReader.lib \
+          $(BUILD_DIR)/lib/LLVMBitWriter.lib
+
+VPATH  = Reader Writer
+
+include $(TOP_DIR)/Common.Windows
+
+Reader_LIB_SRC = $(addprefix Reader/,  \
+                   BitcodeAnalyzer.cpp \
+                   BitcodeReader.cpp   \
+                   BitReader.cpp       \
+                   MetadataLoader.cpp  \
+                   ValueList.cpp)
+
+Writer_LIB_SRC = $(addprefix Writer/,    \
+                   BitcodeWriter.cpp     \
+                   BitcodeWriterPass.cpp \
+                   BitWriter.cpp         \
+                   ValueEnumerator.cpp)
+
+ALL_SOURCES = $(Reader_LIB_SRC) $(Writer_LIB_SRC)
+
+Reader_LIB_OBJ = $(call cpp_to_obj, $(Reader_LIB_SRC))
+Writer_LIB_OBJ = $(call cpp_to_obj, $(Writer_LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(Reader_LIB_OBJ) $(Writer_LIB_OBJ): $(Reader_LIB_SRC) $(Writer_LIB_SRC)
+	$(call MP_compile, $(Reader_LIB_SRC) $(Writer_LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMBitReader.lib: $(Reader_LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBitWriter.lib: $(Writer_LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

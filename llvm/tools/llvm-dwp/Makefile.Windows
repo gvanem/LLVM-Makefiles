@@ -1,0 +1,127 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-dwp'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-dwp.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = DWPError.cpp \
+              llvm-dwp.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         LLVMAArch64CodeGen.lib        \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Info.lib           \
+         LLVMAArch64Utils.lib          \
+         LLVMAMDGPUCodeGen.lib         \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUInfo.lib            \
+         LLVMAMDGPUUtils.lib           \
+         LLVMAsmParser.lib             \
+         LLVMARMCodeGen.lib            \
+         LLVMARMDesc.lib               \
+         LLVMARMDesc.lib               \
+         LLVMARMInfo.lib               \
+         LLVMARMUtils.lib              \
+         LLVMAggressiveInstCombine.lib \
+         LLVMAnalysis.lib              \
+         LLVMAsmPrinter.lib            \
+         LLVMBPFCodeGen.lib            \
+         LLVMBPFDesc.lib               \
+         LLVMBPFDesc.lib               \
+         LLVMBPFInfo.lib               \
+         LLVMBinaryFormat.lib          \
+         LLVMBitReader.lib             \
+         LLVMBitstreamReader.lib       \
+         LLVMCodeGen.lib               \
+         LLVMCore.lib                  \
+         LLVMDebugInfoCodeView.lib     \
+         LLVMDebugInfoDwarf.lib        \
+         LLVMDemangle.lib              \
+         LLVMGlobalISel.lib            \
+         LLVMHexagonCodeGen.lib        \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonInfo.lib           \
+         LLVMInstCombine.lib           \
+         LLVMInstrumentation.lib       \
+         LLVMLanaiCodeGen.lib          \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiInfo.lib             \
+         LLVMMIRParser.lib             \
+         LLVMMC.lib                    \
+         LLVMMCDisassembler.lib        \
+         LLVMMCParser.lib              \
+         LLVMMSP430CodeGen.lib         \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Info.lib            \
+         LLVMMipsCodeGen.lib           \
+         LLVMMipsDesc.lib              \
+         LLVMMipsDesc.lib              \
+         LLVMMipsInfo.lib              \
+         LLVMNVPTXCodeGen.lib          \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXInfo.lib             \
+         LLVMObject.lib                \
+         LLVMPowerPCCodeGen.lib        \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCInfo.lib           \
+         LLVMProfileData.lib           \
+         LLVMRemarks.lib               \
+         LLVMScalarOpts.lib            \
+         LLVMSelectionDAG.lib          \
+         LLVMSparcCodeGen.lib          \
+         LLVMSparcDesc.lib             \
+         LLVMSparcDesc.lib             \
+         LLVMSparcInfo.lib             \
+         LLVMSupport.lib               \
+         LLVMSystemZCodeGen.lib        \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZInfo.lib           \
+         LLVMTarget.lib                \
+         LLVMTransformUtils.lib        \
+         LLVMVectorize.lib             \
+         LLVMWebAssemblyCodeGen.lib    \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyInfo.lib       \
+         LLVMX86CodeGen.lib            \
+         LLVMX86Desc.lib               \
+         LLVMX86Desc.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Utils.lib              \
+         LLVMXCoreCodeGen.lib          \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreInfo.lib             \
+         LLVMipo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-dwp.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-dwp.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-dwp.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-dwp.exe, VFT_APP, LLVM tool; Dwarf split tool.)
+
+-include .depend.Windows
+

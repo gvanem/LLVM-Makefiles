@@ -1,0 +1,100 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/Scalar'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMScalarOpts.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = ADCE.cpp                           \
+          AlignmentFromAssumptions.cpp       \
+          BDCE.cpp                           \
+          CallSiteSplitting.cpp              \
+          ConstantHoisting.cpp               \
+          ConstantProp.cpp                   \
+          CorrelatedValuePropagation.cpp     \
+          DCE.cpp                            \
+          DeadStoreElimination.cpp           \
+          DivRemPairs.cpp                    \
+          EarlyCSE.cpp                       \
+          FlattenCFGPass.cpp                 \
+          Float2Int.cpp                      \
+          GuardWidening.cpp                  \
+          GVN.cpp                            \
+          GVNHoist.cpp                       \
+          GVNSink.cpp                        \
+          IVUsersPrinter.cpp                 \
+          InductiveRangeCheckElimination.cpp \
+          IndVarSimplify.cpp                 \
+          InferAddressSpaces.cpp             \
+          InstSimplifyPass.cpp               \
+          JumpThreading.cpp                  \
+          LICM.cpp                           \
+          LoopAccessAnalysisPrinter.cpp      \
+          LoopFuse.cpp                       \
+          LoopSink.cpp                       \
+          LoopDeletion.cpp                   \
+          LoopDataPrefetch.cpp               \
+          LoopDistribute.cpp                 \
+          LoopIdiomRecognize.cpp             \
+          LoopInstSimplify.cpp               \
+          LoopInterchange.cpp                \
+          LoopLoadElimination.cpp            \
+          LoopPassManager.cpp                \
+          LoopPredication.cpp                \
+          LoopRerollPass.cpp                 \
+          LoopRotation.cpp                   \
+          LoopSimplifyCFG.cpp                \
+          LoopStrengthReduce.cpp             \
+          LoopUnrollPass.cpp                 \
+          LoopUnrollAndJamPass.cpp           \
+          LoopUnswitch.cpp                   \
+          LoopVersioningLICM.cpp             \
+          LowerAtomic.cpp                    \
+          LowerConstantIntrinsics.cpp        \
+          LowerExpectIntrinsic.cpp           \
+          LowerGuardIntrinsic.cpp            \
+          LowerMatrixIntrinsics.cpp          \
+          LowerWidenableCondition.cpp        \
+          MakeGuardsExplicit.cpp             \
+          MemCpyOptimizer.cpp                \
+          MergeICmps.cpp                     \
+          MergedLoadStoreMotion.cpp          \
+          NaryReassociate.cpp                \
+          NewGVN.cpp                         \
+          PartiallyInlineLibCalls.cpp        \
+          PlaceSafepoints.cpp                \
+          Reassociate.cpp                    \
+          Reg2Mem.cpp                        \
+          RewriteStatepointsForGC.cpp        \
+          SCCP.cpp                           \
+          SROA.cpp                           \
+          Scalar.cpp                         \
+          Scalarizer.cpp                     \
+          SeparateConstOffsetFromGEP.cpp     \
+          SimpleLoopUnswitch.cpp             \
+          SimplifyCFGPass.cpp                \
+          Sink.cpp                           \
+          SpeculativeExecution.cpp           \
+          SpeculateAroundPHIs.cpp            \
+          StraightLineStrengthReduce.cpp     \
+          StructurizeCFG.cpp                 \
+          TailRecursionElimination.cpp       \
+          WarnMissedTransforms.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMScalarOpts.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

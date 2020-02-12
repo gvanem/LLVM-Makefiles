@@ -1,0 +1,48 @@
+#
+# GNU Makefile for 'llvm/lib/ProfileData'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMProfileData.lib \
+          $(BUILD_DIR)/lib/LLVMCoverage.lib
+
+include $(TOP_DIR)/Common.Windows
+
+VPATH = Coverage
+
+ProfileData_SRC = GCOV.cpp                  \
+                  InstrProf.cpp             \
+                  InstrProfReader.cpp       \
+                  InstrProfWriter.cpp       \
+                  ProfileSummaryBuilder.cpp \
+                  SampleProf.cpp            \
+                  SampleProfReader.cpp      \
+                  SampleProfWriter.cpp
+
+Coverage_SRC = $(addprefix Coverage/,      \
+                 CoverageMapping.cpp       \
+                 CoverageMappingWriter.cpp \
+                 CoverageMappingReader.cpp)
+
+ALL_SOURCES = $(Coverage_SRC) $(ProfileData_SRC)
+
+Coverage_OBJ    = $(call cpp_to_obj, $(Coverage_SRC))
+ProfileData_OBJ = $(call cpp_to_obj, $(ProfileData_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(Coverage_OBJ): $(Coverage_SRC)
+	$(call MP_compile, $(Coverage_SRC))
+
+$(ProfileData_OBJ): $(ProfileData_SRC)
+	$(call MP_compile, $(ProfileData_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMProfileData.lib: $(ProfileData_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMCoverage.lib: $(Coverage_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

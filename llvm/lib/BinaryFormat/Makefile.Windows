@@ -1,0 +1,35 @@
+#
+# GNU Makefile for 'llvm/lib/BinaryFormat'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMBinaryFormat.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = AMDGPUMetadataVerifier.cpp \
+          Dwarf.cpp                  \
+          Magic.cpp                  \
+          Minidump.cpp               \
+          MsgPackDocument.cpp        \
+          MsgPackDocumentYAML.cpp    \
+          MsgPackReader.cpp          \
+          MsgPackWriter.cpp          \
+          Wasm.cpp                   \
+          XCOFF.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMBinaryFormat.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

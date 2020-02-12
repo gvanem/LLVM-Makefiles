@@ -1,0 +1,32 @@
+#
+# GNU Makefile for 'llvm/lib/Testing'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMTestingSupport.lib
+VPATH   = Support
+
+include $(TOP_DIR)/Common.Windows
+
+EXTRA_CFLAGS  = -I$(TOP_DIR)/llvm/utils/unittest/googlemock/include \
+                -I$(TOP_DIR)/llvm/utils/unittest/googletest/include \
+                -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
+ALL_SOURCES = $(addprefix Support/, \
+                Annotations.cpp     \
+                Error.cpp           \
+                SupportHelpers.cpp)
+
+LIB_OBJ = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/lib/LLVMTestingSupport.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

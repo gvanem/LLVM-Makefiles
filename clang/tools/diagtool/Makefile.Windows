@@ -1,0 +1,66 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/diagtool'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/diagtool.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = diagtool_main.cpp       \
+              DiagTool.cpp            \
+              DiagnosticNames.cpp     \
+              FindDiagnosticID.cpp    \
+              ListWarnings.cpp        \
+              ShowEnabledWarnings.cpp \
+              TreeView.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         clangAST.lib                  \
+         clangAnalysis.lib             \
+         clangBasic.lib                \
+         clangDriver.lib               \
+         clangEdit.lib                 \
+         clangFrontend.lib             \
+         clangLex.lib                  \
+         clangParse.lib                \
+         clangSema.lib                 \
+         clangSerialization.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMBitstreamReader.lib      \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMOption.lib               \
+          LLVMBinaryFormat.lib         \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib              \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMProfileData.lib)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/diagtool.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/diagtool.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/diagtool.rc: $(MDEPEND)
+	$(call make_rc, $@, diagtool.exe, VFT_APP, Some mysterious diagnostics tool.)
+
+-include .depend.Windows
+

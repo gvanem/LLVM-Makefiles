@@ -1,0 +1,34 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/ObjCARC'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMObjCARCOpts.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = ObjCARC.cpp                     \
+          ObjCARCOpts.cpp                 \
+          ObjCARCExpand.cpp               \
+          ObjCARCAPElim.cpp               \
+          ObjCARCContract.cpp             \
+          DependencyAnalysis.cpp          \
+          ProvenanceAnalysis.cpp          \
+          ProvenanceAnalysisEvaluator.cpp \
+          PtrState.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMObjCARCOpts.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

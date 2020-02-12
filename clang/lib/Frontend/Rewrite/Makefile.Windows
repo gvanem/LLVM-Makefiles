@@ -1,0 +1,43 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/Frontend/Rewrite'.
+#
+TOP_DIR = ../../../../..
+TARGETS = $(BUILD_DIR)/lib/clangRewriteFrontend.lib
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = FixItRewriter.cpp     \
+          FrontendActions.cpp   \
+          HTMLPrint.cpp         \
+          InclusionRewriter.cpp \
+          RewriteMacros.cpp     \
+          RewriteModernObjC.cpp \
+          RewriteObjC.cpp       \
+          RewriteTest.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangRewriteFrontend.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

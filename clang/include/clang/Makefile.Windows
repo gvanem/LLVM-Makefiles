@@ -1,0 +1,261 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/include/clang'.
+#
+TOP_DIR = ../../../..
+
+INC_FILES = $(addprefix AST/,                         \
+              Attrs.inc                               \
+              AttrImpl.inc                            \
+              AttrNodeTraverse.inc                    \
+              AttrTextNodeDump.inc                    \
+              AttrVisitor.inc                         \
+              CommentCommandInfo.inc                  \
+              CommentCommandList.inc                  \
+              CommentHTMLNamedCharacterReferences.inc \
+              CommentHTMLTags.inc                     \
+              CommentHTMLTagsProperties.inc           \
+              CommentNodes.inc                        \
+              DeclNodes.inc                           \
+              StmtDataCollectors.inc                  \
+              StmtNodes.inc)
+
+# INC_FILES += AST/AttrDump.inc
+
+INC_FILES += $(addprefix Basic/,                \
+               arm_fp16.inc                     \
+               arm_neon.inc                     \
+               AttrList.inc                     \
+               AttrSubMatchRulesList.inc        \
+               AttrHasAttributeImpl.inc         \
+               DiagnosticAnalysisKinds.inc      \
+               DiagnosticCommonKinds.inc        \
+               DiagnosticCrossTUKinds.inc       \
+               DiagnosticDriverKinds.inc        \
+               DiagnosticGroups.inc             \
+               DiagnosticIndexName.inc          \
+               DiagnosticLexKinds.inc           \
+               DiagnosticParseKinds.inc         \
+               DiagnosticRefactoringKinds.inc   \
+               DiagnosticSemaKinds.inc          \
+               DiagnosticSerializationKinds.inc \
+               Version.inc)
+
+INC_FILES += Basic/DiagnosticASTKinds.inc     \
+             Basic/DiagnosticCommentKinds.inc \
+             Basic/DiagnosticFrontendKinds.inc
+
+INC_FILES += Driver/Options.inc
+
+INC_FILES += $(addprefix Parse/,            \
+               AttrParserStringSwitches.inc \
+               AttrSubMatchRulesParserStringSwitches.inc)
+
+INC_FILES += $(addprefix Sema/,            \
+               AttrTemplateInstantiate.inc \
+               AttrParsedAttrList.inc      \
+               AttrParsedAttrKinds.inc     \
+               AttrSpellingListIndex.inc   \
+               AttrParsedAttrImpl.inc)
+
+INC_FILES += $(addprefix Serialization/, \
+               AttrPCHRead.inc           \
+               AttrPCHWrite.inc)
+
+INC_FILES += StaticAnalyzer/Checkers/Checkers.inc
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED = Config/config.h \
+            $(INC_FILES)
+
+all: $(GENERATED)
+
+$(INC_FILES):       $(BUILD_DIR)/bin/clang-tblgen.exe $(MDEPEND)
+Driver/Options.inc: $(BUILD_DIR)/bin/llvm-tblgen.exe  $(MDEPEND)
+
+AST/Attrs.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-classes -I./Basic $<)
+
+AST/AttrDump.inc: Basic/Attr.td
+	$(call clang_tblgen,$@, -gen-clang-attr-dump -I./Basic $<)
+
+AST/AttrImpl.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-impl -I./Basic $<)
+
+AST/AttrNodeTraverse.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-node-traverse -I./Basic $<)
+
+AST/AttrTextNodeDump.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-text-node-dump -I./Basic $<)
+
+AST/AttrVisitor.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-ast-visitor -I./Basic $<)
+
+AST/CommentCommandInfo.inc: AST/CommentCommands.td
+	$(call clang_tblgen, $@, -gen-clang-comment-command-info -I./Basic $<)
+
+AST/CommentCommandList.inc: AST/CommentCommands.td
+	$(call clang_tblgen, $@, -gen-clang-comment-command-list -I./Basic $<)
+
+AST/CommentNodes.inc: Basic/CommentNodes.td
+	$(call clang_tblgen, $@, -gen-clang-comment-nodes -I./Basic $<)
+
+AST/CommentHTMLTags.inc: AST/CommentHTMLTags.td
+	$(call clang_tblgen, $@, -gen-clang-comment-html-tags -I./Basic $<)
+
+AST/CommentHTMLTagsProperties.inc: AST/CommentHTMLTags.td
+	$(call clang_tblgen, $@, -gen-clang-comment-html-tags-properties -I./Basic $<)
+
+AST/CommentHTMLNamedCharacterReferences.inc: AST/CommentHTMLNamedCharacterReferences.td
+	$(call clang_tblgen, $@, -gen-clang-comment-html-named-character-references -I./Basic $<)
+
+AST/DeclNodes.inc: Basic/DeclNodes.td
+	$(call clang_tblgen, $@, -gen-clang-decl-nodes -I./Basic $<)
+
+AST/StmtDataCollectors.inc: AST/StmtDataCollectors.td
+	$(call clang_tblgen, $@, -gen-clang-data-collectors -I./Basic $<)
+
+AST/StmtNodes.inc: Basic/StmtNodes.td
+	$(call clang_tblgen, $@, -gen-clang-stmt-nodes -I./Basic $<)
+
+Basic/arm_fp16.inc: Basic/arm_fp16.td
+	$(call clang_tblgen, $@, -gen-arm-neon-sema -I./Basic $<)
+
+Basic/arm_neon.inc: Basic/arm_neon.td
+	$(call clang_tblgen, $@, -gen-arm-neon-sema -I./Basic $<)
+
+Basic/AttrList.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-list -I./Basic $<)
+
+Basic/AttrSubMatchRulesList.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-subject-match-rule-list -I./Basic $<)
+
+Basic/AttrHasAttributeImpl.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-has-attribute-impl -I./Basic $<)
+
+Basic/DiagnosticCommonKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Common -I./Basic $<)
+
+Basic/DiagnosticCrossTUKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=CrossTU -I./Basic $<)
+
+Basic/DiagnosticDriverKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Driver -I./Basic $<)
+
+Basic/DiagnosticGroups.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diag-groups -I./Basic $<)
+
+Basic/DiagnosticAnalysisKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Analysis -I./Basic $<)
+
+Basic/DiagnosticASTKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=AST -I./Basic $<)
+
+Basic/DiagnosticCommentKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Comment -I./Basic $<)
+
+Basic/DiagnosticFrontendKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Frontend -I./Basic $<)
+
+Basic/DiagnosticIndexName.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-index-name -I./Basic $<)
+
+Basic/DiagnosticLexKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Lex -I./Basic $<)
+
+Basic/DiagnosticParseKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Parse -I./Basic $<)
+
+Basic/DiagnosticRefactoringKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Refactoring -I./Basic $<)
+
+Basic/DiagnosticSemaKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Sema -I./Basic $<)
+
+Basic/DiagnosticSerializationKinds.inc: Basic/Diagnostic.td
+	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Serialization -I./Basic $<)
+
+Driver/Options.inc: Driver/Options.td
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs -I./Driver $<)
+
+Parse/AttrParserStringSwitches.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-parser-string-switches -I./Basic $<)
+
+Parse/AttrSubMatchRulesParserStringSwitches.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-subject-match-rules-parser-string-switches -I./Basic $<)
+
+Sema/AttrTemplateInstantiate.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-template-instantiate -I./Basic $<)
+
+Sema/AttrParsedAttrList.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-parsed-attr-list -I./Basic $<)
+
+Sema/AttrParsedAttrKinds.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-parsed-attr-kinds -I./Basic $<)
+
+Sema/AttrSpellingListIndex.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-spelling-index -I./Basic $<)
+
+Sema/AttrParsedAttrImpl.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-parsed-attr-impl -I./Basic $<)
+
+Serialization/AttrPCHRead.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-pch-read -I./Basic $<)
+
+Serialization/AttrPCHWrite.inc: Basic/Attr.td
+	$(call clang_tblgen, $@, -gen-clang-attr-pch-write -I./Basic $<)
+
+StaticAnalyzer/Checkers/Checkers.inc: StaticAnalyzer/Checkers/Checkers.td
+	$(call clang_tblgen, $@, -gen-clang-sa-checkers -I./StaticAnalyzer/Checkers -I./Basic $<)
+
+#######################################################################################
+
+Basic/Version.inc: $(MDEPEND)
+	$(call Generating, $@, //)
+	$(file >> $@,$(Basic_Version_INC))
+
+define Basic_Version_INC
+  #define CLANG_VERSION            $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)
+  #define CLANG_VERSION_STRING    "$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)"
+  #define CLANG_VERSION_MAJOR      $(VER_MAJOR)
+  #define CLANG_VERSION_MINOR      $(VER_MINOR)
+  #define CLANG_VERSION_PATCHLEVEL $(VER_MICRO)
+endef
+
+Config/config.h: $(MDEPEND)
+	$(call Generating, $@, //)
+	$(file >> $@,$(clang_config_H))
+
+define clang_config_H
+  #ifdef CLANG_CONFIG_H
+    #error "$(realpath ./Config/config.h) can only be included once."
+
+  #else /* Rest of file */
+  #define CLANG_CONFIG_H
+
+  #define CLANG_DEFAULT_LINKER                ""
+  #define CLANG_DEFAULT_CXX_STDLIB            ""
+  #define CLANG_DEFAULT_RTLIB                 ""
+  #define CLANG_DEFAULT_OBJCOPY               "objcopy"
+  #define CLANG_DEFAULT_OPENMP_RUNTIME        "libomp"
+  #define CLANG_OPENMP_NVPTX_DEFAULT_ARCH     "sm_35"
+  #define CLANG_LIBDIR_SUFFIX                  ""
+  #define CLANG_RESOURCE_DIR                   ""
+  #define C_INCLUDE_DIRS                       ""
+  #define DEFAULT_SYSROOT                      ""
+  #define GCC_INSTALL_PREFIX                   ""
+//#define CLANG_HAVE_LIBXML                    1
+
+  #define ENABLE_X86_RELAX_RELOCATIONS         0
+  #define ENABLE_EXPERIMENTAL_NEW_PASS_MANAGER 0
+
+  #define CLANG_ENABLE_ARCMT                   1
+  #define CLANG_ENABLE_OBJC_REWRITER           1
+  #define CLANG_ENABLE_STATIC_ANALYZER         1
+
+  #define BUG_REPORT_URL           "https://bugs.llvm.org/"
+  #define BACKEND_PACKAGE_STRING   "LLVM $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
+
+  #endif  /* CLANG_CONFIG_H */
+endef
+

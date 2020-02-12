@@ -1,0 +1,34 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-dis'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-dis.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-dis.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+$(BUILD_DIR)/bin/llvm-dis.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-dis.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-dis.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-dis.exe, VFT_APP, LLVM bitcode disassembler.)
+
+-include .depend.Windows
+

@@ -1,0 +1,37 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/Vectorize'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMVectorize.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = LoadStoreVectorizer.cpp       \
+          LoopVectorizationLegality.cpp \
+          LoopVectorize.cpp             \
+          SLPVectorizer.cpp             \
+          VectorCombine.cpp             \
+          Vectorize.cpp                 \
+          VPlan.cpp                     \
+          VPlanHCFGBuilder.cpp          \
+          VPlanPredicator.cpp           \
+          VPlanSLP.cpp                  \
+          VPlanTransforms.cpp           \
+          VPlanVerifier.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMVectorize.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

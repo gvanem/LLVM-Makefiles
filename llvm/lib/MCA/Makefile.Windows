@@ -1,0 +1,50 @@
+#
+# GNU Makefile for 'llvm/lib/MCA'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMMCA.lib
+VPATH   = HardwareUnits Stages
+
+include $(TOP_DIR)/Common.Windows
+
+MCA_SRC = CodeEmitter.cpp     \
+          Context.cpp         \
+          HWEventListener.cpp \
+          InstrBuilder.cpp    \
+          Instruction.cpp     \
+          Pipeline.cpp        \
+          Support.cpp
+
+MCA_SRC += $(addprefix HardwareUnits/, \
+             HardwareUnit.cpp          \
+             LSUnit.cpp                \
+             RegisterFile.cpp          \
+             ResourceManager.cpp       \
+             RetireControlUnit.cpp     \
+             Scheduler.cpp)
+
+MCA_SRC += $(addprefix Stages/,     \
+             DispatchStage.cpp      \
+             EntryStage.cpp         \
+             ExecuteStage.cpp       \
+             InstructionTables.cpp  \
+             MicroOpQueueStage.cpp  \
+             RetireStage.cpp        \
+             Stage.cpp)
+
+ALL_SOURCES = $(MCA_SRC)
+
+MCA_OBJ = $(call cpp_to_obj, $(MCA_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(MCA_OBJ): $(MCA_SRC)
+	$(call MP_compile, $(MCA_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMMCA.lib: $(MCA_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

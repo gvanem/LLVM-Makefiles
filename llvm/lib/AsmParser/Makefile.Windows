@@ -1,0 +1,28 @@
+#
+# GNU Makefile for 'llvm/lib/AsmParser'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMAsmParser.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = LLLexer.cpp  \
+          LLParser.cpp \
+          Parser.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMAsmParser.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

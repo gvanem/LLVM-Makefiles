@@ -1,0 +1,49 @@
+#
+# GNU Makefile for 'llvm/tools/yaml2obj'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/yaml2obj.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = yaml2obj.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMMCParser.lib             \
+         LLVMMC.lib                   \
+         LLVMObject.lib               \
+         LLVMObjectYAML.lib           \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS = $(ZLIB_LIB)
+endif
+
+EX_LIBS += shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/yaml2obj.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/yaml2obj.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/yaml2obj.rc: $(MDEPEND)
+	$(call make_rc, $@, yaml2obj.exe, VFT_APP, LLVM tool; YAML to binary converter.)
+
+-include .depend.Windows
+

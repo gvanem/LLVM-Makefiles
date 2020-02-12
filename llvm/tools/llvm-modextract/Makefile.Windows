@@ -1,0 +1,45 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-modextract'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-modextract.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-modextract.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAnalysis.lib             \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMBitReader.lib            \
+         LLVMBitWriter.lib            \
+         LLVMCore.lib                 \
+         LLVMDemangle.lib             \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-modextract.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-modextract.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-modextract.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-modextract.exe, VFT_APP, LLVM tool; multi-module bitcode file extractor.)
+
+-include .depend.Windows
+

@@ -1,0 +1,199 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/libclang'.
+#
+TOP_DIR = ../../../..
+
+TARGETS = $(BUILD_DIR)/bin/libclang.dll \
+          $(BUILD_DIR)/lib/libclang.lib
+
+include $(TOP_DIR)/Common.Windows
+
+#
+# Since we will 'dllexport' from these .cpp-files.
+# Ref:
+#   '$(TOP_DIR)/tools/Clang/include/clang-c/Platform.h'.
+#
+CFLAGS += -D_CINDEX_LIB_
+
+ALL_SOURCES = ARCMigrate.cpp            \
+              BuildSystem.cpp           \
+              CIndex.cpp                \
+              CIndexCodeCompletion.cpp  \
+              CIndexCXX.cpp             \
+              CIndexDiagnostic.cpp      \
+              CIndexer.cpp              \
+              CIndexHigh.cpp            \
+              CIndexInclusionStack.cpp  \
+              CIndexUSRs.cpp            \
+              CXComment.cpp             \
+              CXCompilationDatabase.cpp \
+              CXCursor.cpp              \
+              CXIndexDataConsumer.cpp   \
+              CXLoadedDiagnostic.cpp    \
+              CXSourceLocation.cpp      \
+              CXStoredDiagnostic.cpp    \
+              CXString.cpp              \
+              CXType.cpp                \
+              Indexing.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+#
+# Internal libraries needed here:
+#
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         LLVMAArch64AsmParser.lib      \
+         LLVMAArch64CodeGen.lib        \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Info.lib           \
+         LLVMAArch64Utils.lib          \
+         LLVMAMDGPUAsmParser.lib       \
+         LLVMAMDGPUCodeGen.lib         \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUInfo.lib            \
+         LLVMAMDGPUUtils.lib           \
+         LLVMARMAsmParser.lib          \
+         LLVMARMCodeGen.lib            \
+         LLVMARMDesc.lib               \
+         LLVMARMInfo.lib               \
+         LLVMARMUtils.lib              \
+         LLVMAggressiveInstCombine.lib \
+         LLVMAnalysis.lib              \
+         LLVMAsmParser.lib             \
+         LLVMAsmPrinter.lib            \
+         LLVMBPFAsmParser.lib          \
+         LLVMBPFCodeGen.lib            \
+         LLVMBPFDesc.lib               \
+         LLVMBPFInfo.lib               \
+         LLVMBinaryFormat.lib          \
+         LLVMBitReader.lib             \
+         LLVMBitstreamReader.lib       \
+         LLVMCodeGen.lib               \
+         LLVMCore.lib                  \
+         LLVMDebugInfoCodeView.lib     \
+         LLVMDebugInfoDwarf.lib        \
+         LLVMDemangle.lib              \
+         LLVMGlobalISel.lib            \
+         LLVMHexagonAsmParser.lib      \
+         LLVMHexagonCodeGen.lib        \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonInfo.lib           \
+         LLVMInstCombine.lib           \
+         LLVMInstrumentation.lib       \
+         LLVMLanaiAsmParser.lib        \
+         LLVMLanaiCodeGen.lib          \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiInfo.lib             \
+         LLVMMC.lib                    \
+         LLVMMCDisassembler.lib        \
+         LLVMMCParser.lib              \
+         LLVMMIRParser.lib             \
+         LLVMMSP430AsmParser.lib       \
+         LLVMMSP430CodeGen.lib         \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Info.lib            \
+         LLVMMipsAsmParser.lib         \
+         LLVMMipsCodeGen.lib           \
+         LLVMMipsDesc.lib              \
+         LLVMMipsInfo.lib              \
+         LLVMNVPTXCodeGen.lib          \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXInfo.lib             \
+         LLVMObject.lib                \
+         LLVMOption.lib                \
+         LLVMPowerPCAsmParser.lib      \
+         LLVMPowerPCCodeGen.lib        \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCInfo.lib           \
+         LLVMProfileData.lib           \
+         LLVMRemarks.lib               \
+         LLVMScalarOpts.lib            \
+         LLVMSelectionDAG.lib          \
+         LLVMSparcAsmParser.lib        \
+         LLVMSparcCodeGen.lib          \
+         LLVMSparcDesc.lib             \
+         LLVMSparcInfo.lib             \
+         LLVMSupport.lib               \
+         LLVMSystemZAsmParser.lib      \
+         LLVMSystemZCodeGen.lib        \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZInfo.lib           \
+         LLVMTarget.lib                \
+         LLVMTransformUtils.lib        \
+         LLVMVectorize.lib             \
+         LLVMWebAssemblyAsmParser.lib  \
+         LLVMWebAssemblyCodeGen.lib    \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyInfo.lib       \
+         LLVMX86AsmParser.lib          \
+         LLVMX86CodeGen.lib            \
+         LLVMX86Desc.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Utils.lib              \
+         LLVMXCoreCodeGen.lib          \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreInfo.lib             \
+         LLVMipo.lib                   \
+         clangARCMigrate.lib           \
+         clangAST.lib                  \
+         clangASTMatchers.lib          \
+         clangAnalysis.lib             \
+         clangBasic.lib                \
+         clangDriver.lib               \
+         clangEdit.lib                 \
+         clangFormat.lib               \
+         clangFrontend.lib             \
+         clangIndex.lib                \
+         clangLex.lib                  \
+         clangParse.lib                \
+         clangRewrite.lib              \
+         clangSema.lib                 \
+         clangSerialization.lib        \
+         clangTooling.lib              \
+         clangToolingCore.lib          \
+         clangToolingInclusions.lib)
+
+#
+# External libraries needed here:
+# Needed in 'clangDriver.lib(MSVC.obj)'
+#
+EX_LIBS = version.lib
+
+#
+# Needed in 'LLVMSupport.lib(Path.obj)'
+#
+EX_LIBS += shell32.lib
+
+#
+# Needed in 'LLVMSupport.lib(Path.obj)'
+#           'clangDriver.lib(MSVC.obj)'
+#           'LLVMSupport.lib(COM.obj)'
+#
+EX_LIBS += ole32.lib
+
+#
+# Needed in 'LLVMSupport.lib(Signals.obj)'
+#
+EX_LIBS += advapi32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/lib/libclang.lib: $(BUILD_DIR)/bin/libclang.dll
+
+$(BUILD_DIR)/bin/libclang.dll: $(OBJECTS) $(OBJ_DIR)/libclang.res $(LIBS)
+	$(call link_DLL, $@, $(BUILD_DIR)/lib/libclang.lib, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/libclang.rc: $(MDEPEND)
+	$(call make_rc, $@, libclang.dll, VFT_DLL, The clang DLL.)
+
+-include .depend.Windows
+

@@ -1,0 +1,43 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/Instrumentation'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMInstrumentation.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = AddressSanitizer.cpp       \
+          BoundsChecking.cpp         \
+          CGProfile.cpp              \
+          ControlHeightReduction.cpp \
+          DataFlowSanitizer.cpp      \
+          GCOVProfiling.cpp          \
+          MemorySanitizer.cpp        \
+          IndirectCallPromotion.cpp  \
+          InstrOrderFile.cpp         \
+          Instrumentation.cpp        \
+          InstrProfiling.cpp         \
+          PGOInstrumentation.cpp     \
+          PGOMemOPSizeOpt.cpp        \
+          PoisonChecking.cpp         \
+          SanitizerCoverage.cpp      \
+          ValueProfileCollector.cpp  \
+          ThreadSanitizer.cpp        \
+          HWAddressSanitizer.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMInstrumentation.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

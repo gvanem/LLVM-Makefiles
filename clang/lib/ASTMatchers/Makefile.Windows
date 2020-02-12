@@ -1,0 +1,64 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/ASTMatchers'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangASTMatchers.lib \
+          $(BUILD_DIR)/lib/clangDynamicASTMatchers.lib
+
+VPATH = Dynamic
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/AST/Attrs.inc                     \
+            $(CLANG_INC)/AST/AttrVisitor.inc               \
+            $(CLANG_INC)/AST/DeclNodes.inc                 \
+            $(CLANG_INC)/AST/StmtNodes.inc                 \
+            $(CLANG_INC)/AST/CommentCommandList.inc        \
+            $(CLANG_INC)/Basic/AttrList.inc                \
+            $(CLANG_INC)/Basic/DiagnosticASTKinds.inc      \
+            $(CLANG_INC)/Basic/DiagnosticCommentKinds.inc  \
+            $(CLANG_INC)/Basic/DiagnosticFrontendKinds.inc \
+            $(CLANG_INC)/Basic/DiagnosticGroups.inc        \
+            $(CLANG_INC)/Basic/DiagnosticSemaKinds.inc     \
+            $(CLANG_INC)/Basic/Version.inc
+
+include $(TOP_DIR)/Common.Windows
+
+ASTMatchers_SRC = ASTMatchersInternal.cpp \
+                  ASTMatchFinder.cpp
+
+DynamicASTMatchers_SRC = $(addprefix Dynamic/, \
+                           Diagnostics.cpp     \
+                           Parser.cpp          \
+                           Registry.cpp        \
+                           VariantValue.cpp)
+
+ALL_SOURCES = $(ASTMatchers_SRC) $(DynamicASTMatchers_SRC)
+
+ASTMatchers_OBJ        = $(call cpp_to_obj, $(ASTMatchers_SRC))
+DynamicASTMatchers_OBJ = $(call cpp_to_obj, $(DynamicASTMatchers_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(ASTMatchers_OBJ): $(ASTMatchers_SRC)
+	$(call MP_compile, $(ASTMatchers_SRC))
+
+$(DynamicASTMatchers_OBJ): $(DynamicASTMatchers_SRC)
+	$(call MP_compile, $(DynamicASTMatchers_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangASTMatchers.lib: $(ASTMatchers_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangDynamicASTMatchers.lib: $(DynamicASTMatchers_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

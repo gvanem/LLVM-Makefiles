@@ -1,0 +1,291 @@
+#
+# GNU Makefile for 'llvm/lib/DebugInfo'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMDebugInfoCodeView.lib \
+          $(BUILD_DIR)/lib/LLVMDebugInfoDwarf.lib    \
+          $(BUILD_DIR)/lib/LLVMDebugInfoGSYM.lib     \
+          $(BUILD_DIR)/lib/LLVMDebugInfoMSF.lib      \
+          $(BUILD_DIR)/lib/LLVMDebugInfoPDB.lib      \
+          $(BUILD_DIR)/lib/LLVMSymbolize.lib
+
+#
+# Since there are 2 of 'EnumTables.cpp'.
+#
+GENERATED = CodeView/EnumTables_CodeView.cpp
+
+include $(TOP_DIR)/Common.Windows
+
+VPATH = DWARF
+
+DebugInfoDwarf_SRC = $(addprefix DWARF/,                \
+                       DWARFAbbreviationDeclaration.cpp \
+                       DWARFAddressRange.cpp            \
+                       DWARFAcceleratorTable.cpp        \
+                       DWARFCompileUnit.cpp             \
+                       DWARFContext.cpp                 \
+                       DWARFDataExtractor.cpp           \
+                       DWARFDebugAbbrev.cpp             \
+                       DWARFDebugAddr.cpp               \
+                       DWARFDebugArangeSet.cpp          \
+                       DWARFDebugAranges.cpp            \
+                       DWARFDebugFrame.cpp              \
+                       DWARFDebugInfoEntry.cpp          \
+                       DWARFDebugLine.cpp               \
+                       DWARFDebugLoc.cpp                \
+                       DWARFDebugMacro.cpp              \
+                       DWARFDebugPubTable.cpp           \
+                       DWARFDebugRangeList.cpp          \
+                       DWARFDebugRnglists.cpp           \
+                       DWARFDie.cpp                     \
+                       DWARFExpression.cpp              \
+                       DWARFFormValue.cpp               \
+                       DWARFGdbIndex.cpp                \
+                       DWARFListTable.cpp               \
+                       DWARFTypeUnit.cpp                \
+                       DWARFUnitIndex.cpp               \
+                       DWARFUnit.cpp                    \
+                       DWARFVerifier.cpp)
+
+VPATH += GSYM
+
+DebugInfoGSYM_SRC = $(addprefix GSYM/, \
+                      FileWriter.cpp   \
+                      FunctionInfo.cpp \
+                      InlineInfo.cpp   \
+                      GsymCreator.cpp  \
+                      GsymReader.cpp   \
+                      Header.cpp       \
+                      LineTable.cpp    \
+                      Range.cpp)
+
+VPATH += MSF
+
+DebugInfoMSF_SRC = $(addprefix MSF/,       \
+                     MappedBlockStream.cpp \
+                     MSFBuilder.cpp        \
+                     MSFCommon.cpp         \
+                     MSFError.cpp)
+VPATH += CodeView
+
+DebugInfoCodeView_SRC = $(addprefix CodeView/,            \
+                          AppendingTypeTableBuilder.cpp   \
+                          CodeViewError.cpp               \
+                          CodeViewRecordIO.cpp            \
+                          ContinuationRecordBuilder.cpp   \
+                          CVSymbolVisitor.cpp             \
+                          CVTypeVisitor.cpp               \
+                          DebugChecksumsSubsection.cpp    \
+                          DebugCrossExSubsection.cpp      \
+                          DebugCrossImpSubsection.cpp     \
+                          DebugFrameDataSubsection.cpp    \
+                          DebugInlineeLinesSubsection.cpp \
+                          DebugLinesSubsection.cpp        \
+                          DebugStringTableSubsection.cpp  \
+                          DebugSubsection.cpp             \
+                          DebugSubsectionRecord.cpp       \
+                          DebugSubsectionVisitor.cpp      \
+                          DebugSymbolRVASubsection.cpp    \
+                          DebugSymbolsSubsection.cpp      \
+                          EnumTables_CodeView.cpp         \
+                          Formatters.cpp                  \
+                          GlobalTypeTableBuilder.cpp      \
+                          LazyRandomTypeCollection.cpp    \
+                          Line.cpp                        \
+                          MergingTypeTableBuilder.cpp     \
+                          RecordName.cpp                  \
+                          RecordSerialization.cpp         \
+                          SimpleTypeSerializer.cpp        \
+                          StringsAndChecksums.cpp         \
+                          SymbolRecordMapping.cpp         \
+                          SymbolDumper.cpp                \
+                          SymbolRecordHelpers.cpp         \
+                          SymbolSerializer.cpp            \
+                          TypeDumpVisitor.cpp             \
+                          TypeIndex.cpp                   \
+                          TypeIndexDiscovery.cpp          \
+                          TypeHashing.cpp                 \
+                          TypeRecordHelpers.cpp           \
+                          TypeRecordMapping.cpp           \
+                          TypeStreamMerger.cpp            \
+                          TypeTableCollection.cpp)
+VPATH += PDB
+
+DebugInfoPDB_SRC = $(addprefix PDB/,                 \
+                     GenericError.cpp                \
+                     IPDBSourceFile.cpp              \
+                     PDB.cpp                         \
+                     PDBContext.cpp                  \
+                     PDBExtras.cpp                   \
+                     PDBInterfaceAnchors.cpp         \
+                     PDBSymbol.cpp                   \
+                     PDBSymbolAnnotation.cpp         \
+                     PDBSymbolBlock.cpp              \
+                     PDBSymbolCompiland.cpp          \
+                     PDBSymbolCompilandDetails.cpp   \
+                     PDBSymbolCompilandEnv.cpp       \
+                     PDBSymbolCustom.cpp             \
+                     PDBSymbolData.cpp               \
+                     PDBSymbolExe.cpp                \
+                     PDBSymbolFunc.cpp               \
+                     PDBSymbolFuncDebugEnd.cpp       \
+                     PDBSymbolFuncDebugStart.cpp     \
+                     PDBSymbolLabel.cpp              \
+                     PDBSymbolPublicSymbol.cpp       \
+                     PDBSymbolThunk.cpp              \
+                     PDBSymbolTypeArray.cpp          \
+                     PDBSymbolTypeBaseClass.cpp      \
+                     PDBSymbolTypeBuiltin.cpp        \
+                     PDBSymbolTypeCustom.cpp         \
+                     PDBSymbolTypeDimension.cpp      \
+                     PDBSymbolTypeEnum.cpp           \
+                     PDBSymbolTypeFriend.cpp         \
+                     PDBSymbolTypeFunctionArg.cpp    \
+                     PDBSymbolTypeFunctionSig.cpp    \
+                     PDBSymbolTypeManaged.cpp        \
+                     PDBSymbolTypePointer.cpp        \
+                     PDBSymbolTypeTypedef.cpp        \
+                     PDBSymbolTypeUDT.cpp            \
+                     PDBSymbolTypeVTable.cpp         \
+                     PDBSymbolTypeVTableShape.cpp    \
+                     PDBSymbolUnknown.cpp            \
+                     PDBSymbolUsingNamespace.cpp     \
+                     PDBSymDumper.cpp                \
+                     UDTLayout.cpp)
+
+VPATH += PDB/DIA
+
+DebugInfoPDB_SRC += $(addprefix PDB/DIA/,        \
+                      DIADataStream.cpp          \
+                      DIAEnumDebugStreams.cpp    \
+                      DIAEnumFrameData.cpp       \
+                      DIAEnumInjectedSources.cpp \
+                      DIAEnumLineNumbers.cpp     \
+                      DIAEnumSectionContribs.cpp \
+                      DIAEnumSourceFiles.cpp     \
+                      DIAEnumSymbols.cpp         \
+                      DIAEnumTables.cpp          \
+                      DIAError.cpp               \
+                      DIAFrameData.cpp           \
+                      DIAInjectedSource.cpp      \
+                      DIALineNumber.cpp          \
+                      DIARawSymbol.cpp           \
+                      DIASectionContrib.cpp      \
+                      DIASession.cpp             \
+                      DIASourceFile.cpp          \
+                      DIATable.cpp)
+
+VPATH += PDB/Native
+
+DebugInfoPDB_SRC += $(addprefix PDB/Native/,         \
+                      DbiModuleDescriptor.cpp        \
+                      DbiModuleDescriptorBuilder.cpp \
+                      DbiModuleList.cpp              \
+                      DbiStream.cpp                  \
+                      DbiStreamBuilder.cpp           \
+                      EnumTables.cpp                 \
+                      GlobalsStream.cpp              \
+                      Hash.cpp                       \
+                      HashTable.cpp                  \
+                      InfoStream.cpp                 \
+                      InfoStreamBuilder.cpp          \
+                      InjectedSourceStream.cpp       \
+                      ModuleDebugStream.cpp          \
+                      NativeCompilandSymbol.cpp      \
+                      NativeEnumGlobals.cpp          \
+                      NativeEnumInjectedSources.cpp  \
+                      NativeEnumModules.cpp          \
+                      NativeEnumTypes.cpp            \
+                      NativeExeSymbol.cpp            \
+                      NativeRawSymbol.cpp            \
+                      NativeSymbolEnumerator.cpp     \
+                      NativeTypeArray.cpp            \
+                      NativeTypeBuiltin.cpp          \
+                      NativeTypeEnum.cpp             \
+                      NativeTypeFunctionSig.cpp      \
+                      NativeTypePointer.cpp          \
+                      NativeTypeTypedef.cpp          \
+                      NativeTypeUDT.cpp              \
+                      NativeTypeVTShape.cpp          \
+                      NamedStreamMap.cpp             \
+                      NativeSession.cpp              \
+                      PDBFile.cpp                    \
+                      PDBFileBuilder.cpp             \
+                      PDBStringTable.cpp             \
+                      PDBStringTableBuilder.cpp      \
+                      PublicsStream.cpp              \
+                      GSIStreamBuilder.cpp           \
+                      RawError.cpp                   \
+                      SymbolCache.cpp                \
+                      SymbolStream.cpp               \
+                      TpiHashing.cpp                 \
+                      TpiStream.cpp                  \
+                      TpiStreamBuilder.cpp)
+
+VPATH += Symbolize
+
+Symbolize_SRC = $(addprefix Symbolize/,      \
+                  DIPrinter.cpp              \
+                  SymbolizableObjectFile.cpp \
+                  Symbolize.cpp)
+
+ALL_SOURCES = $(DebugInfoCodeView_SRC) \
+              $(DebugInfoDwarf_SRC)    \
+              $(DebugInfoGSYM_SRC)     \
+              $(DebugInfoMSF_SRC)      \
+              $(DebugInfoPDB_SRC)      \
+              $(Symbolize_SRC)
+
+DebugInfoCodeView_OBJ = $(call cpp_to_obj, $(DebugInfoCodeView_SRC))
+DebugInfoDwarf_OBJ    = $(call cpp_to_obj, $(DebugInfoDwarf_SRC))
+DebugInfoGSYM_OBJ     = $(call cpp_to_obj, $(DebugInfoGSYM_SRC))
+DebugInfoMSF_OBJ      = $(call cpp_to_obj, $(DebugInfoMSF_SRC))
+DebugInfoPDB_OBJ      = $(call cpp_to_obj, $(DebugInfoPDB_SRC))
+Symbolize_OBJ         = $(call cpp_to_obj, $(Symbolize_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(DebugInfoCodeView_OBJ): $(DebugInfoCodeView_SRC)
+	$(call MP_compile, $(DebugInfoCodeView_SRC))
+
+$(DebugInfoDwarf_OBJ): $(DebugInfoDwarf_SRC)
+	$(call MP_compile, $(DebugInfoDwarf_SRC))
+
+$(DebugInfoGSYM_OBJ): $(DebugInfoGSYM_SRC)
+	$(call MP_compile, $(DebugInfoGSYM_SRC))
+
+$(DebugInfoMSF_OBJ): $(DebugInfoMSF_SRC)
+	$(call MP_compile, $(DebugInfoMSF_SRC))
+
+$(DebugInfoPDB_OBJ): $(DebugInfoPDB_SRC)
+	$(call MP_compile, $(DebugInfoPDB_SRC))
+
+$(Symbolize_OBJ): $(Symbolize_SRC)
+	$(call MP_compile, $(Symbolize_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMDebugInfoCodeView.lib: $(DebugInfoCodeView_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMDebugInfoDwarf.lib: $(DebugInfoDwarf_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMDebugInfoGSYM.lib: $(DebugInfoGSYM_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMDebugInfoMSF.lib: $(DebugInfoMSF_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMDebugInfoPDB.lib: $(DebugInfoPDB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSymbolize.lib: $(Symbolize_OBJ)
+	 $(call create_lib, $@, $^)
+
+CodeView/EnumTables_CodeView.cpp: CodeView/EnumTables.cpp
+	$(call Generating, $@, //)
+	cat $< >> $@
+
+-include .depend.Windows
+

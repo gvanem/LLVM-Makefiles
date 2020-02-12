@@ -1,0 +1,45 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-rc'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-rc.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-rc.cpp                 \
+              ResourceFileWriter.cpp      \
+              ResourceScriptCppFilter.cpp \
+              ResourceScriptParser.cpp    \
+              ResourceScriptStmt.cpp      \
+              ResourceScriptToken.cpp
+
+OBJECTS    = $(call cpp_to_obj, $(ALL_SOURCES))
+GENERATED += Opts.inc
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMOption.lib               \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/llvm-rc.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-rc.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-rc.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-rc.exe, VFT_APP, The LLVM Resource compiler.)
+
+Opts.inc: Opts.td $(TOP_DIR)/llvm/include/llvm/Option/OptParser.td $(BUILD_DIR)/bin/llvm-tblgen.exe
+	$(call llvm_tblgen, $@, $<)
+
+-include .depend.Windows
+

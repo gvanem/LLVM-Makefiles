@@ -1,0 +1,31 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/Coroutines'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMCoroutines.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = Coroutines.cpp  \
+          CoroCleanup.cpp \
+          CoroEarly.cpp   \
+          CoroElide.cpp   \
+          CoroFrame.cpp   \
+          CoroSplit.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMCoroutines.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

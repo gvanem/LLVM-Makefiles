@@ -1,0 +1,130 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-isel-fuzzer'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-isel-fuzzer.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-isel-fuzzer.cpp \
+              DummyISelFuzzer.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         LLVMAArch64AsmParser.lib      \
+         LLVMAArch64CodeGen.lib        \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Info.lib           \
+         LLVMAArch64Utils.lib          \
+         LLVMAMDGPUAsmParser.lib       \
+         LLVMAMDGPUCodeGen.lib         \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUInfo.lib            \
+         LLVMAMDGPUUtils.lib           \
+         LLVMARMAsmParser.lib          \
+         LLVMARMCodeGen.lib            \
+         LLVMARMDesc.lib               \
+         LLVMARMInfo.lib               \
+         LLVMARMUtils.lib              \
+         LLVMAggressiveInstCombine.lib \
+         LLVMAnalysis.lib              \
+         LLVMAsmParser.lib             \
+         LLVMAsmPrinter.lib            \
+         LLVMBPFAsmParser.lib          \
+         LLVMBPFCodeGen.lib            \
+         LLVMBPFDesc.lib               \
+         LLVMBPFInfo.lib               \
+         LLVMBinaryFormat.lib          \
+         LLVMBitstreamReader.lib       \
+         LLVMBitReader.lib             \
+         LLVMBitWriter.lib             \
+         LLVMCodeGen.lib               \
+         LLVMCore.lib                  \
+         LLVMDebugInfoCodeView.lib     \
+         LLVMDebugInfoDwarf.lib        \
+         LLVMDemangle.lib              \
+         LLVMFuzzMutate.lib            \
+         LLVMGlobalISel.lib            \
+         LLVMHexagonAsmParser.lib      \
+         LLVMHexagonCodeGen.lib        \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonInfo.lib           \
+         LLVMInstCombine.lib           \
+         LLVMInstrumentation.lib       \
+         LLVMLanaiAsmParser.lib        \
+         LLVMLanaiCodeGen.lib          \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiInfo.lib             \
+         LLVMMC.lib                    \
+         LLVMMCDisassembler.lib        \
+         LLVMMCParser.lib              \
+         LLVMMIRParser.lib             \
+         LLVMMSP430AsmParser.lib       \
+         LLVMMSP430CodeGen.lib         \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Info.lib            \
+         LLVMMipsAsmParser.lib         \
+         LLVMMipsCodeGen.lib           \
+         LLVMMipsDesc.lib              \
+         LLVMMipsInfo.lib              \
+         LLVMNVPTXCodeGen.lib          \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXInfo.lib             \
+         LLVMObject.lib                \
+         LLVMPowerPCAsmParser.lib      \
+         LLVMPowerPCCodeGen.lib        \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCInfo.lib           \
+         LLVMProfileData.lib           \
+         LLVMRemarks.lib               \
+         LLVMScalarOpts.lib            \
+         LLVMSelectionDAG.lib          \
+         LLVMSparcAsmParser.lib        \
+         LLVMSparcCodeGen.lib          \
+         LLVMSparcDesc.lib             \
+         LLVMSparcInfo.lib             \
+         LLVMSupport.lib               \
+         LLVMSystemZAsmParser.lib      \
+         LLVMSystemZCodeGen.lib        \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZInfo.lib           \
+         LLVMTarget.lib                \
+         LLVMTransformUtils.lib        \
+         LLVMVectorize.lib             \
+         LLVMWebAssemblyAsmParser.lib  \
+         LLVMWebAssemblyCodeGen.lib    \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyInfo.lib       \
+         LLVMX86AsmParser.lib          \
+         LLVMX86CodeGen.lib            \
+         LLVMX86Desc.lib               \
+         LLVMX86Desc.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Utils.lib              \
+         LLVMXCoreCodeGen.lib          \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreInfo.lib             \
+         LLVMipo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-isel-fuzzer.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-isel-fuzzer.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-isel-fuzzer.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-isel-fuzzer.exe, VFT_APP, LLVM tool; fuzz instruction selection using libFuzzer.)
+
+-include .depend.Windows
+

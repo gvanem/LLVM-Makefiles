@@ -1,0 +1,51 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-link'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-link.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-link.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAnalysis.lib             \
+         LLVMAsmParser.lib            \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMBitReader.lib            \
+         LLVMBitWriter.lib            \
+         LLVMCore.lib                 \
+         LLVMDemangle.lib             \
+         LLVMipo.lib                  \
+         LLVMIRReader.lib             \
+         LLVMLinker.lib               \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib              \
+         LLVMTransformUtils.lib)
+
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-link.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-link.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-link.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-link.exe, VFT_APP, The LLVM linker.)
+
+-include .depend.Windows
+

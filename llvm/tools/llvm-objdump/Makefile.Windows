@@ -1,0 +1,104 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-objdump'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-objdump.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = COFFDump.cpp     \
+              ELFDump.cpp      \
+              llvm-objdump.cpp \
+              MachODump.cpp    \
+              WasmDump.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         LLVMAArch64Desc.lib             \
+         LLVMAArch64Disassembler.lib     \
+         LLVMAArch64Info.lib             \
+         LLVMAArch64Utils.lib            \
+         LLVMAMDGPUDesc.lib              \
+         LLVMAMDGPUDisassembler.lib      \
+         LLVMAMDGPUInfo.lib              \
+         LLVMAMDGPUUtils.lib             \
+         LLVMARMDesc.lib                 \
+         LLVMARMDisassembler.lib         \
+         LLVMARMInfo.lib                 \
+         LLVMARMUtils.lib                \
+         LLVMBPFDesc.lib                 \
+         LLVMBPFDisassembler.lib         \
+         LLVMBPFInfo.lib                 \
+         LLVMBinaryFormat.lib            \
+         LLVMBitReader.lib               \
+         LLVMBitstreamReader.lib         \
+         LLVMCodeGen.lib                 \
+         LLVMCore.lib                    \
+         LLVMDebugInfoCodeView.lib       \
+         LLVMDebugInfoDwarf.lib          \
+         LLVMDebugInfoDwarf.lib          \
+         LLVMDebugInfoMSF.lib            \
+         LLVMDebugInfoPDB.lib            \
+         LLVMDemangle.lib                \
+         LLVMHexagonDesc.lib             \
+         LLVMHexagonDisassembler.lib     \
+         LLVMHexagonInfo.lib             \
+         LLVMLanaiDesc.lib               \
+         LLVMLanaiDisassembler.lib       \
+         LLVMLanaiInfo.lib               \
+         LLVMMC.lib                      \
+         LLVMMCDisassembler.lib          \
+         LLVMMCParser.lib                \
+         LLVMMSP430Desc.lib              \
+         LLVMMSP430Disassembler.lib      \
+         LLVMMSP430Info.lib              \
+         LLVMMipsDesc.lib                \
+         LLVMMipsDisassembler.lib        \
+         LLVMMipsInfo.lib                \
+         LLVMNVPTXDesc.lib               \
+         LLVMNVPTXInfo.lib               \
+         LLVMObject.lib                  \
+         LLVMPowerPCDesc.lib             \
+         LLVMPowerPCDisassembler.lib     \
+         LLVMPowerPCInfo.lib             \
+         LLVMRemarks.lib                 \
+         LLVMSparcDesc.lib               \
+         LLVMSparcDisassembler.lib       \
+         LLVMSparcInfo.lib               \
+         LLVMSupport.lib                 \
+         LLVMSymbolize.lib               \
+         LLVMSystemZDesc.lib             \
+         LLVMSystemZDisassembler.lib     \
+         LLVMSystemZInfo.lib             \
+         LLVMWebAssemblyDesc.lib         \
+         LLVMWebAssemblyDisassembler.lib \
+         LLVMWebAssemblyInfo.lib         \
+         LLVMX86Desc.lib                 \
+         LLVMX86Disassembler.lib         \
+         LLVMX86Info.lib                 \
+         LLVMX86Utils.lib                \
+         LLVMXCoreDesc.lib               \
+         LLVMXCoreDisassembler.lib       \
+         LLVMXCoreInfo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = $(DIA_LIB) \
+          advapi32.lib ole32.lib shell32.lib user32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-objdump.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-objdump.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-objdump.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-objdump.exe, VFT_APP, display information about object files.)
+
+-include .depend.Windows
+

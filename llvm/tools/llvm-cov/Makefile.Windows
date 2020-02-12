@@ -1,0 +1,62 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-cov'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-cov.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = CodeCoverage.cpp           \
+              CoverageExporterJson.cpp   \
+              CoverageExporterLcov.cpp   \
+              CoverageFilters.cpp        \
+              CoverageReport.cpp         \
+              CoverageSummaryInfo.cpp    \
+              gcov.cpp                   \
+              llvm-cov.cpp               \
+              SourceCoverageView.cpp     \
+              SourceCoverageViewHTML.cpp \
+              SourceCoverageViewText.cpp \
+              TestingSupport.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMCoverage.lib             \
+         LLVMDemangle.lib             \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/llvm-cov.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cov.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-cov.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-cov.exe, VFT_APP, Analyze and report coverage information.)
+
+-include .depend.Windows
+

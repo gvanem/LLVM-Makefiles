@@ -1,0 +1,130 @@
+#
+# GNU Makefile for 'llvm/utils/benchmark'.
+#
+VPATH = src test
+
+TOP_DIR = ../../..
+
+LIB_SRC = $(addprefix src/,       \
+            benchmark.cc          \
+            benchmark_main.cc     \
+            benchmark_register.cc \
+            colorprint.cc         \
+            commandlineflags.cc   \
+            complexity.cc         \
+            console_reporter.cc   \
+            counter.cc            \
+            csv_reporter.cc       \
+            json_reporter.cc      \
+            reporter.cc           \
+            sleep.cc              \
+            statistics.cc         \
+            string_util.cc        \
+            sysinfo.cc            \
+            timers.cc)            \
+                                  \
+          test/output_test_helper.cc
+
+TEST_SRC = $(addprefix test/,                \
+             basic_test.cc                   \
+             benchmark_test.cc               \
+             complexity_test.cc              \
+             diagnostics_test.cc             \
+             donotoptimize_test.cc           \
+             filter_test.cc                  \
+             fixture_test.cc                 \
+             map_test.cc                     \
+             multiple_ranges_test.cc         \
+             options_test.cc                 \
+             register_benchmark_test.cc      \
+             reporter_output_test.cc         \
+             skip_with_error_test.cc         \
+             templated_fixture_test.cc       \
+             user_counters_tabular_test.cc   \
+             user_counters_test.cc)
+
+TARGETS = $(BUILD_DIR)/lib/benchmark.lib
+
+TARGETS += basic_test.exe                  \
+           benchmark_test.exe              \
+           complexity_test.exe             \
+           diagnostics_test.exe            \
+           donotoptimize_test.exe          \
+           filter_test.exe                 \
+           fixture_test.exe                \
+           map_test.exe                    \
+           multiple_ranges_test.exe        \
+           options_test.exe                \
+           register_benchmark_test.exe     \
+           reporter_output_test.exe        \
+           skip_with_error_test.exe        \
+           templated_fixture_test.exe      \
+           user_counters_tabular_test.exe  \
+           user_counters_test.exe
+
+#
+# Impossible:
+#
+# TEST_SRC += test/cxx03_test.cc
+# TARGETS  += cxx03_test.exe
+#
+
+include $(TOP_DIR)/Common.Windows
+
+CFLAGS += -I./include \
+          -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
+#
+# Untested:
+#
+ifeq ($(USE_GOOGLE_TEST),1)
+  CFLAGS += -I$(GTEST_ROOT)/googlemock/include \
+            -I$(GTEST_ROOT)/googletest/include
+
+  TEST_SRC += $(addprefix test/,   \
+                benchmark_gtest.cc \
+                statistics_gtest.cc)
+
+  TARGETS += benchmark_gtest.exe \
+             statistics_gtest.exe
+endif
+
+#
+# Untested:
+#
+ifeq ($(USE_ASM_TEST),1)
+  TEST_SRC += test/donotoptimize_assembly_test.cc \
+              test/state_assembly_test.cc
+
+  TARGETS += donotoptimize_assembly_test.exe \
+             state_assembly_test.exe
+endif
+
+ALL_SOURCES = $(LIB_SRC) \
+              $(TEST_SRC)
+
+LIB_OBJ  = $(call cc_to_obj, $(LIB_SRC))
+TEST_OBJ = $(call cc_to_obj, $(TEST_SRC))
+
+.SECONDARY: $(TEST_OBJ)
+
+$(OBJ_DIR)/cxx03_test.obj: EXTRA_CFLAGS = -std:c++03
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/benchmark.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+benchmark_gtest.exe: $(OBJ_DIR)/benchmark_gtest.obj $(BUILD_DIR)/lib/benchmark.lib $(GTEST_ROOT)/lib/gtest32.lib $(GTEST_ROOT)/lib/gtest32_main.lib
+	$(call link_EXE, $@, $^ shLwapi.Lib)
+
+%.exe: $(OBJ_DIR)/%.obj $(BUILD_DIR)/lib/benchmark.lib
+	$(call link_EXE, $@, $^ shLwapi.Lib)
+
+-include .depend.Windows
+

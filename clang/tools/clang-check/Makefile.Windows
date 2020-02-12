@@ -1,0 +1,145 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/clang-check'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/clang-check.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = ClangCheck.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         clangAST.lib                    \
+         clangASTMatchers.lib            \
+         clangAnalysis.lib               \
+         clangBasic.lib                  \
+         clangCrossTU.lib                \
+         clangDriver.lib                 \
+         clangEdit.lib                   \
+         clangFrontend.lib               \
+         clangRewriteFrontend.lib        \
+         clangIndex.lib                  \
+         clangLex.lib                    \
+         clangParse.lib                  \
+         clangRewrite.lib                \
+         clangSema.lib                   \
+         clangSerialization.lib          \
+         clangStaticAnalyzerCheckers.lib \
+         clangStaticAnalyzerCore.lib     \
+         clangStaticAnalyzerFrontend.lib \
+         clangTooling.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/,   \
+          LLVMAArch64AsmParser.lib       \
+          LLVMAArch64CodeGen.lib         \
+          LLVMAArch64Desc.lib            \
+          LLVMAArch64Info.lib            \
+          LLVMAArch64Utils.lib           \
+          LLVMAggressiveInstCombine.lib  \
+          LLVMAMDGPUAsmParser.lib        \
+          LLVMAMDGPUCodeGen.lib          \
+          LLVMAMDGPUDesc.lib             \
+          LLVMAMDGPUInfo.lib             \
+          LLVMAMDGPUUtils.lib            \
+          LLVMAnalysis.lib               \
+          LLVMAsmParser.lib              \
+          LLVMARMAsmParser.lib           \
+          LLVMARMCodeGen.lib             \
+          LLVMARMDesc.lib                \
+          LLVMARMInfo.lib                \
+          LLVMARMUtils.lib               \
+          LLVMAsmPrinter.lib             \
+          LLVMBinaryFormat.lib           \
+          LLVMBitReader.lib              \
+          LLVMBitstreamReader.lib        \
+          LLVMBPFAsmParser.lib           \
+          LLVMBPFCodeGen.lib             \
+          LLVMBPFDesc.lib                \
+          LLVMBPFInfo.lib                \
+          LLVMCodeGen.lib                \
+          LLVMCore.lib                   \
+          LLVMDebugInfoCodeView.lib      \
+          LLVMDemangle.lib               \
+          LLVMDebugInfoDwarf.lib         \
+          LLVMGlobalISel.lib             \
+          LLVMHexagonAsmParser.lib       \
+          LLVMHexagonCodeGen.lib         \
+          LLVMHexagonDesc.lib            \
+          LLVMHexagonInfo.lib            \
+          LLVMInstCombine.lib            \
+          LLVMInstrumentation.lib        \
+          LLVMipo.lib                    \
+          LLVMLanaiAsmParser.lib         \
+          LLVMLanaiCodeGen.lib           \
+          LLVMLanaiDesc.lib              \
+          LLVMLanaiInfo.lib              \
+          LLVMMIRParser.lib              \
+          LLVMMC.lib                     \
+          LLVMMCDisassembler.lib         \
+          LLVMMCParser.lib               \
+          LLVMMipsAsmParser.lib          \
+          LLVMMipsCodeGen.lib            \
+          LLVMMipsDesc.lib               \
+          LLVMMipsInfo.lib               \
+          LLVMMSP430AsmParser.lib        \
+          LLVMMSP430CodeGen.lib          \
+          LLVMMSP430Desc.lib             \
+          LLVMMSP430Info.lib             \
+          LLVMNVPTXCodeGen.lib           \
+          LLVMNVPTXDesc.lib              \
+          LLVMNVPTXInfo.lib              \
+          LLVMObject.lib                 \
+          LLVMOption.lib                 \
+          LLVMPowerPCAsmParser.lib       \
+          LLVMPowerPCCodeGen.lib         \
+          LLVMPowerPCDesc.lib            \
+          LLVMPowerPCInfo.lib            \
+          LLVMProfileData.lib            \
+          LLVMRemarks.lib                \
+          LLVMScalarOpts.lib             \
+          LLVMSelectionDAG.lib           \
+          LLVMSparcAsmParser.lib         \
+          LLVMSparcCodeGen.lib           \
+          LLVMSparcDesc.lib              \
+          LLVMSparcInfo.lib              \
+          LLVMSupport.lib                \
+          LLVMSystemZAsmParser.lib       \
+          LLVMSystemZCodeGen.lib         \
+          LLVMSystemZDesc.lib            \
+          LLVMSystemZInfo.lib            \
+          LLVMTarget.lib                 \
+          LLVMTransformUtils.lib         \
+          LLVMVectorize.lib              \
+          LLVMWebAssemblyAsmParser.lib   \
+          LLVMWebAssemblyCodeGen.lib     \
+          LLVMWebAssemblyDesc.lib        \
+          LLVMWebAssemblyInfo.lib        \
+          LLVMX86AsmParser.lib           \
+          LLVMX86CodeGen.lib             \
+          LLVMX86Desc.lib                \
+          LLVMX86Info.lib                \
+          LLVMX86Utils.lib               \
+          LLVMXCoreCodeGen.lib           \
+          LLVMXCoreDesc.lib              \
+          LLVMXCoreInfo.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = version.lib advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-check.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-check.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-check.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-check.exe, VFT_APP, A check tool for the compilation database.)
+
+-include .depend.Windows
+

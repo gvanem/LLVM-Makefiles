@@ -1,0 +1,47 @@
+#
+# GNU Makefile for 'llvm/utils/unittest'.
+#
+TOP_DIR = ../../..
+VPATH   = googletest/src $(OBJ_DIR)
+
+TARGETS = $(BUILD_DIR)/lib/gtest.lib \
+          $(BUILD_DIR)/lib/gtest_main.lib
+
+ALL_SOURCES = googletest/src/gtest-all.cc \
+              googletest/src/gtest_main.cc
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += $(OBJ_DIR)/gtest_main.cc
+
+CFLAGS += -I./googletest/include \
+          -I./googletest         \
+          -DNDEBUG               \
+          -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
+all: $(GENERATED) $(TARGETS)
+	$(call green_msg,Welcome to $(TARGETS).)
+
+$(BUILD_DIR)/lib/gtest.lib: $(OBJ_DIR)/gtest-all.obj
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/gtest_main.lib: $(OBJ_DIR)/gtest_main.obj
+	$(call create_lib, $@, $^)
+
+$(OBJ_DIR)/gtest_main.cc: $(MDEPEND)
+	$(call Generating, $@, //)
+	$(file >> $@, $(gtest_main_cc))
+
+define gtest_main_cc
+  #include <stdio.h>
+  #include "gtest/gtest.h"
+
+  GTEST_API_ int main (int argc, char **argv)
+  {
+    printf ("Running main() from gtest_main.cc\n");
+    testing::InitGoogleTest (&argc, argv);
+    return RUN_ALL_TESTS();
+  }
+endef
+
+-include .depend.Windows

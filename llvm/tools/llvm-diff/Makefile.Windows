@@ -1,0 +1,40 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-diff'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-diff.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = DiffConsumer.cpp     \
+              DifferenceEngine.cpp \
+              DiffLog.cpp          \
+              llvm-diff.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAsmParser.lib            \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMIRReader.lib             \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+$(BUILD_DIR)/bin/llvm-diff.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-diff.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-diff.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-diff.exe, VFT_APP, LLVM tool; Module comparator.)
+
+-include .depend.Windows
+

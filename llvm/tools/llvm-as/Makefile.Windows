@@ -1,0 +1,46 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-as'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-as.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-as.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAnalysis.lib             \
+         LLVMAsmParser.lib            \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMBitReader.lib            \
+         LLVMBitWriter.lib            \
+         LLVMCore.lib                 \
+         LLVMDemangle.lib             \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-as.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-as.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-as.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-as.exe, VFT_APP, The LLVM assembler.)
+
+-include .depend.Windows
+

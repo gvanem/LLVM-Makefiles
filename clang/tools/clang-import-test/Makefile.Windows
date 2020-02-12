@@ -1,0 +1,61 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/clang-import-test'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/clang-import-test.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = clang-import-test.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         clangAST.lib                  \
+         clangASTMatchers.lib          \
+         clangAnalysis.lib             \
+         clangBasic.lib                \
+         clangCodeGen.lib              \
+         clangDriver.lib               \
+         clangEdit.lib                 \
+         clangFrontend.lib             \
+         clangLex.lib                  \
+         clangParse.lib                \
+         clangSema.lib                 \
+         clangSerialization.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMAnalysis.lib             \
+          LLVMBinaryFormat.lib         \
+          LLVMBitReader.lib            \
+          LLVMBitstreamReader.lib      \
+          LLVMCoverage.lib             \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMObject.lib               \
+          LLVMOption.lib               \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib              \
+          LLVMTransformUtils.lib)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-import-test.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-import-test.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-import-test.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-import-test.exe, VFT_APP, A test tool for import?)
+
+-include .depend.Windows
+

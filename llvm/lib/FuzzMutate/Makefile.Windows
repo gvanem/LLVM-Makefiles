@@ -1,0 +1,30 @@
+#
+# GNU Makefile for 'llvm/lib/FuzzMutate'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMFuzzMutate.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = FuzzerCLI.cpp    \
+          IRMutator.cpp    \
+          OpDescriptor.cpp \
+          Operations.cpp   \
+          RandomIRBuilder.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMFuzzMutate.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

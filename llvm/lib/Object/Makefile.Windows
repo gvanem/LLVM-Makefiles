@@ -1,0 +1,53 @@
+#
+# GNU Makefile for 'llvm/lib/Object'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMObject.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = Archive.cpp              \
+          ArchiveWriter.cpp        \
+          Binary.cpp               \
+          COFFImportFile.cpp       \
+          COFFModuleDefinition.cpp \
+          COFFObjectFile.cpp       \
+          Decompressor.cpp         \
+          ELF.cpp                  \
+          ELFObjectFile.cpp        \
+          Error.cpp                \
+          IRObjectFile.cpp         \
+          IRSymtab.cpp             \
+          MachOObjectFile.cpp      \
+          MachOUniversal.cpp       \
+          Minidump.cpp             \
+          ModuleSymbolTable.cpp    \
+          Object.cpp               \
+          ObjectFile.cpp           \
+          RecordStreamer.cpp       \
+          RelocationResolver.cpp   \
+          SymbolicFile.cpp         \
+          SymbolSize.cpp           \
+          TapiFile.cpp             \
+          TapiUniversal.cpp        \
+          WasmObjectFile.cpp       \
+          WindowsMachineFlag.cpp   \
+          WindowsResource.cpp      \
+          XCOFFObjectFile.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMObject.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

@@ -1,0 +1,64 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-xray'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-xray.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = func-id-helper.cpp    \
+              llvm-xray.cpp         \
+              xray-account.cpp      \
+              xray-color-helper.cpp \
+              xray-converter.cpp    \
+              xray-extract.cpp      \
+              xray-fdr-dump.cpp     \
+              xray-graph-diff.cpp   \
+              xray-graph.cpp        \
+              xray-registry.cpp     \
+              xray-stacks.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMDebugInfoMSF.lib         \
+         LLVMDebugInfoPDB.lib         \
+         LLVMDemangle.lib             \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib              \
+         LLVMSymbolize.lib            \
+         LLVMXRay.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = $(DIA_LIB) user32.lib shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/llvm-xray.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-xray.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-xray.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-xray.exe, VFT_APP, LLVM tool; the main entry point for the suite of XRay tools.)
+
+-include .depend.Windows
+

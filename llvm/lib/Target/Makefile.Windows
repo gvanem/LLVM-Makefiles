@@ -1,0 +1,2408 @@
+#
+# GNU Makefile for 'llvm/lib/Target'.
+#
+TOP_DIR = ../../..
+
+#
+# 'cl -MP' doesn't work here. Not sure why...
+#
+USE_MP_COMPILE = 0
+
+EXTRA_CLEAN = rm_depend_args
+
+TARGETS = $(BUILD_DIR)/lib/LLVMTarget.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMAArch64CodeGen.lib          \
+           $(BUILD_DIR)/lib/LLVMAArch64AsmParser.lib        \
+           $(BUILD_DIR)/lib/LLVMAArch64Disassembler.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMAArch64Desc.lib             \
+           $(BUILD_DIR)/lib/LLVMAArch64Info.lib             \
+           $(BUILD_DIR)/lib/LLVMAArch64Utils.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMAMDGPUCodeGen.lib           \
+           $(BUILD_DIR)/lib/LLVMAMDGPUUtils.lib             \
+           $(BUILD_DIR)/lib/LLVMAMDGPUAsmParser.lib         \
+           $(BUILD_DIR)/lib/LLVMAMDGPUDisassembler.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMAMDGPUDesc.lib              \
+           $(BUILD_DIR)/lib/LLVMAMDGPUInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMARCCodeGen.lib              \
+           $(BUILD_DIR)/lib/LLVMARCDesc.lib                 \
+           $(BUILD_DIR)/lib/LLVMARCDisassembler.lib         \
+           $(BUILD_DIR)/lib/LLVMARCInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMARMCodeGen.lib              \
+           $(BUILD_DIR)/lib/LLVMARMAsmParser.lib            \
+           $(BUILD_DIR)/lib/LLVMARMDisassembler.lib         \
+           $(BUILD_DIR)/lib/LLVMARMDesc.lib                 \
+           $(BUILD_DIR)/lib/LLVMARMInfo.lib                 \
+           $(BUILD_DIR)/lib/LLVMARMUtils.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMBPFCodeGen.lib              \
+           $(BUILD_DIR)/lib/LLVMBPFAsmParser.lib            \
+           $(BUILD_DIR)/lib/LLVMBPFDisassembler.lib         \
+           $(BUILD_DIR)/lib/LLVMBPFDesc.lib                 \
+           $(BUILD_DIR)/lib/LLVMBPFInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMHexagonCodeGen.lib          \
+           $(BUILD_DIR)/lib/LLVMHexagonAsmParser.lib        \
+           $(BUILD_DIR)/lib/LLVMHexagonDisassembler.lib     \
+           $(BUILD_DIR)/lib/LLVMHexagonDesc.lib             \
+           $(BUILD_DIR)/lib/LLVMHexagonInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMLanaiCodeGen.lib            \
+           $(BUILD_DIR)/lib/LLVMLanaiAsmParser.lib          \
+           $(BUILD_DIR)/lib/LLVMLanaiDisassembler.lib       \
+           $(BUILD_DIR)/lib/LLVMLanaiDesc.lib               \
+           $(BUILD_DIR)/lib/LLVMLanaiInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMMipsCodeGen.lib             \
+           $(BUILD_DIR)/lib/LLVMMipsAsmParser.lib           \
+           $(BUILD_DIR)/lib/LLVMMipsDisassembler.lib        \
+           $(BUILD_DIR)/lib/LLVMMipsDesc.lib                \
+           $(BUILD_DIR)/lib/LLVMMipsInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMMSP430CodeGen.lib           \
+           $(BUILD_DIR)/lib/LLVMMSP430Desc.lib              \
+           $(BUILD_DIR)/lib/LLVMMSP430Info.lib              \
+           $(BUILD_DIR)/lib/LLVMMSP430AsmParser.lib         \
+           $(BUILD_DIR)/lib/LLVMMSP430Disassembler.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMNVPTXCodeGen.lib            \
+           $(BUILD_DIR)/lib/LLVMNVPTXDesc.lib               \
+           $(BUILD_DIR)/lib/LLVMNVPTXInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMPowerPCCodeGen.lib          \
+           $(BUILD_DIR)/lib/LLVMPowerPCAsmParser.lib        \
+           $(BUILD_DIR)/lib/LLVMPowerPCDisassembler.lib     \
+           $(BUILD_DIR)/lib/LLVMPowerPCDesc.lib             \
+           $(BUILD_DIR)/lib/LLVMPowerPCInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMSparcCodeGen.lib            \
+           $(BUILD_DIR)/lib/LLVMSparcAsmParser.lib          \
+           $(BUILD_DIR)/lib/LLVMSparcDisassembler.lib       \
+           $(BUILD_DIR)/lib/LLVMSparcDesc.lib               \
+           $(BUILD_DIR)/lib/LLVMSparcInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMSystemZCodeGen.lib          \
+           $(BUILD_DIR)/lib/LLVMSystemZAsmParser.lib        \
+           $(BUILD_DIR)/lib/LLVMSystemZDisassembler.lib     \
+           $(BUILD_DIR)/lib/LLVMSystemZDesc.lib             \
+           $(BUILD_DIR)/lib/LLVMSystemZInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMWebAssemblyCodeGen.lib      \
+           $(BUILD_DIR)/lib/LLVMWebAssemblyAsmParser.lib    \
+           $(BUILD_DIR)/lib/LLVMWebAssemblyDisassembler.lib \
+           $(BUILD_DIR)/lib/LLVMWebAssemblyDesc.lib         \
+           $(BUILD_DIR)/lib/LLVMWebAssemblyInfo.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMX86CodeGen.lib              \
+           $(BUILD_DIR)/lib/LLVMX86AsmParser.lib            \
+           $(BUILD_DIR)/lib/LLVMX86Disassembler.lib         \
+           $(BUILD_DIR)/lib/LLVMX86Desc.lib                 \
+           $(BUILD_DIR)/lib/LLVMX86Info.lib                 \
+           $(BUILD_DIR)/lib/LLVMX86Utils.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMXCoreCodeGen.lib            \
+           $(BUILD_DIR)/lib/LLVMXCoreDisassembler.lib       \
+           $(BUILD_DIR)/lib/LLVMXCoreDesc.lib               \
+           $(BUILD_DIR)/lib/LLVMXCoreInfo.lib
+
+include $(TOP_DIR)/Common.Windows
+
+CFLAGS += -I./AArch64     \
+          -I./AMDGPU      \
+          -I./ARC         \
+          -I./ARM         \
+          -I./BPF         \
+          -I./Hexagon     \
+          -I./Lanai       \
+          -I./Mips        \
+          -I./MSP430      \
+          -I./NVPTX       \
+          -I./PowerPC     \
+          -I./Sparc       \
+          -I./SystemZ     \
+          -I./WebAssembly \
+          -I./X86         \
+          -I./XCore
+
+GENERATED += $(TOP_DIR)/llvm/include/llvm/IR/Attributes.inc     \
+             $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicEnums.inc \
+             $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicImpl.inc
+
+GENERATED += $(addprefix AArch64/,              \
+               AArch64GenAsmMatcher.inc         \
+               AArch64GenAsmWriter.inc          \
+               AArch64GenAsmWriter1.inc         \
+               AArch64GenCallingConv.inc        \
+               AArch64GenGICombiner.inc         \
+               AArch64GenDAGISel.inc            \
+               AArch64GenDisassemblerTables.inc \
+               AArch64GenFastISel.inc           \
+               AArch64GenGlobalISel.inc         \
+               AArch64GenInstrInfo.inc          \
+               AArch64GenMCCodeEmitter.inc      \
+               AArch64GenMCPseudoLowering.inc   \
+               AArch64GenRegisterBank.inc       \
+               AArch64GenRegisterInfo.inc       \
+               AArch64GenSubtargetInfo.inc      \
+               AArch64GenSystemOperands.inc     \
+               AArch64GenExegesis.inc)
+
+GENERATED += $(addprefix AMDGPU/,               \
+               AMDGPUGenAsmMatcher.inc          \
+               AMDGPUGenAsmWriter.inc           \
+               AMDGPUGenCallingConv.inc         \
+               AMDGPUGenGICombiner.inc          \
+               AMDGPUGenDAGISel.inc             \
+               AMDGPUGenDisassemblerTables.inc  \
+               AMDGPUGenInstrInfo.inc           \
+               AMDGPUGenMCCodeEmitter.inc       \
+               AMDGPUGenMCPseudoLowering.inc    \
+               AMDGPUGenRegisterBank.inc        \
+               AMDGPUGenRegisterInfo.inc        \
+               AMDGPUGenSearchableTables.inc    \
+               AMDGPUGenSubtargetInfo.inc       \
+               AMDGPUGenGlobalISel.inc          \
+               R600GenAsmWriter.inc             \
+               R600GenCallingConv.inc           \
+               R600GenDAGISel.inc               \
+               R600GenInstrInfo.inc             \
+               R600GenMCCodeEmitter.inc         \
+               R600GenRegisterInfo.inc          \
+               R600GenSubtargetInfo.inc)
+
+#
+# Needed?
+#
+# GENERATED += AMDGPU/AMDGPUGenIntrinsicImpl.inc
+# GENERATED += AMDGPU/AMDGPUGenIntrinsicEnums.inc
+#
+
+GENERATED += AMDGPU/R600GenDFAPacketizer.inc
+
+GENERATED += $(addprefix ARM/,                  \
+               ARMGenAsmMatcher.inc             \
+               ARMGenAsmWriter.inc              \
+               ARMGenCallingConv.inc            \
+               ARMGenDAGISel.inc                \
+               ARMGenDisassemblerTables.inc     \
+               ARMGenFastISel.inc               \
+               ARMGenGlobalISel.inc             \
+               ARMGenInstrInfo.inc              \
+               ARMGenMCCodeEmitter.inc          \
+               ARMGenMCPseudoLowering.inc       \
+               ARMGenRegisterBank.inc           \
+               ARMGenRegisterInfo.inc           \
+               ARMGenSubtargetInfo.inc          \
+               ARMGenSystemRegister.inc)
+
+GENERATED += $(addprefix ARC/,                  \
+               ARCGenAsmWriter.inc              \
+               ARCGenCallingConv.inc            \
+               ARCGenDAGISel.inc                \
+               ARCGenDisassemblerTables.inc     \
+               ARCGenInstrInfo.inc              \
+               ARCGenRegisterInfo.inc           \
+               ARCGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix BPF/,                  \
+               BPFGenAsmMatcher.inc             \
+               BPFGenAsmWriter.inc              \
+               BPFGenCallingConv.inc            \
+               BPFGenDAGISel.inc                \
+               BPFGenDisassemblerTables.inc     \
+               BPFGenInstrInfo.inc              \
+               BPFGenMCCodeEmitter.inc          \
+               BPFGenRegisterInfo.inc           \
+               BPFGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix Hexagon/,              \
+               HexagonGenAsmMatcher.inc         \
+               HexagonGenAsmWriter.inc          \
+               HexagonGenCallingConv.inc        \
+               HexagonGenDAGISel.inc            \
+               HexagonGenDisassemblerTables.inc \
+               HexagonGenInstrInfo.inc          \
+               HexagonGenMCCodeEmitter.inc      \
+               HexagonGenRegisterInfo.inc       \
+               HexagonGenSubtargetInfo.inc)
+
+GENERATED += Hexagon/HexagonGenDFAPacketizer.inc
+
+GENERATED += $(addprefix Lanai/,                \
+               LanaiGenAsmMatcher.inc           \
+               LanaiGenAsmWriter.inc            \
+               LanaiGenCallingConv.inc          \
+               LanaiGenDAGISel.inc              \
+               LanaiGenDisassemblerTables.inc   \
+               LanaiGenInstrInfo.inc            \
+               LanaiGenMCCodeEmitter.inc        \
+               LanaiGenRegisterInfo.inc         \
+               LanaiGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix Mips/,                 \
+               MipsGenAsmMatcher.inc            \
+               MipsGenAsmWriter.inc             \
+               MipsGenCallingConv.inc           \
+               MipsGenDAGISel.inc               \
+               MipsGenDisassemblerTables.inc    \
+               MipsGenFastISel.inc              \
+               MipsGenGlobalISel.inc            \
+               MipsGenInstrInfo.inc             \
+               MipsGenMCCodeEmitter.inc         \
+               MipsGenMCPseudoLowering.inc      \
+               MipsGenRegisterBank.inc          \
+               MipsGenRegisterInfo.inc          \
+               MipsGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix MSP430/,               \
+               MSP430GenAsmMatcher.inc          \
+               MSP430GenAsmWriter.inc           \
+               MSP430GenCallingConv.inc         \
+               MSP430GenDAGISel.inc             \
+               MSP430GenDisassemblerTables.inc  \
+               MSP430GenInstrInfo.inc           \
+               MSP430GenMCCodeEmitter.inc       \
+               MSP430GenRegisterInfo.inc        \
+               MSP430GenSubtargetInfo.inc)
+
+GENERATED += $(addprefix NVPTX/,                \
+               NVPTXGenAsmWriter.inc            \
+               NVPTXGenDAGISel.inc              \
+               NVPTXGenInstrInfo.inc            \
+               NVPTXGenRegisterInfo.inc         \
+               NVPTXGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix PowerPC/,              \
+               PPCGenAsmMatcher.inc             \
+               PPCGenAsmWriter.inc              \
+               PPCGenCallingConv.inc            \
+               PPCGenDAGISel.inc                \
+               PPCGenDisassemblerTables.inc     \
+               PPCGenFastISel.inc               \
+               PPCGenInstrInfo.inc              \
+               PPCGenMCCodeEmitter.inc          \
+               PPCGenRegisterInfo.inc           \
+               PPCGenSubtargetInfo.inc          \
+               PPCGenExegesis.inc)
+
+GENERATED += $(addprefix Sparc/,                \
+               SparcGenAsmMatcher.inc           \
+               SparcGenAsmWriter.inc            \
+               SparcGenCallingConv.inc          \
+               SparcGenDAGISel.inc              \
+               SparcGenDisassemblerTables.inc   \
+               SparcGenInstrInfo.inc            \
+               SparcGenMCCodeEmitter.inc        \
+               SparcGenRegisterInfo.inc         \
+               SparcGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix SystemZ/,              \
+               SystemZGenAsmMatcher.inc         \
+               SystemZGenAsmWriter.inc          \
+               SystemZGenCallingConv.inc        \
+               SystemZGenDAGISel.inc            \
+               SystemZGenDisassemblerTables.inc \
+               SystemZGenInstrInfo.inc          \
+               SystemZGenMCCodeEmitter.inc      \
+               SystemZGenRegisterInfo.inc       \
+               SystemZGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix WebAssembly/,              \
+               WebAssemblyGenAsmMatcher.inc         \
+               WebAssemblyGenAsmWriter.inc          \
+               WebAssemblyGenDAGISel.inc            \
+               WebAssemblyGenDisassemblerTables.inc \
+               WebAssemblyGenFastISel.inc           \
+               WebAssemblyGenInstrInfo.inc          \
+               WebAssemblyGenMCCodeEmitter.inc      \
+               WebAssemblyGenRegisterInfo.inc       \
+               WebAssemblyGenSubtargetInfo.inc)
+
+GENERATED += $(addprefix X86/,                      \
+               X86GenAsmMatcher.inc                 \
+               X86GenAsmWriter.inc                  \
+               X86GenAsmWriter1.inc                 \
+               X86GenCallingConv.inc                \
+               X86GenDAGISel.inc                    \
+               X86GenDisassemblerTables.inc         \
+               X86GenEVEX2VEXTables.inc             \
+               X86GenFastISel.inc                   \
+               X86GenGlobalISel.inc                 \
+               X86GenInstrInfo.inc                  \
+               X86GenRegisterBank.inc               \
+               X86GenRegisterInfo.inc               \
+               X86GenSubtargetInfo.inc              \
+               X86GenExegesis.inc)
+
+GENERATED += $(addprefix XCore/,                    \
+               XCoreGenAsmWriter.inc                \
+               XCoreGenCallingConv.inc              \
+               XCoreGenDAGISel.inc                  \
+               XCoreGenDisassemblerTables.inc       \
+               XCoreGenInstrInfo.inc                \
+               XCoreGenRegisterInfo.inc             \
+               XCoreGenSubtargetInfo.inc)
+
+VPATH = $(addprefix AArch64/,      \
+          .                        \
+          AsmParser                \
+          Disassembler             \
+          MCTargetDesc             \
+          TargetInfo               \
+          Utils)
+
+VPATH += $(addprefix AMDGPU/,      \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo              \
+           Utils)
+
+VPATH += $(addprefix ARM/,         \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo              \
+           Utils)
+
+VPATH += $(addprefix ARC/,         \
+          .                        \
+          Disassembler             \
+          MCTargetDesc             \
+          TargetInfo)
+
+VPATH += $(addprefix BPF/,         \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix Hexagon/,     \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix Lanai/,       \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix Mips/,        \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix MSP430/,      \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix NVPTX/,       \
+           .                       \
+           MCTargeTDesc            \
+           TargeTInfo)
+
+VPATH += $(addprefix PowerPC/,     \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix Sparc/,       \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix SystemZ/,     \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix WebAssembly/, \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+VPATH += $(addprefix X86/,         \
+           .                       \
+           AsmParser               \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo              \
+           Utils)
+
+VPATH += $(addprefix XCore/,       \
+           .                       \
+           Disassembler            \
+           MCTargetDesc            \
+           TargetInfo)
+
+Target_SRC =                  Target.cpp                   \
+                              TargetIntrinsicInfo.cpp      \
+                              TargetLoweringObjectFile.cpp \
+                              TargetMachine.cpp            \
+                              TargetMachineC.cpp
+
+AArch64CodeGen_SRC =          $(addprefix AArch64/,                    \
+                                AArch64A57FPLoadBalancing.cpp          \
+                                AArch64AdvSIMDScalarPass.cpp           \
+                                AArch64AsmPrinter.cpp                  \
+                                AArch64BranchTargets.cpp               \
+                                AArch64CallingConvention.cpp           \
+                                AArch64CallLowering.cpp                \
+                                AArch64CleanupLocalDynamicTLSPass.cpp  \
+                                AArch64CollectLOH.cpp                  \
+                                AArch64CondBrTuning.cpp                \
+                                AArch64ConditionalCompares.cpp         \
+                                AArch64DeadRegisterDefinitionsPass.cpp \
+                                AArch64ExpandImm.cpp                   \
+                                AArch64ExpandPseudoInsts.cpp           \
+                                AArch64FalkorHWPFFix.cpp               \
+                                AArch64FastISel.cpp                    \
+                                AArch64A53Fix835769.cpp                \
+                                AArch64FrameLowering.cpp               \
+                                AArch64CompressJumpTables.cpp          \
+                                AArch64ConditionOptimizer.cpp          \
+                                AArch64RedundantCopyElimination.cpp    \
+                                AArch64ISelDAGToDAG.cpp                \
+                                AArch64ISelLowering.cpp                \
+                                AArch64InstrInfo.cpp                   \
+                                AArch64InstructionSelector.cpp         \
+                                AArch64LegalizerInfo.cpp               \
+                                AArch64LoadStoreOptimizer.cpp          \
+                                AArch64MacroFusion.cpp                 \
+                                AArch64MCInstLower.cpp                 \
+                                AArch64PreLegalizerCombiner.cpp        \
+                                AArch64PromoteConstant.cpp             \
+                                AArch64PBQPRegAlloc.cpp                \
+                                AArch64RegisterBankInfo.cpp            \
+                                AArch64RegisterInfo.cpp                \
+                                AArch64SelectionDAGInfo.cpp            \
+                                AArch64SpeculationHardening.cpp        \
+                                AArch64StackTagging.cpp                \
+                                AArch64StackTaggingPreRA.cpp           \
+                                AArch64StorePairSuppress.cpp           \
+                                AArch64Subtarget.cpp                   \
+                                AArch64TargetMachine.cpp               \
+                                AArch64TargetObjectFile.cpp            \
+                                AArch64TargetTransformInfo.cpp         \
+                                AArch64SIMDInstrOpt.cpp)
+
+AArch64AsmParser_SRC =        AArch64/AsmParser/AArch64AsmParser.cpp
+AArch64Disassembler_SRC =     AArch64/Disassembler/AArch64Disassembler.cpp \
+                              AArch64/Disassembler/AArch64ExternalSymbolizer.cpp
+AArch64Info_SRC =             AArch64/TargetInfo/AArch64TargetInfo.cpp
+AArch64Utils_SRC =            AArch64/Utils/AArch64BaseInfo.cpp
+
+AArch64Desc_SRC =             $(addprefix AArch64/MCTargetDesc/, \
+                                 AArch64AsmBackend.cpp            \
+                                 AArch64ELFObjectWriter.cpp       \
+                                 AArch64ELFStreamer.cpp           \
+                                 AArch64InstPrinter.cpp           \
+                                 AArch64MCAsmInfo.cpp             \
+                                 AArch64MCCodeEmitter.cpp         \
+                                 AArch64MCExpr.cpp                \
+                                 AArch64MCTargetDesc.cpp          \
+                                 AArch64MachObjectWriter.cpp      \
+                                 AArch64TargetStreamer.cpp        \
+                                 AArch64WinCOFFObjectWriter.cpp   \
+                                 AArch64WinCOFFStreamer.cpp)
+
+AMDGPUCodeGen_SRC =           $(addprefix AMDGPU/,                    \
+                                AMDGPUAliasAnalysis.cpp               \
+                                AMDGPUAlwaysInlinePass.cpp            \
+                                AMDGPUAnnotateKernelFeatures.cpp      \
+                                AMDGPUAnnotateUniformValues.cpp       \
+                                AMDGPUArgumentUsageInfo.cpp           \
+                                AMDGPUAsmPrinter.cpp                  \
+                                AMDGPUAtomicOptimizer.cpp             \
+                                AMDGPUCallLowering.cpp                \
+                                AMDGPUCodeGenPrepare.cpp              \
+                                AMDGPUFixFunctionBitcasts.cpp         \
+                                AMDGPUFrameLowering.cpp               \
+                                AMDGPUGlobalISelUtils.cpp             \
+                                AMDGPUHSAMetadataStreamer.cpp         \
+                                AMDGPUInstrInfo.cpp                   \
+                                AMDGPUInstructionSelector.cpp         \
+                                AMDGPUISelDAGToDAG.cpp                \
+                                AMDGPUISelLowering.cpp                \
+                                AMDGPULegalizerInfo.cpp               \
+                                AMDGPULibCalls.cpp                    \
+                                AMDGPULibFunc.cpp                     \
+                                AMDGPULowerIntrinsics.cpp             \
+                                AMDGPULowerKernelArguments.cpp        \
+                                AMDGPULowerKernelAttributes.cpp       \
+                                AMDGPUMachineCFGStructurizer.cpp      \
+                                AMDGPUMachineFunction.cpp             \
+                                AMDGPUMachineModuleInfo.cpp           \
+                                AMDGPUMacroFusion.cpp                 \
+                                AMDGPUMCInstLower.cpp                 \
+                                AMDGPUOpenCLEnqueuedBlockLowering.cpp \
+                                AMDGPUPreLegalizerCombiner.cpp        \
+                                AMDGPUPrintfRuntimeBinding.cpp        \
+                                AMDGPUPromoteAlloca.cpp               \
+                                AMDGPUPropagateAttributes.cpp         \
+                                AMDGPURegisterBankInfo.cpp            \
+                                AMDGPURegisterInfo.cpp                \
+                                AMDGPURewriteOutArguments.cpp         \
+                                AMDGPUSubtarget.cpp                   \
+                                AMDGPUTargetMachine.cpp               \
+                                AMDGPUTargetObjectFile.cpp            \
+                                AMDGPUTargetTransformInfo.cpp         \
+                                AMDGPUUnifyDivergentExitNodes.cpp     \
+                                AMDGPUUnifyMetadata.cpp               \
+                                AMDGPUInline.cpp                      \
+                                AMDGPUPerfHintAnalysis.cpp            \
+                                AMDILCFGStructurizer.cpp              \
+                                GCNHazardRecognizer.cpp               \
+                                GCNIterativeScheduler.cpp             \
+                                GCNMinRegStrategy.cpp                 \
+                                GCNRegPressure.cpp                    \
+                                GCNSchedStrategy.cpp                  \
+                                R600AsmPrinter.cpp                    \
+                                R600ClauseMergePass.cpp               \
+                                R600ControlFlowFinalizer.cpp          \
+                                R600EmitClauseMarkers.cpp             \
+                                R600ExpandSpecialInstrs.cpp           \
+                                R600FrameLowering.cpp                 \
+                                R600InstrInfo.cpp                     \
+                                R600ISelLowering.cpp                  \
+                                R600MachineFunctionInfo.cpp           \
+                                R600MachineScheduler.cpp              \
+                                R600OpenCLImageTypeLoweringPass.cpp   \
+                                R600OptimizeVectorRegisters.cpp       \
+                                R600Packetizer.cpp                    \
+                                R600RegisterInfo.cpp                  \
+                                SIAddIMGInit.cpp                      \
+                                SIAnnotateControlFlow.cpp             \
+                                SIFixSGPRCopies.cpp                   \
+                                SIFixupVectorISel.cpp                 \
+                                SIFixVGPRCopies.cpp                   \
+                                SIFoldOperands.cpp                    \
+                                SIFormMemoryClauses.cpp               \
+                                SIFrameLowering.cpp                   \
+                                SIInsertSkips.cpp                     \
+                                SIInsertWaitcnts.cpp                  \
+                                SIInstrInfo.cpp                       \
+                                SIISelLowering.cpp                    \
+                                SILoadStoreOptimizer.cpp              \
+                                SILowerControlFlow.cpp                \
+                                SILowerI1Copies.cpp                   \
+                                SILowerSGPRSpills.cpp                 \
+                                SIMachineFunctionInfo.cpp             \
+                                SIMachineScheduler.cpp                \
+                                SIMemoryLegalizer.cpp                 \
+                                SIModeRegister.cpp                    \
+                                SIOptimizeExecMasking.cpp             \
+                                SIOptimizeExecMaskingPreRA.cpp        \
+                                SIPeepholeSDWA.cpp                    \
+                                SIPostRABundler.cpp                   \
+                                SIPreAllocateWWMRegs.cpp              \
+                                SIRegisterInfo.cpp                    \
+                                SIRemoveShortExecBranches.cpp         \
+                                SIShrinkInstructions.cpp              \
+                                SIWholeQuadMode.cpp                   \
+                                GCNILPSched.cpp                       \
+                                GCNNSAReassign.cpp                    \
+                                GCNDPPCombine.cpp                     \
+                                GCNRegBankReassign.cpp)
+
+AMDGPUUtils_SRC =             $(addprefix AMDGPU/Utils/, \
+                                AMDGPUBaseInfo.cpp       \
+                                AMDGPUPALMetadata.cpp    \
+                                AMDKernelCodeTUtils.cpp  \
+                                AMDGPUAsmUtils.cpp)
+
+AMDGPUDesc_SRC =              $(addprefix AMDGPU/MCTargetDesc/, \
+                                AMDGPUAsmBackend.cpp            \
+                                AMDGPUELFObjectWriter.cpp       \
+                                AMDGPUELFStreamer.cpp           \
+                                AMDGPUInstPrinter.cpp           \
+                                AMDGPUMCAsmInfo.cpp             \
+                                AMDGPUMCCodeEmitter.cpp         \
+                                AMDGPUMCTargetDesc.cpp          \
+                                AMDGPUTargetStreamer.cpp        \
+                                R600MCCodeEmitter.cpp           \
+                                R600MCTargetDesc.cpp            \
+                                SIMCCodeEmitter.cpp)
+
+AMDGPUAsmParser_SRC =         AMDGPU/AsmParser/AMDGPUAsmParser.cpp
+AMDGPUDisassembler_SRC =      AMDGPU/Disassembler/AMDGPUDisassembler.cpp
+AMDGPUInfo_SRC =              AMDGPU/TargetInfo/AMDGPUTargetInfo.cpp
+
+ARMCodeGen_SRC =              $(addprefix ARM/,              \
+                                A15SDOptimizer.cpp           \
+                                ARMAsmPrinter.cpp            \
+                                ARMBaseInstrInfo.cpp         \
+                                ARMBaseRegisterInfo.cpp      \
+                                ARMBasicBlockInfo.cpp        \
+                                ARMCallingConv.cpp           \
+                                ARMCallLowering.cpp          \
+                                ARMConstantIslandPass.cpp    \
+                                ARMConstantPoolValue.cpp     \
+                                ARMExpandPseudoInsts.cpp     \
+                                ARMFastISel.cpp              \
+                                ARMFrameLowering.cpp         \
+                                ARMHazardRecognizer.cpp      \
+                                ARMInstructionSelector.cpp   \
+                                ARMISelDAGToDAG.cpp          \
+                                ARMISelLowering.cpp          \
+                                ARMInstrInfo.cpp             \
+                                ARMLegalizerInfo.cpp         \
+                                ARMLowOverheadLoops.cpp      \
+                                ARMParallelDSP.cpp           \
+                                ARMLoadStoreOptimizer.cpp    \
+                                ARMMCInstLower.cpp           \
+                                ARMMachineFunctionInfo.cpp   \
+                                ARMMacroFusion.cpp           \
+                                ARMRegisterInfo.cpp          \
+                                ARMOptimizeBarriersPass.cpp  \
+                                ARMRegisterBankInfo.cpp      \
+                                ARMSelectionDAGInfo.cpp      \
+                                ARMSubtarget.cpp             \
+                                ARMTargetMachine.cpp         \
+                                ARMTargetObjectFile.cpp      \
+                                ARMTargetTransformInfo.cpp   \
+                                MLxExpansionPass.cpp         \
+                                MVEGatherScatterLowering.cpp \
+                                MVETailPredication.cpp       \
+                                MVEVPTBlockPass.cpp          \
+                                Thumb1FrameLowering.cpp      \
+                                Thumb1InstrInfo.cpp          \
+                                ThumbRegisterInfo.cpp        \
+                                Thumb2ITBlockPass.cpp        \
+                                Thumb2InstrInfo.cpp          \
+                                Thumb2SizeReduction.cpp)
+
+ARMDesc_SRC =                 $(addprefix ARM/MCTargetDesc/, \
+                                ARMAsmBackend.cpp            \
+                                ARMELFObjectWriter.cpp       \
+                                ARMELFStreamer.cpp           \
+                                ARMInstPrinter.cpp           \
+                                ARMMachObjectWriter.cpp      \
+                                ARMMachORelocationInfo.cpp   \
+                                ARMMCAsmInfo.cpp             \
+                                ARMMCCodeEmitter.cpp         \
+                                ARMMCExpr.cpp                \
+                                ARMMCTargetDesc.cpp          \
+                                ARMTargetStreamer.cpp        \
+                                ARMUnwindOpAsm.cpp           \
+                                ARMWinCOFFObjectWriter.cpp   \
+                                ARMWinCOFFStreamer.cpp)
+
+ARMAsmParser_SRC =            ARM/AsmParser/ARMAsmParser.cpp
+ARMDisassembler_SRC =         ARM/Disassembler/ARMDisassembler.cpp
+ARMInfo_SRC =                 ARM/TargetInfo/ARMTargetInfo.cpp
+ARMUtils_SRC =                ARM/Utils/ARMBaseInfo.cpp
+
+ARCCodeGen_SRC =              $(addprefix ARC/,             \
+                                ARCAsmPrinter.cpp           \
+                                ARCBranchFinalize.cpp       \
+                                ARCExpandPseudos.cpp        \
+                                ARCFrameLowering.cpp        \
+                                ARCInstrInfo.cpp            \
+                                ARCISelDAGToDAG.cpp         \
+                                ARCISelLowering.cpp         \
+                                ARCMachineFunctionInfo.cpp  \
+                                ARCMCInstLower.cpp          \
+                                ARCOptAddrMode.cpp          \
+                                ARCRegisterInfo.cpp         \
+                                ARCSubtarget.cpp            \
+                                ARCTargetMachine.cpp)
+
+ARCDesc_SRC =                 $(addprefix ARC/MCTargetDesc/, \
+                                ARCInstPrinter.cpp           \
+                                ARCMCAsmInfo.cpp             \
+                                ARCMCTargetDesc.cpp)
+
+ARCDisassembler_SRC =         ARC/Disassembler/ARCDisassembler.cpp
+ARCInfo_SRC =                 ARC/TargetInfo/ARCTargetInfo.cpp
+
+BPFCodeGen_SRC =              $(addprefix BPF/,             \
+                                BPFAbstractMemberAccess.cpp \
+                                BPFAsmPrinter.cpp           \
+                                BTFDebug.cpp                \
+                                BPFFrameLowering.cpp        \
+                                BPFInstrInfo.cpp            \
+                                BPFISelDAGToDAG.cpp         \
+                                BPFISelLowering.cpp         \
+                                BPFMISimplifyPatchable.cpp  \
+                                BPFMCInstLower.cpp          \
+                                BPFRegisterInfo.cpp         \
+                                BPFSelectionDAGInfo.cpp     \
+                                BPFSubtarget.cpp            \
+                                BPFTargetMachine.cpp        \
+                                BPFMIPeephole.cpp           \
+                                BPFMIChecking.cpp)
+
+BPFAsmParser_SRC =            BPF/AsmParser/BPFAsmParser.cpp
+BPFDisassembler_SRC =         BPF/Disassembler/BPFDisassembler.cpp
+BPFInfo_SRC =                 BPF/TargetInfo/BPFTargetInfo.cpp
+
+BPFDesc_SRC =                 $(addprefix BPF/MCTargetDesc/, \
+                                BPFAsmBackend.cpp            \
+                                BPFELFObjectWriter.cpp       \
+                                BPFInstPrinter.cpp           \
+                                BPFMCCodeEmitter.cpp         \
+                                BPFMCTargetDesc.cpp)
+
+HexagonCodeGen_SRC =          $(addprefix Hexagon/,               \
+                                BitTracker.cpp                    \
+                                HexagonAsmPrinter.cpp             \
+                                HexagonBitSimplify.cpp            \
+                                HexagonBitTracker.cpp             \
+                                HexagonBlockRanges.cpp            \
+                                HexagonBranchRelaxation.cpp       \
+                                HexagonCFGOptimizer.cpp           \
+                                HexagonCommonGEP.cpp              \
+                                HexagonConstExtenders.cpp         \
+                                HexagonConstPropagation.cpp       \
+                                HexagonCopyToCombine.cpp          \
+                                HexagonEarlyIfConv.cpp            \
+                                HexagonExpandCondsets.cpp         \
+                                HexagonFixupHwLoops.cpp           \
+                                HexagonFrameLowering.cpp          \
+                                HexagonGenExtract.cpp             \
+                                HexagonGenInsert.cpp              \
+                                HexagonGenMux.cpp                 \
+                                HexagonGenPredicate.cpp           \
+                                HexagonHardwareLoops.cpp          \
+                                HexagonHazardRecognizer.cpp       \
+                                HexagonInstrInfo.cpp              \
+                                HexagonISelDAGToDAG.cpp           \
+                                HexagonISelDAGToDAGHVX.cpp        \
+                                HexagonISelLowering.cpp           \
+                                HexagonISelLoweringHVX.cpp        \
+                                HexagonLoopIdiomRecognition.cpp   \
+                                HexagonMachineFunctionInfo.cpp    \
+                                HexagonMachineScheduler.cpp       \
+                                HexagonMCInstLower.cpp            \
+                                HexagonNewValueJump.cpp           \
+                                HexagonOptAddrMode.cpp            \
+                                HexagonOptimizeSZextends.cpp      \
+                                HexagonPeephole.cpp               \
+                                HexagonRDFOpt.cpp                 \
+                                HexagonRegisterInfo.cpp           \
+                                HexagonSelectionDAGInfo.cpp       \
+                                HexagonSplitConst32AndConst64.cpp \
+                                HexagonSplitDouble.cpp            \
+                                HexagonStoreWidening.cpp          \
+                                HexagonSubtarget.cpp              \
+                                HexagonTargetMachine.cpp          \
+                                HexagonTargetObjectFile.cpp       \
+                                HexagonTargetTransformInfo.cpp    \
+                                HexagonVectorLoopCarriedReuse.cpp \
+                                HexagonVectorPrint.cpp            \
+                                HexagonVExtract.cpp               \
+                                HexagonVLIWPacketizer.cpp         \
+                                RDFCopy.cpp                       \
+                                RDFDeadCode.cpp                   \
+                                RDFGraph.cpp                      \
+                                RDFLiveness.cpp                   \
+                                RDFRegisters.cpp)
+
+HexagonDesc_SRC =             $(addprefix Hexagon/MCTargetDesc/, \
+                                HexagonAsmBackend.cpp            \
+                                HexagonELFObjectWriter.cpp       \
+                                HexagonInstPrinter.cpp           \
+                                HexagonMCAsmInfo.cpp             \
+                                HexagonMCChecker.cpp             \
+                                HexagonMCCodeEmitter.cpp         \
+                                HexagonMCCompound.cpp            \
+                                HexagonMCDuplexInfo.cpp          \
+                                HexagonMCELFStreamer.cpp         \
+                                HexagonMCExpr.cpp                \
+                                HexagonMCInstrInfo.cpp           \
+                                HexagonMCShuffler.cpp            \
+                                HexagonMCTargetDesc.cpp          \
+                                HexagonShuffler.cpp)
+
+HexagonAsmParser_SRC =        Hexagon/AsmParser/HexagonAsmParser.cpp
+HexagonDisassembler_SRC =     Hexagon/Disassembler/HexagonDisassembler.cpp
+HexagonInfo_SRC =             Hexagon/TargetInfo/HexagonTargetInfo.cpp
+
+LanaiCodeGen_SRC =            $(addprefix Lanai/,            \
+                                LanaiAsmPrinter.cpp          \
+                                LanaiDelaySlotFiller.cpp     \
+                                LanaiFrameLowering.cpp       \
+                                LanaiInstrInfo.cpp           \
+                                LanaiISelDAGToDAG.cpp        \
+                                LanaiISelLowering.cpp        \
+                                LanaiMachineFunctionInfo.cpp \
+                                LanaiMCInstLower.cpp         \
+                                LanaiMemAluCombiner.cpp      \
+                                LanaiRegisterInfo.cpp        \
+                                LanaiSelectionDAGInfo.cpp    \
+                                LanaiSubtarget.cpp           \
+                                LanaiTargetMachine.cpp       \
+                                LanaiTargetObjectFile.cpp)
+
+LanaiDesc_SRC =               $(addprefix Lanai/MCTargetDesc/, \
+                                LanaiAsmBackend.cpp            \
+                                LanaiELFObjectWriter.cpp       \
+                                LanaiInstPrinter.cpp           \
+                                LanaiMCAsmInfo.cpp             \
+                                LanaiMCCodeEmitter.cpp         \
+                                LanaiMCExpr.cpp                \
+                                LanaiMCTargetDesc.cpp)
+
+LanaiAsmParser_SRC =          Lanai/AsmParser/LanaiAsmParser.cpp
+LanaiDisassembler_SRC =       Lanai/Disassembler/LanaiDisassembler.cpp
+LanaiInfo_SRC =               Lanai/TargetInfo/LanaiTargetInfo.cpp
+
+MipsCodeGen_SRC =             $(addprefix Mips/,             \
+                                Mips16FrameLowering.cpp      \
+                                Mips16HardFloat.cpp          \
+                                Mips16HardFloatInfo.cpp      \
+                                Mips16InstrInfo.cpp          \
+                                Mips16ISelDAGToDAG.cpp       \
+                                Mips16ISelLowering.cpp       \
+                                Mips16RegisterInfo.cpp       \
+                                MipsAnalyzeImmediate.cpp     \
+                                MipsAsmPrinter.cpp           \
+                                MipsCallLowering.cpp         \
+                                MipsCCState.cpp              \
+                                MipsConstantIslandPass.cpp   \
+                                MipsDelaySlotFiller.cpp      \
+                                MipsExpandPseudo.cpp         \
+                                MipsFastISel.cpp             \
+                                MipsInstrInfo.cpp            \
+                                MipsInstructionSelector.cpp  \
+                                MipsISelDAGToDAG.cpp         \
+                                MipsISelLowering.cpp         \
+                                MipsFrameLowering.cpp        \
+                                MipsLegalizerInfo.cpp        \
+                                MipsBranchExpansion.cpp      \
+                                MipsMCInstLower.cpp          \
+                                MipsMachineFunction.cpp      \
+                                MipsModuleISelDAGToDAG.cpp   \
+                                MipsOptimizePICCall.cpp      \
+                                MipsOs16.cpp                 \
+                                MipsPreLegalizerCombiner.cpp \
+                                MipsRegisterBankInfo.cpp     \
+                                MipsRegisterInfo.cpp         \
+                                MipsSEFrameLowering.cpp      \
+                                MipsSEInstrInfo.cpp          \
+                                MipsSEISelDAGToDAG.cpp       \
+                                MipsSEISelLowering.cpp       \
+                                MipsSERegisterInfo.cpp       \
+                                MipsSubtarget.cpp            \
+                                MipsTargetMachine.cpp        \
+                                MipsTargetObjectFile.cpp     \
+                                MicroMipsSizeReduction.cpp)
+
+MipsDesc_SRC =                $(addprefix Mips/MCTargetDesc/, \
+                                MipsABIInfo.cpp               \
+                                MipsABIFlagsSection.cpp       \
+                                MipsAsmBackend.cpp            \
+                                MipsELFObjectWriter.cpp       \
+                                MipsELFStreamer.cpp           \
+                                MipsInstPrinter.cpp           \
+                                MipsMCAsmInfo.cpp             \
+                                MipsMCCodeEmitter.cpp         \
+                                MipsMCExpr.cpp                \
+                                MipsMCTargetDesc.cpp          \
+                                MipsNaClELFStreamer.cpp       \
+                                MipsOptionRecord.cpp          \
+                                MipsTargetStreamer.cpp)
+
+MipsAsmParser_SRC =           Mips/AsmParser/MipsAsmParser.cpp
+MipsDisassembler_SRC =        Mips/Disassembler/MipsDisassembler.cpp
+MipsInfo_SRC =                Mips/TargetInfo/MipsTargetInfo.cpp
+
+MSP430CodeGen_SRC =           $(addprefix MSP430/,            \
+                                MSP430BranchSelector.cpp      \
+                                MSP430ISelDAGToDAG.cpp        \
+                                MSP430ISelLowering.cpp        \
+                                MSP430InstrInfo.cpp           \
+                                MSP430FrameLowering.cpp       \
+                                MSP430MachineFunctionInfo.cpp \
+                                MSP430RegisterInfo.cpp        \
+                                MSP430Subtarget.cpp           \
+                                MSP430TargetMachine.cpp       \
+                                MSP430AsmPrinter.cpp          \
+                                MSP430MCInstLower.cpp)
+
+MSP430Desc_SRC =              $(addprefix MSP430/MCTargetDesc/, \
+                                MSP430AsmBackend.cpp            \
+                                MSP430ELFObjectWriter.cpp       \
+                                MSP430ELFStreamer.cpp           \
+                                MSP430InstPrinter.cpp           \
+                                MSP430MCAsmInfo.cpp             \
+                                MSP430MCCodeEmitter.cpp         \
+                                MSP430MCTargetDesc.cpp)
+
+MSP430AsmParser_SRC =         MSP430/AsmParser/MSP430AsmParser.cpp
+MSP430Disassembler_SRC =      MSP430/Disassembler/MSP430Disassembler.cpp
+MSP430Info_SRC =              MSP430/TargetInfo/MSP430TargetInfo.cpp
+
+NVPTXCodeGen_SRC =            $(addprefix NVPTX/,               \
+                                NVPTXAllocaHoisting.cpp         \
+                                NVPTXAsmPrinter.cpp             \
+                                NVPTXAssignValidGlobalNames.cpp \
+                                NVPTXFrameLowering.cpp          \
+                                NVPTXGenericToNVVM.cpp          \
+                                NVPTXISelDAGToDAG.cpp           \
+                                NVPTXISelLowering.cpp           \
+                                NVPTXImageOptimizer.cpp         \
+                                NVPTXInstrInfo.cpp              \
+                                NVPTXLowerAggrCopies.cpp        \
+                                NVPTXLowerArgs.cpp              \
+                                NVPTXLowerAlloca.cpp            \
+                                NVPTXPeephole.cpp               \
+                                NVPTXMCExpr.cpp                 \
+                                NVPTXPrologEpilogPass.cpp       \
+                                NVPTXProxyRegErasure.cpp        \
+                                NVPTXRegisterInfo.cpp           \
+                                NVPTXReplaceImageHandles.cpp    \
+                                NVPTXSubtarget.cpp              \
+                                NVPTXTargetMachine.cpp          \
+                                NVPTXTargetTransformInfo.cpp    \
+                                NVPTXUtilities.cpp              \
+                                NVVMIntrRange.cpp               \
+                                NVVMReflect.cpp)
+
+NVPTXDesc_SRC =               $(addprefix NVPTX/MCTargeTDesc/, \
+                                NVPTXInstPrinter.cpp           \
+                                NVPTXMCAsmInfo.cpp             \
+                                NVPTXMCTargetDesc.cpp          \
+                                NVPTXTargetStreamer.cpp)
+
+NVPTXInfo_SRC =               NVPTX/TargeTInfo/NVPTXTargetInfo.cpp
+
+PowerPCCodeGen_SRC =          $(addprefix PowerPC/,        \
+                                PPCBoolRetToInt.cpp        \
+                                PPCAsmPrinter.cpp          \
+                                PPCBranchSelector.cpp      \
+                                PPCBranchCoalescing.cpp    \
+                                PPCCallingConv.cpp         \
+                                PPCCCState.cpp             \
+                                PPCCTRLoops.cpp            \
+                                PPCHazardRecognizers.cpp   \
+                                PPCInstrInfo.cpp           \
+                                PPCISelDAGToDAG.cpp        \
+                                PPCISelLowering.cpp        \
+                                PPCEarlyReturn.cpp         \
+                                PPCFastISel.cpp            \
+                                PPCFrameLowering.cpp       \
+                                PPCMachineScheduler.cpp    \
+                                PPCMachineFunctionInfo.cpp \
+                                PPCMCInstLower.cpp         \
+                                PPCMIPeephole.cpp          \
+                                PPCLoopInstrFormPrep.cpp   \
+                                PPCLowerMASSVEntries.cpp   \
+                                PPCRegisterInfo.cpp        \
+                                PPCQPXLoadSplat.cpp        \
+                                PPCSubtarget.cpp           \
+                                PPCTargetMachine.cpp       \
+                                PPCTargetObjectFile.cpp    \
+                                PPCTargetTransformInfo.cpp \
+                                PPCTOCRegDeps.cpp          \
+                                PPCTLSDynamicCall.cpp      \
+                                PPCVSXCopy.cpp             \
+                                PPCReduceCRLogicals.cpp    \
+                                PPCVSXFMAMutate.cpp        \
+                                PPCVSXSwapRemoval.cpp      \
+                                PPCExpandISEL.cpp          \
+                                PPCPreEmitPeephole.cpp)
+
+PowerPCDesc_SRC =             $(addprefix PowerPC/MCTargetDesc/, \
+                                PPCAsmBackend.cpp                \
+                                PPCELFStreamer.cpp               \
+                                PPCInstPrinter.cpp               \
+                                PPCMCTargetDesc.cpp              \
+                                PPCMCAsmInfo.cpp                 \
+                                PPCMCCodeEmitter.cpp             \
+                                PPCMCExpr.cpp                    \
+                                PPCPredicates.cpp                \
+                                PPCMachObjectWriter.cpp          \
+                                PPCELFObjectWriter.cpp           \
+                                PPCXCOFFObjectWriter.cpp)
+
+PowerPCAsmParser_SRC =        PowerPC/AsmParser/PPCAsmParser.cpp
+PowerPCDisassembler_SRC =     PowerPC/Disassembler/PPCDisassembler.cpp
+PowerPCInfo_SRC =             PowerPC/TargetInfo/PowerPCTargetInfo.cpp
+
+SparcCodeGen_SRC =            $(addprefix Sparc/,            \
+                                DelaySlotFiller.cpp          \
+                                LeonPasses.cpp               \
+                                SparcAsmPrinter.cpp          \
+                                SparcInstrInfo.cpp           \
+                                SparcISelDAGToDAG.cpp        \
+                                SparcISelLowering.cpp        \
+                                SparcFrameLowering.cpp       \
+                                SparcMachineFunctionInfo.cpp \
+                                SparcRegisterInfo.cpp        \
+                                SparcSubtarget.cpp           \
+                                SparcTargetMachine.cpp       \
+                                SparcMCInstLower.cpp         \
+                                SparcTargetObjectFile.cpp)
+
+SparcDesc_SRC =               $(addprefix Sparc/MCTargetDesc/, \
+                                SparcAsmBackend.cpp            \
+                                SparcELFObjectWriter.cpp       \
+                                SparcInstPrinter.cpp           \
+                                SparcMCAsmInfo.cpp             \
+                                SparcMCCodeEmitter.cpp         \
+                                SparcMCTargetDesc.cpp          \
+                                SparcMCExpr.cpp                \
+                                SparcTargetStreamer.cpp)
+
+SparcAsmParser_SRC =          Sparc/AsmParser/SparcAsmParser.cpp
+SparcDisassembler_SRC =       Sparc/Disassembler/SparcDisassembler.cpp
+SparcInfo_SRC =               Sparc/TargetInfo/SparcTargetInfo.cpp
+
+SystemZCodeGen_SRC =          $(addprefix SystemZ/,            \
+                                SystemZAsmPrinter.cpp          \
+                                SystemZCallingConv.cpp         \
+                                SystemZConstantPoolValue.cpp   \
+                                SystemZElimCompare.cpp         \
+                                SystemZFrameLowering.cpp       \
+                                SystemZHazardRecognizer.cpp    \
+                                SystemZISelDAGToDAG.cpp        \
+                                SystemZISelLowering.cpp        \
+                                SystemZInstrInfo.cpp           \
+                                SystemZLDCleanup.cpp           \
+                                SystemZLongBranch.cpp          \
+                                SystemZMachineFunctionInfo.cpp \
+                                SystemZMachineScheduler.cpp    \
+                                SystemZMCInstLower.cpp         \
+                                SystemZPostRewrite.cpp         \
+                                SystemZRegisterInfo.cpp        \
+                                SystemZSelectionDAGInfo.cpp    \
+                                SystemZShortenInst.cpp         \
+                                SystemZSubtarget.cpp           \
+                                SystemZTargetMachine.cpp       \
+                                SystemZTargetTransformInfo.cpp \
+                                SystemZTDC.cpp)
+
+SystemZDesc_SRC =             $(addprefix SystemZ/MCTargetDesc/, \
+                                SystemZInstPrinter.cpp           \
+                                SystemZMCAsmBackend.cpp          \
+                                SystemZMCAsmInfo.cpp             \
+                                SystemZMCCodeEmitter.cpp         \
+                                SystemZMCObjectWriter.cpp        \
+                                SystemZMCTargetDesc.cpp)
+
+SystemZAsmParser_SRC =        SystemZ/AsmParser/SystemZAsmParser.cpp
+SystemZDisassembler_SRC =     SystemZ/Disassembler/SystemZDisassembler.cpp
+SystemZInfo_SRC =             SystemZ/TargetInfo/SystemZTargetInfo.cpp
+
+WebAssemblyCodeGen_SRC =      $(addprefix WebAssembly/,                  \
+                                WebAssemblyAddMissingPrototypes.cpp      \
+                                WebAssemblyArgumentMove.cpp              \
+                                WebAssemblyAsmPrinter.cpp                \
+                                WebAssemblyCallIndirectFixup.cpp         \
+                                WebAssemblyCFGStackify.cpp               \
+                                WebAssemblyCFGSort.cpp                   \
+                                WebAssemblyDebugValueManager.cpp         \
+                                WebAssemblyLateEHPrepare.cpp             \
+                                WebAssemblyExceptionInfo.cpp             \
+                                WebAssemblyExplicitLocals.cpp            \
+                                WebAssemblyFastISel.cpp                  \
+                                WebAssemblyFixIrreducibleControlFlow.cpp \
+                                WebAssemblyFixFunctionBitcasts.cpp       \
+                                WebAssemblyFrameLowering.cpp             \
+                                WebAssemblyISelDAGToDAG.cpp              \
+                                WebAssemblyISelLowering.cpp              \
+                                WebAssemblyInstrInfo.cpp                 \
+                                WebAssemblyLowerBrUnless.cpp             \
+                                WebAssemblyLowerEmscriptenEHSjLj.cpp     \
+                                WebAssemblyLowerGlobalDtors.cpp          \
+                                WebAssemblyMachineFunctionInfo.cpp       \
+                                WebAssemblyMCInstLower.cpp               \
+                                WebAssemblyMemIntrinsicResults.cpp       \
+                                WebAssemblyOptimizeLiveIntervals.cpp     \
+                                WebAssemblyOptimizeReturned.cpp          \
+                                WebAssemblyPeephole.cpp                  \
+                                WebAssemblyPrepareForLiveIntervals.cpp   \
+                                WebAssemblyRegisterInfo.cpp              \
+                                WebAssemblyRegColoring.cpp               \
+                                WebAssemblyRegNumbering.cpp              \
+                                WebAssemblyRegStackify.cpp               \
+                                WebAssemblyReplacePhysRegs.cpp           \
+                                WebAssemblyRuntimeLibcallSignatures.cpp  \
+                                WebAssemblySelectionDAGInfo.cpp          \
+                                WebAssemblySetP2AlignOperands.cpp        \
+                                WebAssemblySubtarget.cpp                 \
+                                WebAssemblyTargetMachine.cpp             \
+                                WebAssemblyTargetObjectFile.cpp          \
+                                WebAssemblyTargetTransformInfo.cpp       \
+                                WebAssemblyUtilities.cpp)
+
+WebAssemblyDesc_SRC =         $(addprefix WebAssembly/MCTargetDesc/, \
+                                WebAssemblyAsmBackend.cpp            \
+                                WebAssemblyInstPrinter.cpp           \
+                                WebAssemblyMCAsmInfo.cpp             \
+                                WebAssemblyMCCodeEmitter.cpp         \
+                                WebAssemblyMCTargetDesc.cpp          \
+                                WebAssemblyTargetStreamer.cpp        \
+                                WebAssemblyWasmObjectWriter.cpp)
+
+WebAssemblyAsmParser_SRC =    WebAssembly/AsmParser/WebAssemblyAsmParser.cpp
+WebAssemblyDisassembler_SRC = WebAssembly/Disassembler/WebAssemblyDisassembler.cpp
+WebAssemblyInfo_SRC =         WebAssembly/TargetInfo/WebAssemblyTargetInfo.cpp
+
+X86CodeGen_SRC =              $(addprefix X86/,                   \
+                                X86AsmPrinter.cpp                 \
+                                X86AvoidTrailingCall.cpp          \
+                                X86AvoidStoreForwardingBlocks.cpp \
+                                X86CallFrameOptimization.cpp      \
+                                X86CallingConv.cpp                \
+                                X86CallLowering.cpp               \
+                                X86CmovConversion.cpp             \
+                                X86CondBrFolding.cpp              \
+                                X86DomainReassignment.cpp         \
+                                X86DiscriminateMemOps.cpp         \
+                                X86ExpandPseudo.cpp               \
+                                X86FastISel.cpp                   \
+                                X86FixupBWInsts.cpp               \
+                                X86FixupLEAs.cpp                  \
+                                X86FixupSetCC.cpp                 \
+                                X86FlagsCopyLowering.cpp          \
+                                X86FloatingPoint.cpp              \
+                                X86FrameLowering.cpp              \
+                                X86InsertWait.cpp                 \
+                                X86InstructionSelector.cpp        \
+                                X86ISelDAGToDAG.cpp               \
+                                X86ISelLowering.cpp               \
+                                X86IndirectBranchTracking.cpp     \
+                                X86InterleavedAccess.cpp          \
+                                X86InsertPrefetch.cpp             \
+                                X86InstrFMA3Info.cpp              \
+                                X86InstrFoldTables.cpp            \
+                                X86InstrInfo.cpp                  \
+                                X86EvexToVex.cpp                  \
+                                X86LegalizerInfo.cpp              \
+                                X86MCInstLower.cpp                \
+                                X86MachineFunctionInfo.cpp        \
+                                X86MacroFusion.cpp                \
+                                X86OptimizeLEAs.cpp               \
+                                X86PadShortFunction.cpp           \
+                                X86RegisterBankInfo.cpp           \
+                                X86RegisterInfo.cpp               \
+                                X86RetpolineThunks.cpp            \
+                                X86SelectionDAGInfo.cpp           \
+                                X86ShuffleDecodeConstantPool.cpp  \
+                                X86SpeculativeLoadHardening.cpp   \
+                                X86Subtarget.cpp                  \
+                                X86TargetMachine.cpp              \
+                                X86TargetObjectFile.cpp           \
+                                X86TargetTransformInfo.cpp        \
+                                X86VZeroUpper.cpp                 \
+                                X86WinAllocaExpander.cpp          \
+                                X86WinEHState.cpp)
+
+X86Desc_SRC =                 $(addprefix X86/MCTargetDesc/, \
+                                X86AsmBackend.cpp            \
+                                X86ATTInstPrinter.cpp        \
+                                X86IntelInstPrinter.cpp      \
+                                X86InstComments.cpp          \
+                                X86InstPrinterCommon.cpp     \
+                                X86MCTargetDesc.cpp          \
+                                X86MCAsmInfo.cpp             \
+                                X86MCCodeEmitter.cpp         \
+                                X86MachObjectWriter.cpp      \
+                                X86ELFObjectWriter.cpp       \
+                                X86WinCOFFObjectWriter.cpp   \
+                                X86WinCOFFStreamer.cpp       \
+                                X86WinCOFFTargetStreamer.cpp)
+
+X86AsmParser_SRC =            X86/AsmParser/X86AsmParser.cpp
+X86Disassembler_SRC =         X86/Disassembler/X86Disassembler.cpp
+X86Info_SRC =                 X86/TargetInfo/X86TargetInfo.cpp
+X86Utils_SRC =                X86/Utils/X86ShuffleDecode.cpp
+
+XCoreCodeGen_SRC =           $(addprefix XCore/,            \
+                               XCoreAsmPrinter.cpp          \
+                               XCoreFrameLowering.cpp       \
+                               XCoreInstrInfo.cpp           \
+                               XCoreISelDAGToDAG.cpp        \
+                               XCoreISelLowering.cpp        \
+                               XCoreLowerThreadLocal.cpp    \
+                               XCoreMachineFunctionInfo.cpp \
+                               XCoreMCInstLower.cpp         \
+                               XCoreRegisterInfo.cpp        \
+                               XCoreSubtarget.cpp           \
+                               XCoreTargetMachine.cpp       \
+                               XCoreTargetObjectFile.cpp    \
+                               XCoreSelectionDAGInfo.cpp    \
+                               XCoreFrameToArgsOffsetElim.cpp)
+
+XCoreDesc_SRC =               $(addprefix XCore/MCTargetDesc/, \
+                                XCoreInstPrinter.cpp           \
+                                XCoreMCTargetDesc.cpp          \
+                                XCoreMCAsmInfo.cpp)
+
+XCoreDisassembler_SRC =       XCore/Disassembler/XCoreDisassembler.cpp
+XCoreInfo_SRC =               XCore/TargetInfo/XCoreTargetInfo.cpp
+
+#########################################################################################
+
+ALL_SOURCES = $(AArch64AsmParser_SRC)        \
+              $(AArch64Desc_SRC)             \
+              $(AArch64Disassembler_SRC)     \
+              $(AArch64CodeGen_SRC)          \
+              $(AArch64Info_SRC)             \
+              $(AArch64Utils_SRC)            \
+              $(AMDGPUCodeGen_SRC)           \
+              $(AMDGPUUtils_SRC)             \
+              $(AMDGPUAsmParser_SRC)         \
+              $(AMDGPUDisassembler_SRC)      \
+              $(AMDGPUDesc_SRC)              \
+              $(AMDGPUInfo_SRC)              \
+              $(ARMCodeGen_SRC)              \
+              $(ARMAsmParser_SRC)            \
+              $(ARMDisassembler_SRC)         \
+              $(ARMDesc_SRC)                 \
+              $(ARMInfo_SRC)                 \
+              $(ARMUtils_SRC)                \
+              $(ARCCodeGen_SRC)              \
+              $(ARCDisassembler_SRC)         \
+              $(ARCInfo_SRC)                 \
+              $(BPFCodeGen_SRC)              \
+              $(BPFAsmParser_SRC)            \
+              $(BPFDisassembler_SRC)         \
+              $(BPFDesc_SRC)                 \
+              $(BPFInfo_SRC)                 \
+              $(HexagonCodeGen_SRC)          \
+              $(HexagonAsmParser_SRC)        \
+              $(HexagonDisassembler_SRC)     \
+              $(HexagonDesc_SRC)             \
+              $(HexagonInfo_SRC)             \
+              $(LanaiCodeGen_SRC)            \
+              $(LanaiAsmParser_SRC)          \
+              $(LanaiDisassembler_SRC)       \
+              $(LanaiDesc_SRC)               \
+              $(LanaiInfo_SRC)               \
+              $(MipsCodeGen_SRC)             \
+              $(MipsAsmParser_SRC)           \
+              $(MipsDisassembler_SRC)        \
+              $(MipsDesc_SRC)                \
+              $(MipsInfo_SRC)                \
+              $(MSP430CodeGen_SRC)           \
+              $(MSP430Desc_SRC)              \
+              $(MSP430Info_SRC)              \
+              $(MSP430AsmParser_SRC)         \
+              $(MSP430Disassembler_SRC)      \
+              $(NVPTXCodeGen_SRC)            \
+              $(NVPTXDesc_SRC)               \
+              $(NVPTXInfo_SRC)               \
+              $(PowerPCCodeGen_SRC)          \
+              $(PowerPCAsmParser_SRC)        \
+              $(PowerPCDisassembler_SRC)     \
+              $(PowerPCDesc_SRC)             \
+              $(PowerPCInfo_SRC)             \
+              $(SparcCodeGen_SRC)            \
+              $(SparcAsmParser_SRC)          \
+              $(SparcDisassembler_SRC)       \
+              $(SparcDesc_SRC)               \
+              $(SystemZCodeGen_SRC)          \
+              $(SystemZAsmParser_SRC)        \
+              $(SystemZDisassembler_SRC)     \
+              $(SystemZDesc_SRC)             \
+              $(SystemZInfo_SRC)             \
+              $(Target_SRC)                  \
+              $(WebAssemblyCodeGen_SRC)      \
+              $(WebAssemblyAsmParser_SRC)    \
+              $(WebAssemblyDisassembler_SRC) \
+              $(WebAssemblyDesc_SRC)         \
+              $(WebAssemblyInfo_SRC)         \
+              $(X86CodeGen_SRC)              \
+              $(X86AsmParser_SRC)            \
+              $(X86Disassembler_SRC)         \
+              $(X86Desc_SRC)                 \
+              $(X86Info_SRC)                 \
+              $(X86Utils_SRC)                \
+              $(XCoreCodeGen_SRC)            \
+              $(XCoreDisassembler_SRC)       \
+              $(XCoreDesc_SRC)               \
+              $(XCoreInfo_SRC)
+
+AArch64CodeGen_OBJ          = $(call cpp_to_obj, $(AArch64CodeGen_SRC))
+AArch64AsmParser_OBJ        = $(call cpp_to_obj, $(AArch64AsmParser_SRC))
+AArch64Disassembler_OBJ     = $(call cpp_to_obj, $(AArch64Disassembler_SRC))
+AArch64Desc_OBJ             = $(call cpp_to_obj, $(AArch64Desc_SRC))
+AArch64Info_OBJ             = $(call cpp_to_obj, $(AArch64Info_SRC))
+AArch64Utils_OBJ            = $(call cpp_to_obj, $(AArch64Utils_SRC))
+
+AMDGPUCodeGen_OBJ           = $(call cpp_to_obj, $(AMDGPUCodeGen_SRC))
+AMDGPUUtils_OBJ             = $(call cpp_to_obj, $(AMDGPUUtils_SRC))
+AMDGPUAsmParser_OBJ         = $(call cpp_to_obj, $(AMDGPUAsmParser_SRC))
+AMDGPUDisassembler_OBJ      = $(call cpp_to_obj, $(AMDGPUDisassembler_SRC))
+AMDGPUDesc_OBJ              = $(call cpp_to_obj, $(AMDGPUDesc_SRC))
+AMDGPUInfo_OBJ              = $(call cpp_to_obj, $(AMDGPUInfo_SRC))
+
+ARCCodeGen_OBJ              = $(call cpp_to_obj, $(ARCCodeGen_SRC))
+ARCDisassembler_OBJ         = $(call cpp_to_obj, $(ARCDisassembler_SRC))
+ARCInfo_OBJ                 = $(call cpp_to_obj, $(ARCInfo_SRC))
+ARCDesc_OBJ                 = $(call cpp_to_obj, $(ARCDesc_SRC))
+
+ARMCodeGen_OBJ              = $(call cpp_to_obj, $(ARMCodeGen_SRC))
+ARMAsmParser_OBJ            = $(call cpp_to_obj, $(ARMAsmParser_SRC))
+ARMDisassembler_OBJ         = $(call cpp_to_obj, $(ARMDisassembler_SRC))
+ARMDesc_OBJ                 = $(call cpp_to_obj, $(ARMDesc_SRC))
+ARMInfo_OBJ                 = $(call cpp_to_obj, $(ARMInfo_SRC))
+ARMUtils_OBJ                = $(call cpp_to_obj, $(ARMUtils_SRC))
+
+BPFCodeGen_OBJ              = $(call cpp_to_obj, $(BPFCodeGen_SRC))
+BPFAsmParser_OBJ            = $(call cpp_to_obj, $(BPFAsmParser_SRC))
+BPFDisassembler_OBJ         = $(call cpp_to_obj, $(BPFDisassembler_SRC))
+BPFDesc_OBJ                 = $(call cpp_to_obj, $(BPFDesc_SRC))
+BPFInfo_OBJ                 = $(call cpp_to_obj, $(BPFInfo_SRC))
+
+HexagonCodeGen_OBJ          = $(call cpp_to_obj, $(HexagonCodeGen_SRC))
+HexagonAsmParser_OBJ        = $(call cpp_to_obj, $(HexagonAsmParser_SRC))
+HexagonDisassembler_OBJ     = $(call cpp_to_obj, $(HexagonDisassembler_SRC))
+HexagonDesc_OBJ             = $(call cpp_to_obj, $(HexagonDesc_SRC))
+HexagonInfo_OBJ             = $(call cpp_to_obj, $(HexagonInfo_SRC))
+
+LanaiCodeGen_OBJ            = $(call cpp_to_obj, $(LanaiCodeGen_SRC))
+LanaiAsmParser_OBJ          = $(call cpp_to_obj, $(LanaiAsmParser_SRC))
+LanaiDisassembler_OBJ       = $(call cpp_to_obj, $(LanaiDisassembler_SRC))
+LanaiDesc_OBJ               = $(call cpp_to_obj, $(LanaiDesc_SRC))
+LanaiInfo_OBJ               = $(call cpp_to_obj, $(LanaiInfo_SRC))
+
+MipsCodeGen_OBJ             = $(call cpp_to_obj, $(MipsCodeGen_SRC))
+MipsAsmParser_OBJ           = $(call cpp_to_obj, $(MipsAsmParser_SRC))
+MipsDisassembler_OBJ        = $(call cpp_to_obj, $(MipsDisassembler_SRC))
+MipsDesc_OBJ                = $(call cpp_to_obj, $(MipsDesc_SRC))
+MipsInfo_OBJ                = $(call cpp_to_obj, $(MipsInfo_SRC))
+
+MSP430CodeGen_OBJ           = $(call cpp_to_obj, $(MSP430CodeGen_SRC))
+MSP430Desc_OBJ              = $(call cpp_to_obj, $(MSP430Desc_SRC))
+MSP430Info_OBJ              = $(call cpp_to_obj, $(MSP430Info_SRC))
+MSP430AsmParser_OBJ         = $(call cpp_to_obj, $(MSP430AsmParser_SRC))
+MSP430Disassembler_OBJ      = $(call cpp_to_obj, $(MSP430Disassembler_SRC))
+
+NVPTXCodeGen_OBJ            = $(call cpp_to_obj, $(NVPTXCodeGen_SRC))
+NVPTXDesc_OBJ               = $(call cpp_to_obj, $(NVPTXDesc_SRC))
+NVPTXInfo_OBJ               = $(call cpp_to_obj, $(NVPTXInfo_SRC))
+
+PowerPCCodeGen_OBJ          = $(call cpp_to_obj, $(PowerPCCodeGen_SRC))
+PowerPCAsmParser_OBJ        = $(call cpp_to_obj, $(PowerPCAsmParser_SRC))
+PowerPCDisassembler_OBJ     = $(call cpp_to_obj, $(PowerPCDisassembler_SRC))
+PowerPCDesc_OBJ             = $(call cpp_to_obj, $(PowerPCDesc_SRC))
+PowerPCInfo_OBJ             = $(call cpp_to_obj, $(PowerPCInfo_SRC))
+
+SparcCodeGen_OBJ            = $(call cpp_to_obj, $(SparcCodeGen_SRC))
+SparcAsmParser_OBJ          = $(call cpp_to_obj, $(SparcAsmParser_SRC))
+SparcDisassembler_OBJ       = $(call cpp_to_obj, $(SparcDisassembler_SRC))
+SparcDesc_OBJ               = $(call cpp_to_obj, $(SparcDesc_SRC))
+SparcInfo_OBJ               = $(call cpp_to_obj, $(SparcInfo_SRC))
+SparcInfo_I                 = $(call cpp_to_i,   $(SparcInfo_SRC))
+
+SystemZAsmParser_OBJ        = $(call cpp_to_obj, $(SystemZAsmParser_SRC))
+SystemZCodeGen_OBJ          = $(call cpp_to_obj, $(SystemZCodeGen_SRC))
+SystemZDisassembler_OBJ     = $(call cpp_to_obj, $(SystemZDisassembler_SRC))
+SystemZDesc_OBJ             = $(call cpp_to_obj, $(SystemZDesc_SRC))
+SystemZInfo_OBJ             = $(call cpp_to_obj, $(SystemZInfo_SRC))
+
+Target_OBJ                  = $(call cpp_to_obj, $(Target_SRC))
+
+WebAssemblyCodeGen_OBJ      = $(call cpp_to_obj, $(WebAssemblyCodeGen_SRC))
+WebAssemblyAsmParser_OBJ    = $(call cpp_to_obj, $(WebAssemblyAsmParser_SRC))
+WebAssemblyDisassembler_OBJ = $(call cpp_to_obj, $(WebAssemblyDisassembler_SRC))
+WebAssemblyDesc_OBJ         = $(call cpp_to_obj, $(WebAssemblyDesc_SRC))
+WebAssemblyInfo_OBJ         = $(call cpp_to_obj, $(WebAssemblyInfo_SRC))
+
+X86CodeGen_OBJ              = $(call cpp_to_obj, $(X86CodeGen_SRC))
+X86AsmParser_OBJ            = $(call cpp_to_obj, $(X86AsmParser_SRC))
+X86Disassembler_OBJ         = $(call cpp_to_obj, $(X86Disassembler_SRC))
+X86Desc_OBJ                 = $(call cpp_to_obj, $(X86Desc_SRC))
+X86Info_OBJ                 = $(call cpp_to_obj, $(X86Info_SRC))
+X86Utils_OBJ                = $(call cpp_to_obj, $(X86Utils_SRC))
+
+XCoreCodeGen_OBJ            = $(call cpp_to_obj, $(XCoreCodeGen_SRC))
+XCoreDisassembler_OBJ       = $(call cpp_to_obj, $(XCoreDisassembler_SRC))
+XCoreDesc_OBJ               = $(call cpp_to_obj, $(XCoreDesc_SRC))
+XCoreInfo_OBJ               = $(call cpp_to_obj, $(XCoreInfo_SRC))
+
+#########################################################################################
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Incomplete:
+#
+ifeq ($(USE_MP_COMPILE),1)
+$(Target_OBJ):         $(Target_SRC)
+	$(call MP_compile, $(Target_SRC))
+
+$(AArch64AsmParser_OBJ) $(AArch64CodeGen_OBJ) $(AArch64Desc_OBJ) $(AArch64Disassembler_OBJ) $(AArch64Info_OBJ): \
+$(AArch64AsmParser_SRC) $(AArch64CodeGen_SRC) $(AArch64Desc_SRC) $(AArch64Disassembler_SRC) $(AArch64Info_SRC)
+	$(call MP_compile, $(AArch64AsmParser_SRC) $(AArch64Desc_SRC) $(AArch64Disassembler_SRC) $(AArch64Info_SRC))
+
+$(AMDGPUAsmParser_OBJ) $(AMDGPUCodeGen_OBJ) $(AMDGPUDesc_OBJ) $(AMDGPUDisassembler_OBJ) $(AMDGPUInfo_OBJ): \
+$(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC) $(AMDGPUInfo_SRC)
+	$(call MP_compile, $(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC) $(AMDGPUInfo_SRC))
+
+$(ARCCodeGen_OBJ) $(ARCDesc_OBJ) $(ARCDisassembler_OBJ) $(ARCInfo_OBJ): \
+$(ARCCodeGen_SRC) $(ARCDesc_SRC) $(ARCDisassembler_SRC) $(ARCInfo_SRC)
+	$(call MP_compile, $(ARCCodeGen_SRC) $(ARCDesc_SRC) $(ARCDisassembler_SRC) $(ARCInfo_SRC))
+
+$(ARMAsmParser_OBJ) $(ARMCodeGen_OBJ) $(ARMDesc_OBJ) $(ARMDisassembler_OBJ) $(ARMInfo_OBJ): \
+$(ARMAsmParser_SRC) $(ARMCodeGen_SRC) $(ARMDesc_SRC) $(ARMDisassembler_SRC) $(ARMInfo_SRC)
+	$(call MP_compile, $(ARMAsmParser_SRC) $(ARMCodeGen_SRC) $(ARMDesc_SRC) $(ARMDisassembler_SRC) $(ARMInfo_SRC))
+
+$(BPFAsmParser_OBJ) $(BPFCodeGen_OBJ) $(BPFDesc_OBJ) $(BPFDisassembler_OBJ) $(BPFInfo_OBJ): \
+$(BPFAsmParser_SRC) $(BPFCodeGen_SRC) $(BPFDesc_SRC) $(BPFDisassembler_SRC) $(BPFInfo_SRC)
+	$(call MP_compile, $(BPFAsmParser_SRC) $(BPFCodeGen_SRC) $(BPFDesc_SRC) $(BPFDisassembler_SRC) $(BPFInfo_SRC))
+
+$(HexagonAsmParser_OBJ) $(HexagonCodeGen_OBJ) $(HexagonDesc_OBJ) $(HexagonDisassembler_OBJ) $(HexagonInfo_OBJ): \
+$(HexagonAsmParser_SRC) $(HexagonCodeGen_SRC) $(HexagonDesc_SRC) $(HexagonDisassembler_SRC) $(HexagonInfo_SRC)
+	$(call MP_compile, $(HexagonAsmParser_SRC) $(HexagonCodeGen_SRC) $(HexagonDesc_SRC) $(HexagonDisassembler_SRC) $(HexagonInfo_SRC))
+
+$(LanaiAsmParser_OBJ) $(LanaiCodeGen_OBJ) $(LanaiDesc_OBJ) $(LanaiDisassembler_OBJ) $(LanaiInfo_OBJ): \
+$(LanaiAsmParser_SRC) $(LanaiCodeGen_SRC) $(LanaiDesc_SRC) $(LanaiDisassembler_SRC) $(LanaiInfo_SRC)
+	$(call MP_compile, $(LanaiAsmParser_SRC) $(LanaiCodeGen_SRC) $(LanaiDesc_SRC) $(LanaiDisassembler_SRC) $(LanaiInfo_SRC))
+
+$(MipsAsmParser_OBJ) $(MipsCodeGen_OBJ) $(MipsDesc_OBJ) $(MipsDisassembler_OBJ) $(MipsInfo_OBJ): \
+$(MipsAsmParser_SRC) $(MipsCodeGen_SRC) $(MipsDesc_SRC) $(MipsDisassembler_SRC) $(MipsInfo_SRC)
+	$(call MP_compile, $(MipsAsmParser_SRC) $(MipsCodeGen_SRC) $(MipsDesc_SRC) $(MipsDisassembler_SRC) $(MipsInfo_SRC))
+
+$(MSP430AsmParser_OBJ) $(MSP430CodeGen_OBJ) $(MSP430Desc_OBJ) $(MSP430Disassembler_OBJ) $(MSP430Info_OBJ): \
+$(MSP430AsmParser_SRC) $(MSP430CodeGen_SRC) $(MSP430Desc_SRC) $(MSP430Disassembler_SRC) $(MSP430Info_SRC)
+	$(call MP_compile, $(MSP430AsmParser_SRC) $(MSP430CodeGen_SRC) $(MSP430Desc_SRC) $(MSP430Disassembler_SRC) $(MSP430Info_SRC))
+
+$(NVPTXDesc_OBJ) $(NVPTXInfo_OBJ): $(NVPTXDesc_SRC) $(NVPTXInfo_SRC)
+	$(call MP_compile, $(NVPTXDesc_SRC) $(NVPTXInfo_SRC))
+
+$(X86AsmParser_OBJ) $(X86CodeGen_OBJ) $(X86Desc_OBJ) $(X86Disassembler_OBJ) $(X86Info_OBJ): \
+$(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC) $(X86Disassembler_SRC) $(X86Info_SRC)
+	$(call MP_compile, $(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC) $(X86Disassembler_SRC) $(X86Info_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMAArch64CodeGen.lib: $(AArch64CodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAArch64AsmParser.lib: $(AArch64AsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAArch64Disassembler.lib: $(AArch64Disassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAArch64Desc.lib: $(AArch64Desc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAArch64Info.lib: $(AArch64Info_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAArch64Utils.lib: $(AArch64Utils_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUCodeGen.lib: $(AMDGPUCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUUtils.lib: $(AMDGPUUtils_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUAsmParser.lib: $(AMDGPUAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUDisassembler.lib: $(AMDGPUDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUDesc.lib: $(AMDGPUDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMAMDGPUInfo.lib: $(AMDGPUInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARCCodeGen.lib: $(ARCCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARCDesc.lib: $(ARCDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARCDisassembler.lib: $(ARCDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARCInfo.lib: $(ARCInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMCodeGen.lib: $(ARMCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMAsmParser.lib: $(ARMAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMDisassembler.lib: $(ARMDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMDesc.lib: $(ARMDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMInfo.lib: $(ARMInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMARMUtils.lib: $(ARMUtils_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBPFCodeGen.lib: $(BPFCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBPFAsmParser.lib: $(BPFAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBPFDisassembler.lib: $(BPFDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBPFDesc.lib: $(BPFDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMBPFInfo.lib: $(BPFInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMHexagonCodeGen.lib: $(HexagonCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMHexagonAsmParser.lib: $(HexagonAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMHexagonDisassembler.lib: $(HexagonDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMHexagonDesc.lib: $(HexagonDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMHexagonInfo.lib: $(HexagonInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMLanaiCodeGen.lib: $(LanaiCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMLanaiAsmParser.lib: $(LanaiAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMLanaiDisassembler.lib: $(LanaiDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMLanaiDesc.lib: $(LanaiDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMLanaiInfo.lib: $(LanaiInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMipsCodeGen.lib: $(MipsCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMipsAsmParser.lib: $(MipsAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMipsDisassembler.lib: $(MipsDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMipsDesc.lib: $(MipsDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMipsInfo.lib: $(MipsInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMSP430CodeGen.lib: $(MSP430CodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMSP430Desc.lib: $(MSP430Desc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMSP430Info.lib: $(MSP430Info_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMSP430AsmParser.lib: $(MSP430AsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMSP430Disassembler.lib: $(MSP430Disassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMNVPTXCodeGen.lib: $(NVPTXCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMNVPTXDesc.lib: $(NVPTXDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMNVPTXInfo.lib: $(NVPTXInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMPowerPCCodeGen.lib: $(PowerPCCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMPowerPCAsmParser.lib: $(PowerPCAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMPowerPCDisassembler.lib: $(PowerPCDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMPowerPCDesc.lib: $(PowerPCDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMPowerPCInfo.lib: $(PowerPCInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSparcCodeGen.lib: $(SparcCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSparcAsmParser.lib: $(SparcAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSparcDisassembler.lib: $(SparcDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSparcDesc.lib: $(SparcDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSparcInfo.lib: $(SparcInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSystemZCodeGen.lib: $(SystemZCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSystemZAsmParser.lib: $(SystemZAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSystemZDisassembler.lib: $(SystemZDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSystemZDesc.lib: $(SystemZDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMSystemZInfo.lib: $(SystemZInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMTarget.lib: $(Target_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMWebAssemblyCodeGen.lib: $(WebAssemblyCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMWebAssemblyAsmParser.lib: $(WebAssemblyAsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMWebAssemblyDisassembler.lib: $(WebAssemblyDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMWebAssemblyDesc.lib: $(WebAssemblyDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMWebAssemblyInfo.lib: $(WebAssemblyInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86CodeGen.lib: $(X86CodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86AsmParser.lib: $(X86AsmParser_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86Disassembler.lib: $(X86Disassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86Desc.lib: $(X86Desc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86Info.lib: $(X86Info_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMX86Utils.lib: $(X86Utils_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMXCoreCodeGen.lib: $(XCoreCodeGen_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMXCoreDisassembler.lib: $(XCoreDisassembler_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMXCoreDesc.lib: $(XCoreDesc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMXCoreInfo.lib: $(XCoreInfo_OBJ)
+	$(call create_lib, $@, $^)
+
+
+# .SECONDARY: $(call cpp_to_obj, $(ALL_SOURCES))
+
+#########################################################################################
+#
+# Generate 'AArch64/*.inc' files from 'AArch64/AArch64.td'.
+#
+Aaach64_DEPS = AArch64/AArch64.td $(wildcard AArch64/*.td) $(INC_DEPS)
+
+AArch64/AArch64GenRegisterInfo.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+AArch64/AArch64GenAsmMatcher.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+AArch64/AArch64GenAsmWriter.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+AArch64/AArch64GenAsmWriter1.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer -asmwriternum=1 $<)
+
+AArch64/AArch64GenCallingConv.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+AArch64/AArch64GenGICombiner.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners=AArch64PreLegalizerCombinerHelper $<)
+
+AArch64/AArch64GenDAGISel.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+AArch64/AArch64GenDisassemblerTables.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+AArch64/AArch64GenFastISel.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+AArch64/AArch64GenGlobalISel.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
+AArch64/AArch64GenInstrInfo.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+AArch64/AArch64GenMCCodeEmitter.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+AArch64/AArch64GenMCPseudoLowering.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-pseudo-lowering $<)
+
+AArch64/AArch64GenRegisterBank.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-bank $<)
+
+AArch64/AArch64GenSubtargetInfo.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+AArch64/AArch64GenSystemOperands.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
+
+AArch64/AArch64GenExegesis.inc: $(Aaach64_DEPS)
+	$(call llvm_tblgen, $@, -gen-exegesis $<)
+
+#########################################################################################
+#
+# Generate 'AMDGPU/*.inc' files from 'AMDGPU/AMDGPU.td'.
+# Generate 'AMDGPU/*.inc' files from 'AMDGPU/R600.td'.
+#
+AMDGPU_DEPS = AMDGPU/AMDGPU.td $(wildcard AMDGPU/*.td) $(INC_DEPS)
+R600_DEPS   = AMDGPU/R600.td   $(wildcard AMDGPU/*.td) $(INC_DEPS)
+
+AMDGPU/AMDGPUGenAsmMatcher.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+AMDGPU/AMDGPUGenAsmWriter.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+AMDGPU/AMDGPUGenCallingConv.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+AMDGPU/AMDGPUGenGICombiner.inc: AMDGPUGISel.td $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners="AMDGPUPreLegalizerCombinerHelper" $<)
+
+AMDGPU/AMDGPUGenDAGISel.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+AMDGPU/AMDGPUGenDisassemblerTables.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+AMDGPU/AMDGPUGenInstrInfo.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+AMDGPU/AMDGPUGenIntrinsicEnums.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-tgt-intrinsic-enums $<)
+
+AMDGPU/AMDGPUGenIntrinsicImpl.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-tgt-intrinsic-impl $<)
+
+AMDGPU/AMDGPUGenMCCodeEmitter.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+AMDGPU/AMDGPUGenMCPseudoLowering.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-pseudo-lowering $<)
+
+AMDGPU/AMDGPUGenRegisterBank.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-bank $<)
+
+AMDGPU/AMDGPUGenRegisterInfo.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+AMDGPU/AMDGPUGenSearchableTables.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
+
+AMDGPU/AMDGPUGenSubtargetInfo.inc: $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+AMDGPU/AMDGPUGenGlobalISel.inc: AMDGPUGISel.td $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
+AMDGPU/R600GenAsmWriter.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+AMDGPU/R600GenCallingConv.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+AMDGPU/R600GenDAGISel.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+AMDGPU/R600GenDFAPacketizer.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-dfa-packetizer $<)
+
+AMDGPU/R600GenInstrInfo.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+AMDGPU/R600GenMCCodeEmitter.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+AMDGPU/R600GenRegisterInfo.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+AMDGPU/R600GenSubtargetInfo.inc: $(R600_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'ARC/*.inc' files from 'ARC/ARC.td'.
+#
+ARC_DEPS = ARC/ARC.td $(wildcard ARC/*.td) $(INC_DEPS)
+
+ARC/ARCGenAsmWriter.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+ARC/ARCGenCallingConv.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+ARC/ARCGenDAGISel.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+ARC/ARCGenDisassemblerTables.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+ARC/ARCGenInstrInfo.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+ARC/ARCGenRegisterInfo.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+ARC/ARCGenSubtargetInfo.inc: $(ARC_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'ARM/*.inc' files from 'ARM/ARM.td'.
+#
+ARM_DEPS = ARM/ARM.td $(wildcard ARM/*.td) $(INC_DEPS)
+
+ARM/ARMGenAsmMatcher.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+ARM/ARMGenAsmWriter.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+ARM/ARMGenCallingConv.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+ARM/ARMGenDAGISel.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+ARM/ARMGenDisassemblerTables.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+ARM/ARMGenFastISel.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+ARM/ARMGenGlobalISel.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
+ARM/ARMGenInstrInfo.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+ARM/ARMGenMCCodeEmitter.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+ARM/ARMGenMCPseudoLowering.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-pseudo-lowering $<)
+
+ARM/ARMGenRegisterBank.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-bank $<)
+
+ARM/ARMGenRegisterInfo.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+ARM/ARMGenSubtargetInfo.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+ARM/ARMGenSystemRegister.inc: $(ARM_DEPS)
+	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
+
+#########################################################################################
+#
+# Generate 'BPF/*.inc' files from 'BPF/BPF.td'.
+#
+BPF_DEPS = BPF/BPF.td $(wildcard BPF/*.td) $(INC_DEPS)
+
+BPF/BPFGenAsmMatcher.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+BPF/BPFGenAsmWriter.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+BPF/BPFGenCallingConv.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+BPF/BPFGenDAGISel.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+BPF/BPFGenDisassemblerTables.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+BPF/BPFGenInstrInfo.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+BPF/BPFGenMCCodeEmitter.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+BPF/BPFGenRegisterInfo.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+BPF/BPFGenSubtargetInfo.inc: $(BPF_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'Hexagon/*.inc' files from 'Hexagon/Hexagon.td'.
+#
+Hexagon_DEPS = Hexagon/Hexagon.td $(wildcard Hexagon/*.td) $(INC_DEPS)
+
+Hexagon/HexagonGenAsmMatcher.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+Hexagon/HexagonGenAsmWriter.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+Hexagon/HexagonGenCallingConv.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+Hexagon/HexagonGenDAGISel.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+Hexagon/HexagonGenDFAPacketizer.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-dfa-packetizer $<)
+
+Hexagon/HexagonGenDisassemblerTables.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+Hexagon/HexagonGenInstrInfo.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+Hexagon/HexagonGenMCCodeEmitter.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+Hexagon/HexagonGenRegisterInfo.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+Hexagon/HexagonGenSubtargetInfo.inc: $(Hexagon_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'Lanai/*.inc' files from 'Lanai/Lanai.td'.
+#
+Lanai_DEPS = Lanai/Lanai.td $(wildcard Lanai/*.td) $(INC_DEPS)
+
+Lanai/LanaiGenAsmMatcher.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+Lanai/LanaiGenAsmWriter.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+Lanai/LanaiGenCallingConv.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+Lanai/LanaiGenDAGISel.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+Lanai/LanaiGenDisassemblerTables.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+Lanai/LanaiGenInstrInfo.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+Lanai/LanaiGenMCCodeEmitter.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+Lanai/LanaiGenRegisterInfo.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+Lanai/LanaiGenSubtargetInfo.inc: $(Lanai_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'Mips/*.inc' files from 'Mips/Mips.td'.
+#
+Mips_DEPS = Mips/Mips.td $(wildcard Mips/*.td) $(INC_DEPS)
+
+Mips/MipsGenAsmMatcher.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+Mips/MipsGenAsmWriter.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+Mips/MipsGenCallingConv.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+Mips/MipsGenDAGISel.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+Mips/MipsGenDisassemblerTables.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+Mips/MipsGenFastISel.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+Mips/MipsGenGlobalISel.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
+Mips/MipsGenInstrInfo.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+Mips/MipsGenMCCodeEmitter.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+Mips/MipsGenMCPseudoLowering.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-pseudo-lowering $<)
+
+Mips/MipsGenRegisterBank.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-bank $<)
+
+Mips/MipsGenRegisterInfo.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+Mips/MipsGenSubtargetInfo.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'MSP430/*.inc' files from 'MSP430/MSP430.td'.
+#
+MSP430_DEPS = MSP430/MSP430.td $(wildcard MSP430/*.td) $(INC_DEPS)
+
+MSP430/MSP430GenAsmMatcher.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+MSP430/MSP430GenAsmWriter.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+MSP430/MSP430GenCallingConv.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+MSP430/MSP430GenDAGISel.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+MSP430/MSP430GenDisassemblerTables.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+MSP430/MSP430GenInstrInfo.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+MSP430/MSP430GenMCCodeEmitter.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+MSP430/MSP430GenRegisterInfo.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+MSP430/MSP430GenSubtargetInfo.inc: $(MSP430_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'NVPTX/*.inc' files from 'NVPTX/NVPTX.td'.
+#
+NVPTX_DEPS = NVPTX/NVPTX.td $(wildcard NVPTX/*.td) $(INC_DEPS)
+
+NVPTX/NVPTXGenAsmWriter.inc: $(NVPTX_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+NVPTX/NVPTXGenDAGISel.inc: $(NVPTX_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+NVPTX/NVPTXGenInstrInfo.inc: $(NVPTX_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+NVPTX/NVPTXGenRegisterInfo.inc: $(NVPTX_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+NVPTX/NVPTXGenSubtargetInfo.inc: $(NVPTX_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'PowerPC/*.inc' files from 'PowerPC/PPC.td'.
+#
+PowerPC_DEPS = PowerPC/PPC.td $(wildcard PowerPC/*.td) $(INC_DEPS)
+
+PowerPC/PPCGenAsmMatcher.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+PowerPC/PPCGenAsmWriter.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+PowerPC/PPCGenCallingConv.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+PowerPC/PPCGenDAGISel.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+PowerPC/PPCGenDisassemblerTables.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+PowerPC/PPCGenFastISel.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+PowerPC/PPCGenInstrInfo.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+PowerPC/PPCGenMCCodeEmitter.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+PowerPC/PPCGenRegisterInfo.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+PowerPC/PPCGenSubtargetInfo.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+PowerPC/PPCGenExegesis.inc: $(PowerPC_DEPS)
+	$(call llvm_tblgen, $@, -gen-exegesis $<)
+
+#########################################################################################
+#
+# Generate 'Sparc/*.inc' files from 'Sparc/Sparc.td'.
+#
+Sparc_DEPS = Sparc/Sparc.td $(wildcard Sparc/*.td) $(INC_DEPS)
+
+Sparc/SparcGenAsmMatcher.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+Sparc/SparcGenAsmWriter.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+Sparc/SparcGenCallingConv.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+Sparc/SparcGenDAGISel.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+Sparc/SparcGenDisassemblerTables.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+Sparc/SparcGenInstrInfo.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+Sparc/SparcGenMCCodeEmitter.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+Sparc/SparcGenRegisterInfo.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+Sparc/SparcGenSubtargetInfo.inc: $(Sparc_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'SystemZ/*.inc' files from 'SystemZ/SystemZ.td'.
+#
+SystemZ_DEPS = SystemZ/SystemZ.td $(wildcard SystemZ/*.td) $(INC_DEPS)
+
+SystemZ/SystemZGenAsmMatcher.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+SystemZ/SystemZGenAsmWriter.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+SystemZ/SystemZGenCallingConv.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+SystemZ/SystemZGenDAGISel.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+SystemZ/SystemZGenDisassemblerTables.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+SystemZ/SystemZGenInstrInfo.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+SystemZ/SystemZGenMCCodeEmitter.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+SystemZ/SystemZGenRegisterInfo.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+SystemZ/SystemZGenSubtargetInfo.inc: $(SystemZ_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'WebAssembly/*.inc' files from 'WebAssembly/WebAssembly.td'.
+#
+WebAssembly_DEPS = WebAssembly/WebAssembly.td $(wildcard WebAssembly/*.td) $(INC_DEPS)
+
+WebAssembly/WebAssemblyGenAsmMatcher.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+WebAssembly/WebAssemblyGenAsmWriter.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+WebAssembly/WebAssemblyGenDAGISel.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+WebAssembly/WebAssemblyGenDisassemblerTables.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+WebAssembly/WebAssemblyGenFastISel.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+WebAssembly/WebAssemblyGenInstrInfo.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+WebAssembly/WebAssemblyGenMCCodeEmitter.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-emitter $<)
+
+WebAssembly/WebAssemblyGenRegisterInfo.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+WebAssembly/WebAssemblyGenSubtargetInfo.inc: $(WebAssembly_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Generate 'X86/*.inc' files from 'X86/X86.td'.
+#
+X86_DEPS = X86/X86.td $(wildcard X86/*.td) $(INC_DEPS)
+
+X86/X86GenAsmMatcher.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-matcher $<)
+
+X86/X86GenAsmWriter.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+X86/X86GenAsmWriter1.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer -asmwriternum=1 $<)
+
+X86/X86GenCallingConv.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+X86/X86GenDAGISel.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+X86/X86GenDisassemblerTables.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+X86/X86GenEVEX2VEXTables.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-x86-EVEX2VEX-tables $<)
+
+X86/X86GenFastISel.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-fast-isel $<)
+
+X86/X86GenGlobalISel.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
+X86/X86GenInstrInfo.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+X86/X86GenRegisterBank.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-bank $<)
+
+X86/X86GenRegisterInfo.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+X86/X86GenSubtargetInfo.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+X86/X86GenExegesis.inc: $(X86_DEPS)
+	$(call llvm_tblgen, $@, -gen-exegesis $<)
+
+#########################################################################################
+#
+# Generate 'XCore/*.inc' files from 'XCore/XCore.td'.
+#
+XCore_DEPS = XCore/XCore.td $(wildcard XCore/*.td) $(INC_DEPS)
+
+XCore/XCoreGenAsmWriter.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-asm-writer $<)
+
+XCore/XCoreGenCallingConv.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-callingconv $<)
+
+XCore/XCoreGenDAGISel.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-dag-isel $<)
+
+XCore/XCoreGenDisassemblerTables.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+XCore/XCoreGenInstrInfo.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-instr-info $<)
+
+XCore/XCoreGenRegisterInfo.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-register-info $<)
+
+XCore/XCoreGenSubtargetInfo.inc: $(XCore_DEPS)
+	$(call llvm_tblgen, $@, -gen-subtarget $<)
+
+#########################################################################################
+#
+# Since the $(ALL_SOURCES) file-list is way to big, split up in chunks.
+#
+chunk_1 = $(wordlist 1,   100, $(ALL_SOURCES))
+chunk_2 = $(wordlist 101, 200, $(ALL_SOURCES))
+chunk_3 = $(wordlist 201, 300, $(ALL_SOURCES))
+chunk_4 = $(wordlist 301, 400, $(ALL_SOURCES))
+chunk_5 = $(wordlist 401, 500, $(ALL_SOURCES))
+chunk_6 = $(wordlist 501, 600, $(ALL_SOURCES))
+chunk_7 = $(wordlist 601, 700, $(ALL_SOURCES))
+
+DEP_CFLAGS += $(addprefix -I./,                                   \
+                AArch64 AMDGPU ARC    ARM   AVR     BPF   Hexagon \
+                Lanai   Mips   MSP430 NVPTX PowerPC Sparc SystemZ \
+                WebAssembly    X86    XCore)
+
+define depend_chunk
+  $(call colour_msg,$(BRIGHT_GREEN)chunk with $(BRIGHT_YELLOW)$(words $(1))$(BRIGHT_GREEN) files...)
+  $(call create_rsp_file, depend.args, $(DEP_CFLAGS) $(1))
+  g++ @depend.args | sed $(DEP_REPLACE) >> .depend.Windows
+endef
+
+depend: $(OBJ_DIR) $(GENERATED)
+	$(call Generating, .depend.Windows, #)
+	$(call depend_chunk, $(chunk_1))
+	$(call depend_chunk, $(chunk_2))
+	$(call depend_chunk, $(chunk_3))
+	$(call depend_chunk, $(chunk_4))
+	$(call depend_chunk, $(chunk_5))
+	$(call depend_chunk, $(chunk_6))
+	$(call depend_chunk, $(chunk_7))
+
+rm_depend_args:
+	- rm -f depend.args
+
+-include .depend.Windows
+

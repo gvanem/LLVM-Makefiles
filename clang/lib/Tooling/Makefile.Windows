@@ -1,0 +1,125 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/Tooling'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangTooling.lib           \
+          $(BUILD_DIR)/lib/clangToolingASTDiff.lib    \
+          $(BUILD_DIR)/lib/clangToolingCore.lib       \
+          $(BUILD_DIR)/lib/clangToolingInclusions.lib \
+          $(BUILD_DIR)/lib/clangToolingRefactor.lib   \
+          $(BUILD_DIR)/lib/clangToolingSyntax.lib
+
+VPATH = ASTDiff Core Inclusions Refactoring Refactoring/Rename Syntax
+
+include $(TOP_DIR)/Common.Windows
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc \
+            $(CLANG_INC)/Basic/DiagnosticLexKinds.inc
+
+clangTooling_SRC = AllTUsExecution.cpp                       \
+                   ArgumentsAdjusters.cpp                    \
+                   CommonOptionsParser.cpp                   \
+                   CompilationDatabase.cpp                   \
+                   Execution.cpp                             \
+                   FileMatchTrie.cpp                         \
+                   FixIt.cpp                                 \
+                   GuessTargetAndModeCompilationDatabase.cpp \
+                   InterpolatingCompilationDatabase.cpp      \
+                   JSONCompilationDatabase.cpp               \
+                   Refactoring.cpp                           \
+                   RefactoringCallbacks.cpp                  \
+                   StandaloneExecution.cpp                   \
+                   Tooling.cpp
+
+clangToolingCore_SRC = $(addprefix Core/, \
+                         Diagnostic.cpp   \
+                         Lookup.cpp       \
+                         Replacement.cpp)
+
+clangToolingInclusions_SRC = $(addprefix Inclusions/, \
+                               HeaderIncludes.cpp     \
+                               IncludeStyle.cpp)
+
+clangToolingRefactor_SRC = $(addprefix Refactoring/,      \
+                             ASTSelection.cpp             \
+                             ASTSelectionRequirements.cpp \
+                             AtomicChange.cpp             \
+                             RefactoringActions.cpp)
+
+clangToolingRefactor_SRC += $(addprefix Refactoring/Rename/, \
+                              RenamingAction.cpp             \
+                              SymbolOccurrences.cpp          \
+                              USRFinder.cpp                  \
+                              USRFindingAction.cpp           \
+                              USRLocFinder.cpp)
+
+clangToolingRefactor_SRC += $(addprefix Refactoring/Extract/, \
+                              Extract.cpp                     \
+                              SourceExtraction.cpp)
+
+clangToolingSyntax_SRC  = $(addprefix Syntax/, \
+                            BuildTree.cpp      \
+                            Nodes.cpp          \
+                            Tokens.cpp         \
+                            Tree.cpp)
+
+clangToolingASTDiff_SRC = ASTDiff/AstDiff.cpp
+
+ALL_SOURCES = $(clangTooling_SRC)           \
+              $(clangToolingASTDiff_SRC)    \
+              $(clangToolingCore_SRC)       \
+              $(clangToolingInclusions_SRC) \
+              $(clangToolingRefactor_SRC)   \
+              $(clangToolingSyntax_SRC)
+
+clangTooling_OBJ           = $(call cpp_to_obj, $(clangTooling_SRC))
+clangToolingASTDiff_OBJ    = $(call cpp_to_obj, $(clangToolingASTDiff_SRC))
+clangToolingCore_OBJ       = $(call cpp_to_obj, $(clangToolingCore_SRC))
+clangToolingInclusions_OBJ = $(call cpp_to_obj, $(clangToolingInclusions_SRC))
+clangToolingRefactor_OBJ   = $(call cpp_to_obj, $(clangToolingRefactor_SRC))
+clangToolingSyntax_OBJ     = $(call cpp_to_obj, $(clangToolingSyntax_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(clangTooling_OBJ): $(clangTooling_SRC)
+	$(call MP_compile, $(clangTooling_SRC))
+
+$(clangToolingCore_OBJ): $(clangToolingCore_SRC)
+	$(call MP_compile, $(clangToolingCore_SRC))
+
+$(clangToolingRefactor_OBJ): $(clangToolingRefactor_SRC)
+	$(call MP_compile, $(clangToolingRefactor_SRC))
+
+$(clangToolingSyntax_OBJ): $(clangToolingSyntax_SRC)
+	$(call MP_compile, $(clangToolingSyntax_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangTooling.lib: $(clangTooling_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangToolingASTDiff.lib: $(clangToolingASTDiff_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangToolingCore.lib: $(clangToolingCore_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangToolingInclusions.lib: $(clangToolingInclusions_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangToolingRefactor.lib: $(clangToolingRefactor_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangToolingSyntax.lib: $(clangToolingSyntax_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

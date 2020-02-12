@@ -1,0 +1,81 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-objcopy'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-objcopy.exe
+VPATH   = COFF ELF MachO
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += ObjcopyOpts.inc \
+             StripOpts.inc
+
+ALL_SOURCES = Buffer.cpp                   \
+              CopyConfig.cpp               \
+              llvm-objcopy.cpp             \
+              ELF/ELFConfig.cpp            \
+              ELF/ELFObjcopy.cpp           \
+              ELF/Object.cpp               \
+              COFF/COFFObjcopy.cpp         \
+              COFF/Object.cpp              \
+              COFF/Reader.cpp              \
+              COFF/Writer.cpp              \
+              MachO/MachOLayoutBuilder.cpp \
+              MachO/MachOObjcopy.cpp       \
+              MachO/MachOReader.cpp        \
+              MachO/MachOWriter.cpp        \
+              MachO/Object.cpp
+
+#
+# '$(sort x)' will create a unique list.
+#
+OBJECTS = $(sort $(call cpp_to_obj, $(ALL_SOURCES))) \
+          $(OBJ_DIR)/ELF_Object.obj                  \
+          $(OBJ_DIR)/MachO_Object.obj
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMOption.lib               \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-objcopy.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-objcopy.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-objcopy.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-objcopy.exe, VFT_APP, Copy and translate object files.)
+
+ObjcopyOpts.inc: ObjcopyOpts.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
+
+StripOpts.inc: StripOpts.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
+
+#
+# Since there are 3 'Object.cpp' files.
+#
+$(OBJ_DIR)/ELF_Object.obj: ELF/Object.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/MachO_Object.obj: MachO/Object.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+-include .depend.Windows
+

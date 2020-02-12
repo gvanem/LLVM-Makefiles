@@ -1,0 +1,23 @@
+#
+# GNU Makefile for 'llvm/lib/WindowsManifest'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMWindowsManifest.lib
+
+include $(TOP_DIR)/Common.Windows
+
+ifeq ($(USE_XML2),1)
+  CFLAGS += -I$(XML2_ROOT)/include \
+            -I$(ICONV_ROOT)/include
+endif
+
+ALL_SOURCES = WindowsManifestMerger.cpp
+LIB_OBJ     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/lib/LLVMWindowsManifest.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

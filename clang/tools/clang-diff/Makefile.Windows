@@ -1,0 +1,56 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/clang-diff'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/clang-diff.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = ClangDiff.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         clangAnalysis.lib             \
+         clangAST.lib                  \
+         clangBasic.lib                \
+         clangDriver.lib               \
+         clangEdit.lib                 \
+         clangFrontend.lib             \
+         clangLex.lib                  \
+         clangParse.lib                \
+         clangSema.lib                 \
+         clangSerialization.lib        \
+         clangTooling.lib              \
+         clangToolingASTDiff.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMBinaryFormat.lib         \
+          LLVMBitstreamReader.lib      \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMOption.lib               \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-diff.exe: $(OBJECTS) $(OBJ_DIR)/clang-diff.res $(LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-diff.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-diff.exe, VFT_APP, Compare source files by AST nodes.)
+
+-include .depend.Windows
+

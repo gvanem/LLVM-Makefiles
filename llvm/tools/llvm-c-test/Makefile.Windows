@@ -1,0 +1,154 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-c-test'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-c-test.exe
+MDEPEND = $(THIS_FILE)
+
+include $(TOP_DIR)/Common.Windows
+
+C_SRC = attributes.c  \
+        calc.c        \
+        debuginfo.c   \
+        diagnostic.c  \
+        disassemble.c \
+        helpers.c     \
+        include-all.c \
+        main.c        \
+        metadata.c    \
+        module.c      \
+        object.c      \
+        targets.c
+
+CPP_SRC = echo.cpp
+
+C_OBJ   = $(call c_to_obj,   $(C_SRC))
+CPP_OBJ = $(call cpp_to_obj, $(CPP_SRC))
+
+ALL_SOURCES = $(C_SRC) $(CPP_SRC)
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
+         LLVMAArch64CodeGen.lib        \
+         LLVMAArch64Desc.lib           \
+         LLVMAArch64Info.lib           \
+         LLVMAArch64Utils.lib          \
+         LLVMAMDGPUCodeGen.lib         \
+         LLVMAMDGPUDesc.lib            \
+         LLVMAMDGPUInfo.lib            \
+         LLVMAMDGPUUtils.lib           \
+         LLVMARMCodeGen.lib            \
+         LLVMARMDesc.lib               \
+         LLVMARMInfo.lib               \
+         LLVMARMUtils.lib              \
+         LLVMAsmParser.lib             \
+         LLVMAggressiveInstCombine.lib \
+         LLVMAnalysis.lib              \
+         LLVMBPFCodeGen.lib            \
+         LLVMBPFDesc.lib               \
+         LLVMBPFInfo.lib               \
+         LLVMBinaryFormat.lib          \
+         LLVMBitReader.lib             \
+         LLVMBitstreamReader.lib       \
+         LLVMCodeGen.lib               \
+         LLVMCodeGen.lib               \
+         LLVMCore.lib                  \
+         LLVMDemangle.lib              \
+         LLVMGlobalISel.lib            \
+         LLVMHexagonCodeGen.lib        \
+         LLVMHexagonDesc.lib           \
+         LLVMHexagonInfo.lib           \
+         LLVMInstCombine.lib           \
+         LLVMInstrumentation.lib       \
+         LLVMLanaiCodeGen.lib          \
+         LLVMLanaiDesc.lib             \
+         LLVMLanaiInfo.lib             \
+         LLVMMIRParser.lib             \
+         LLVMMC.lib                    \
+         LLVMMCDisassembler.lib        \
+         LLVMMCParser.lib              \
+         LLVMMSP430CodeGen.lib         \
+         LLVMMSP430Desc.lib            \
+         LLVMMSP430Info.lib            \
+         LLVMMipsCodeGen.lib           \
+         LLVMMipsDesc.lib              \
+         LLVMMipsInfo.lib              \
+         LLVMNVPTXCodeGen.lib          \
+         LLVMNVPTXDesc.lib             \
+         LLVMNVPTXInfo.lib             \
+         LLVMObject.lib                \
+         LLVMObject.lib                \
+         LLVMPowerPCCodeGen.lib        \
+         LLVMPowerPCDesc.lib           \
+         LLVMPowerPCInfo.lib           \
+         LLVMProfileData.lib           \
+         LLVMRemarks.lib               \
+         LLVMScalarOpts.lib            \
+         LLVMSelectionDAG.lib          \
+         LLVMSparcCodeGen.lib          \
+         LLVMSparcDesc.lib             \
+         LLVMSparcInfo.lib             \
+         LLVMSupport.lib               \
+         LLVMSystemZCodeGen.lib        \
+         LLVMSystemZDesc.lib           \
+         LLVMSystemZInfo.lib           \
+         LLVMTarget.lib                \
+         LLVMTransformUtils.lib        \
+         LLVMTransformUtils.lib        \
+         LLVMVectorize.lib             \
+         LLVMWebAssemblyCodeGen.lib    \
+         LLVMWebAssemblyDesc.lib       \
+         LLVMWebAssemblyInfo.lib       \
+         LLVMX86CodeGen.lib            \
+         LLVMX86CodeGen.lib            \
+         LLVMX86Desc.lib               \
+         LLVMX86Desc.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Info.lib               \
+         LLVMX86Utils.lib              \
+         LLVMX86Utils.lib              \
+         LLVMXCoreCodeGen.lib          \
+         LLVMXCoreDesc.lib             \
+         LLVMXCoreInfo.lib             \
+         LLVMipo.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/,    \
+          LLVMAArch64Disassembler.lib     \
+          LLVMAMDGPUDisassembler.lib      \
+          LLVMARMDisassembler.lib         \
+          LLVMBPFDisassembler.lib         \
+          LLVMHexagonDisassembler.lib     \
+          LLVMLanaiDisassembler.lib       \
+          LLVMMCDisassembler.lib          \
+          LLVMMipsDisassembler.lib        \
+          LLVMMSP430Disassembler.lib      \
+          LLVMPowerPCDisassembler.lib     \
+          LLVMSparcDisassembler.lib       \
+          LLVMSystemZDisassembler.lib     \
+          LLVMWebAssemblyDisassembler.lib \
+          LLVMX86Disassembler.lib         \
+          LLVMXCoreDisassembler.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(C_OBJ): $(C_SRC)
+	$(call MP_compile, $(C_SRC))
+endif
+
+$(BUILD_DIR)/bin/llvm-c-test.exe: $(C_OBJ) $(CPP_OBJ) $(LIBS) $(OBJ_DIR)/llvm-c-test.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-c-test.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-c-test.exe, VFT_APP, LLVM test tool.)
+
+-include .depend.Windows
+

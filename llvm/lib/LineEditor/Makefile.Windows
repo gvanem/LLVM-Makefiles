@@ -1,0 +1,21 @@
+#
+# GNU Makefile for 'llvm/lib/LineEditor'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMLineEditor.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = LineEditor.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/lib/LLVMLineEditor.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

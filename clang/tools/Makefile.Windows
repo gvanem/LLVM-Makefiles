@@ -1,0 +1,19 @@
+#
+# LLVM top-level makefile for 'tools/Clang/tools'.
+#
+TOP_DIR = ../../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, libclang,              $@)
+	$(call do_make, clang-check,           $@)
+	$(call do_make, clang-diff,            $@)
+	$(call do_make, clang-format,          $@)
+	$(call do_make, clang-import-test,     $@)
+	$(call do_make, clang-offload-bundler, $@)
+	$(call do_make, clang-refactor,        $@)
+	$(call do_make, clang-rename,          $@)
+	$(call do_make, c-index-test,          $@)
+	$(call do_make, diagtool,              $@)
+	$(call do_make, driver,                $@)

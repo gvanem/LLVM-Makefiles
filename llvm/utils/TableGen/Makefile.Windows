@@ -1,0 +1,99 @@
+#
+# GNU Makefile for 'llvm/utils/TableGen'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-tblgen.exe
+VPATH   = GlobalISel
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = AsmMatcherEmitter.cpp              \
+              AsmWriterEmitter.cpp               \
+              AsmWriterInst.cpp                  \
+              Attributes.cpp                     \
+              CallingConvEmitter.cpp             \
+              CodeEmitterGen.cpp                 \
+              CodeGenDAGPatterns.cpp             \
+              CodeGenHwModes.cpp                 \
+              CodeGenInstruction.cpp             \
+              CodeGenMapTable.cpp                \
+              CodeGenRegisters.cpp               \
+              CodeGenSchedule.cpp                \
+              CodeGenTarget.cpp                  \
+              CTagsEmitter.cpp                   \
+              DAGISelEmitter.cpp                 \
+              DAGISelMatcher.cpp                 \
+              DAGISelMatcherEmitter.cpp          \
+              DAGISelMatcherGen.cpp              \
+              DAGISelMatcherOpt.cpp              \
+              DFAEmitter.cpp                     \
+              DFAPacketizerEmitter.cpp           \
+              DisassemblerEmitter.cpp            \
+              ExegesisEmitter.cpp                \
+              FastISelEmitter.cpp                \
+              FixedLenDecoderEmitter.cpp         \
+              GICombinerEmitter.cpp              \
+              GlobalISelEmitter.cpp              \
+              InfoByHwMode.cpp                   \
+              InstrDocsEmitter.cpp               \
+              InstrInfoEmitter.cpp               \
+              IntrinsicEmitter.cpp               \
+              OptEmitter.cpp                     \
+              OptParserEmitter.cpp               \
+              OptRSTEmitter.cpp                  \
+              PredicateExpander.cpp              \
+              PseudoLoweringEmitter.cpp          \
+              RegisterBankEmitter.cpp            \
+              RegisterInfoEmitter.cpp            \
+              RISCVCompressInstEmitter.cpp       \
+              SDNodeProperties.cpp               \
+              SearchableTableEmitter.cpp         \
+              SubtargetEmitter.cpp               \
+              SubtargetFeatureInfo.cpp           \
+              TableGen.cpp                       \
+              Types.cpp                          \
+              WebAssemblyDisassemblerEmitter.cpp \
+              X86DisassemblerTables.cpp          \
+              X86EVEX2VEXTablesEmitter.cpp       \
+              X86FoldTablesEmitter.cpp           \
+              X86ModRMFilters.cpp                \
+              X86RecognizableInstr.cpp
+
+ALL_SOURCES += $(addprefix GlobalISel/,                \
+                 CodeExpander.cpp                      \
+                 GIMatchDag.cpp                        \
+                 GIMatchDagEdge.cpp                    \
+                 GIMatchDagInstr.cpp                   \
+                 GIMatchDagOperands.cpp                \
+                 GIMatchDagPredicate.cpp               \
+                 GIMatchDagPredicateDependencyEdge.cpp \
+                 GIMatchTree.cpp)
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+#
+# Internal libraries needed here:
+#
+LIBS = $(BUILD_DIR)/lib/LLVMSupport.lib \
+       $(BUILD_DIR)/lib/LLVMTableGen.lib
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+$(BUILD_DIR)/bin/llvm-tblgen.exe: $(OBJECTS) $(OBJ_DIR)/llvm-tblgen.res $(LIBS)
+	 $(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-tblgen.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-tblgen.exe, VFT_APP, The LLVM table generator.)
+
+-include .depend.Windows
+

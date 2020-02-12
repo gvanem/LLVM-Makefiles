@@ -1,0 +1,122 @@
+#
+# GNU Makefile for 'llvm/lib/MC'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMMC.lib       \
+          $(BUILD_DIR)/lib/LLVMMCParser.lib \
+          $(BUILD_DIR)/lib/LLVMMCDisassembler.lib
+
+include $(TOP_DIR)/Common.Windows
+
+VPATH = MCParser \
+        MCDisassembler
+
+MC_SRC = ConstantPools.cpp             \
+         ELFObjectWriter.cpp           \
+         MachObjectWriter.cpp          \
+         MCAsmBackend.cpp              \
+         MCAsmInfo.cpp                 \
+         MCAsmInfoCOFF.cpp             \
+         MCAsmInfoXCOFF.cpp            \
+         MCAsmInfoDarwin.cpp           \
+         MCAsmInfoELF.cpp              \
+         MCAsmInfoWasm.cpp             \
+         MCAsmMacro.cpp                \
+         MCAsmStreamer.cpp             \
+         MCAssembler.cpp               \
+         MCCodeEmitter.cpp             \
+         MCCodeView.cpp                \
+         MCContext.cpp                 \
+         MCDwarf.cpp                   \
+         MCELFObjectTargetWriter.cpp   \
+         MCELFStreamer.cpp             \
+         MCExpr.cpp                    \
+         MCFragment.cpp                \
+         MCInst.cpp                    \
+         MCInstPrinter.cpp             \
+         MCInstrAnalysis.cpp           \
+         MCInstrDesc.cpp               \
+         MCLabel.cpp                   \
+         MCLinkerOptimizationHint.cpp  \
+         MCMachOStreamer.cpp           \
+         MCMachObjectTargetWriter.cpp  \
+         MCNullStreamer.cpp            \
+         MCObjectFileInfo.cpp          \
+         MCObjectStreamer.cpp          \
+         MCObjectWriter.cpp            \
+         MCRegisterInfo.cpp            \
+         MCSchedule.cpp                \
+         MCSection.cpp                 \
+         MCSectionCOFF.cpp             \
+         MCSectionXCOFF.cpp            \
+         MCSectionELF.cpp              \
+         MCSectionMachO.cpp            \
+         MCSectionWasm.cpp             \
+         MCStreamer.cpp                \
+         MCSubtargetInfo.cpp           \
+         MCSymbol.cpp                  \
+         MCSymbolELF.cpp               \
+         MCTargetOptions.cpp           \
+         MCValue.cpp                   \
+         MCWasmObjectTargetWriter.cpp  \
+         MCWasmStreamer.cpp            \
+         MCWin64EH.cpp                 \
+         MCWinCOFFStreamer.cpp         \
+         MCWinEH.cpp                   \
+         MCXCOFFObjectTargetWriter.cpp \
+         MCXCOFFStreamer.cpp           \
+         StringTableBuilder.cpp        \
+         SubtargetFeature.cpp          \
+         WasmObjectWriter.cpp          \
+         WinCOFFObjectWriter.cpp       \
+         XCOFFObjectWriter.cpp
+
+MCParser_SRC = $(addprefix MCParser/,     \
+                 AsmLexer.cpp             \
+                 AsmParser.cpp            \
+                 COFFAsmParser.cpp        \
+                 DarwinAsmParser.cpp      \
+                 ELFAsmParser.cpp         \
+                 MCAsmLexer.cpp           \
+                 MCAsmParser.cpp          \
+                 MCAsmParserExtension.cpp \
+                 MCTargetAsmParser.cpp    \
+                 WasmAsmParser.cpp)
+
+MCDisassembler_SRC = $(addprefix MCDisassembler/, \
+                       Disassembler.cpp           \
+                       MCDisassembler.cpp         \
+                       MCExternalSymbolizer.cpp   \
+                       MCRelocationInfo.cpp       \
+                       MCSymbolizer.cpp)
+
+ALL_SOURCES = $(MC_SRC) $(MCParser_SRC) $(MCDisassembler_SRC)
+
+MC_OBJ             = $(call cpp_to_obj, $(MC_SRC))
+MCParser_OBJ       = $(call cpp_to_obj, $(MCParser_SRC))
+MCDisassembler_OBJ = $(call cpp_to_obj, $(MCDisassembler_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(MC_OBJ): $(MC_SRC)
+	$(call MP_compile, $(MC_SRC))
+
+$(MCParser_OBJ): $(MCParser_SRC)
+	$(call MP_compile, $(MCParser_SRC))
+
+$(MCDisassembler_OBJ): $(MCDisassembler_SRC)
+	$(call MP_compile, $(MCDisassembler_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMMC.lib: $(MC_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMCParser.lib: $(MCParser_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMMCDisassembler.lib: $(MCDisassembler_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

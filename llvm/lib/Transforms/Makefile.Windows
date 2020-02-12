@@ -1,0 +1,19 @@
+#
+# LLVM top-level makefile for 'llvm/lib/Transforms'.
+#
+TOP_DIR = ../../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, AggressiveInstCombine, $@)
+	$(call do_make, Coroutines,            $@)
+	$(call do_make, CFGuard,               $@)
+	$(call do_make, InstCombine,           $@)
+	$(call do_make, Instrumentation,       $@)
+	$(call do_make, IPO,                   $@)
+	$(call do_make, ObjCARC,               $@)
+	$(call do_make, Scalar,                $@)
+	$(call do_make, Utils,                 $@)
+	$(call do_make, Vectorize,             $@)
+

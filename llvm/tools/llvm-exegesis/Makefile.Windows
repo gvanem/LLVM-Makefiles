@@ -1,0 +1,126 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-exegesis'.
+#
+TOP_DIR = ../../..
+VPATH   = lib
+TARGETS = $(BUILD_DIR)/bin/llvm-exegesis.exe
+
+include $(TOP_DIR)/Common.Windows
+
+CFLAGS += -I$(TOP_DIR)/lib/Target/AArch64 \
+          -I$(TOP_DIR)/lib/Target/PowerPC \
+          -I$(TOP_DIR)/lib/Target/X86
+
+BASE_SRC = llvm-exegesis.cpp
+BASE_OBJ = $(call cpp_to_obj, $(BASE_SRC))
+
+LIB_SRC = $(addprefix lib/,          \
+            Analysis.cpp             \
+            Assembler.cpp            \
+            BenchmarkResult.cpp      \
+            BenchmarkRunner.cpp      \
+            Clustering.cpp           \
+            CodeTemplate.cpp         \
+            Latency.cpp              \
+            LlvmState.cpp            \
+            MCInstrDescView.cpp      \
+            PerfHelper.cpp           \
+            RegisterAliasing.cpp     \
+            RegisterValue.cpp        \
+            SchedClassResolution.cpp \
+            SnippetFile.cpp          \
+            SnippetGenerator.cpp     \
+            SnippetRepetitor.cpp     \
+            Target.cpp               \
+            Uops.cpp)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))  \
+          $(addprefix $(OBJ_DIR)/Target_, \
+            AArch64.obj                   \
+            MIPS.obj                      \
+            PowerPC.obj                   \
+            X86.obj)
+
+ALL_SOURCES = $(BASE_SRC) $(LIB_SRC)
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAArch64CodeGen.lib       \
+         LLVMAArch64Desc.lib          \
+         LLVMAArch64Info.lib          \
+         LLVMAArch64Utils.lib         \
+         LLVMAnalysis.lib             \
+         LLVMAsmPrinter.lib           \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCodeGen.lib              \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMDemangle.lib             \
+         LLVMExecutionEngine.lib      \
+         LLVMGlobalISel.lib           \
+         LLVMMC.lib                   \
+         LLVMMCDisassembler.lib       \
+         LLVMMCJIT.lib                \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMObjectYAML.lib           \
+         LLVMPowerPCCodeGen.lib       \
+         LLVMPowerPCDesc.lib          \
+         LLVMPowerPCInfo.lib          \
+         LLVMProfileData.lib          \
+         LLVMRuntimeDyld.lib          \
+         LLVMRemarks.lib              \
+         LLVMScalarOpts.lib           \
+         LLVMSelectionDAG.lib         \
+         LLVMSupport.lib              \
+         LLVMTarget.lib               \
+         LLVMTransformUtils.lib       \
+         LLVMX86AsmParser.lib         \
+         LLVMX86CodeGen.lib           \
+         LLVMX86Desc.lib              \
+         LLVMX86Desc.lib              \
+         LLVMX86Disassembler.lib      \
+         LLVMX86Info.lib              \
+         LLVMX86Utils.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+#
+# Because there are 5 'Target.cpp' files.
+#
+$(OBJ_DIR)/Target_AArch64.obj: lib/AArch64/Target.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/Target_MIPS.obj: lib/PowerPC/Target.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/Target_PowerPC.obj: lib/MIPS/Target.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/Target_X86.obj: lib/X86/Target.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(BUILD_DIR)/bin/llvm-exegesis.exe: $(BASE_OBJ) $(LIB_OBJ) $(LIBS) $(OBJ_DIR)/llvm-exegesis.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-exegesis.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-exegesis.exe, VFT_APP, Measures execution properties.)
+
+-include .depend.Windows
+

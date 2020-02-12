@@ -1,0 +1,63 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-jitlistener'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-jitlistener.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = llvm-jitlistener.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         LLVMAnalysis.lib             \
+         LLVMAsmParser.lib            \
+         LLVMAsmPrinter.lib           \
+         LLVMBinaryFormat.lib         \
+         LLVMBitReader.lib            \
+         LLVMBitstreamReader.lib      \
+         LLVMCodeGen.lib              \
+         LLVMCore.lib                 \
+         LLVMDebugInfoCodeView.lib    \
+         LLVMDebugInfoDwarf.lib       \
+         LLVMDemangle.lib             \
+         LLVMExecutionEngine.lib      \
+         LLVMGlobalISel.lib           \
+         LLVMIRReader.lib             \
+         LLVMMC.lib                   \
+         LLVMMCDisassembler.lib       \
+         LLVMMCJIT.lib                \
+         LLVMMCParser.lib             \
+         LLVMObject.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMRuntimeDyld.lib          \
+         LLVMScalarOpts.lib           \
+         LLVMSelectionDAG.lib         \
+         LLVMSupport.lib              \
+         LLVMTarget.lib               \
+         LLVMTransformUtils.lib       \
+         LLVMX86CodeGen.lib           \
+         LLVMX86Desc.lib              \
+         LLVMX86Info.lib              \
+         LLVMX86Utils.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-jitlistener.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-jitlistener.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-jitlistener.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-jitlistener.exe, VFT_APP, LLVM tool; verifies the MCJIT JITEventListener interface.)
+
+-include .depend.Windows
+

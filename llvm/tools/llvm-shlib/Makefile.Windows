@@ -1,0 +1,74 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-shlib'.
+#
+TOP_DIR = ../../..
+
+LLVM_DLL     = $(BUILD_DIR)/bin/LLVM-C.dll
+LLVM_IMP_LIB = $(BUILD_DIR)/lib/LLVM-C.lib
+
+TARGETS     = $(LLVM_DLL) $(LLVM_IMP_LIB)
+ALL_SOURCES = libllvm.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+EXTRA_CLEAN = rm_tmp
+
+include $(TOP_DIR)/Common.Windows
+
+GENERATED += $(OBJ_DIR)/LLVM-C.def
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# All the 'LLVM' libraries we must link with.
+# A bit too many for '$(call link_DLL, ...)'.
+#
+ALL_LLVM_LIBS = $(wildcard $(BUILD_DIR)/lib/LLVM*.lib)
+
+#
+# Except this:
+#
+ALL_LLVM_LIBS := $(filter-out $(LLVM_IMP_LIB), $(ALL_LLVM_LIBS))
+
+#
+# Needed in 'LLVMSupport.lib (Path.obj)'
+#
+EX_LIBS += shell32.lib
+
+#
+# Needed in 'LLVMSupport.lib (Path.obj)'
+#           'clangDriver.lib (MSVC.obj)'
+#           'LLVMSupport.lib (COM.obj)'
+#
+EX_LIBS += ole32.lib
+
+#
+# Needed in 'LLVMSupport.lib (Signals.obj)'
+#
+EX_LIBS += advapi32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(LLVM_IMP_LIB): $(LLVM_DLL)
+
+$(LLVM_DLL): $(OBJECTS) $(OBJ_DIR)/LLVM-C.res $(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS)
+	$(call colour_msg,$(BRIGHT_YELLOW)This will take a $(BRIGHT_RED)long time.)
+	$(call create_rsp_file, link.args, $(OBJECTS) $(OBJ_DIR)/LLVM-C.res -def:$(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS) $(EX_LIBS))
+	$(call link_DLL, $@, $(LLVM_IMP_LIB), @link.args)
+
+$(OBJ_DIR)/LLVM-C.def: $(MDEPEND) $(BUILD_DIR)/bin/llvm-nm.exe
+	$(call Generating, $@, ;)
+	$(call create_rsp_file, llvm-nm.tmp, $(ALL_LLVM_LIBS))
+	echo -en 'LIBRARY $(notdir $(LLVM_DLL))\nEXPORTS\n' >> $@
+	$(BUILD_DIR)/bin/llvm-nm.exe @llvm-nm.tmp | grep -e ' T $(uscore)LLVM.*' | sed 's/^.* T $(uscore)/  /' | sort >> $@
+	@echo
+
+$(OBJ_DIR)/LLVM-C.rc: $(MDEPEND)
+	$(call make_rc, $@, $(notdir $(LLVM_DLL)), VFT_DLL, The LLVM C-API.)
+
+rm_tmp:
+	rm -f llvm-nm.tmp
+
+-include .depend.Windows
+

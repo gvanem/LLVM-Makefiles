@@ -1,0 +1,217 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/StaticAnalyzer'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib \
+          $(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib     \
+          $(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib
+
+VPATH = Checkers                     \
+        Checkers/MPI-Checker         \
+        Checkers/RetainCountChecker  \
+        Checkers/UninitializedObject \
+        Core                         \
+        Frontend
+
+include $(TOP_DIR)/Common.Windows
+
+clangStaticAnalyzerCheckers_SRC = $(addprefix Checkers/,                               \
+                                    AnalysisOrderChecker.cpp                           \
+                                    AnalyzerStatsChecker.cpp                           \
+                                    ArrayBoundChecker.cpp                              \
+                                    ArrayBoundCheckerV2.cpp                            \
+                                    BasicObjCFoundationChecks.cpp                      \
+                                    BlockInCriticalSectionChecker.cpp                  \
+                                    BoolAssignmentChecker.cpp                          \
+                                    BuiltinFunctionChecker.cpp                         \
+                                    CStringChecker.cpp                                 \
+                                    CStringSyntaxChecker.cpp                           \
+                                    CallAndMessageChecker.cpp                          \
+                                    CastSizeChecker.cpp                                \
+                                    CastValueChecker.cpp                               \
+                                    CastToStructChecker.cpp                            \
+                                    CheckObjCDealloc.cpp                               \
+                                    CheckObjCInstMethSignature.cpp                     \
+                                    CheckSecuritySyntaxOnly.cpp                        \
+                                    CheckSizeofPointer.cpp                             \
+                                    CheckerDocumentation.cpp                           \
+                                    ChrootChecker.cpp                                  \
+                                    CloneChecker.cpp                                   \
+                                    ConversionChecker.cpp                              \
+                                    CXXSelfAssignmentChecker.cpp                       \
+                                    DeadStoresChecker.cpp                              \
+                                    DebugCheckers.cpp                                  \
+                                    DeleteWithNonVirtualDtorChecker.cpp                \
+                                    DereferenceChecker.cpp                             \
+                                    DirectIvarAssignment.cpp                           \
+                                    DivZeroChecker.cpp                                 \
+                                    DynamicTypePropagation.cpp                         \
+                                    DynamicTypeChecker.cpp                             \
+                                    EnumCastOutOfRangeChecker.cpp                      \
+                                    ExprInspectionChecker.cpp                          \
+                                    FixedAddressChecker.cpp                            \
+                                    GCDAntipatternChecker.cpp                          \
+                                    GenericTaintChecker.cpp                            \
+                                    GTestChecker.cpp                                   \
+                                    IdenticalExprChecker.cpp                           \
+                                    InnerPointerChecker.cpp                            \
+                                    IteratorChecker.cpp                                \
+                                    IvarInvalidationChecker.cpp                        \
+                                    LLVMConventionsChecker.cpp                         \
+                                    LocalizationChecker.cpp                            \
+                                    MacOSKeychainAPIChecker.cpp                        \
+                                    MacOSXAPIChecker.cpp                               \
+                                    MallocChecker.cpp                                  \
+                                    MallocOverflowSecurityChecker.cpp                  \
+                                    MallocSizeofChecker.cpp                            \
+                                    MIGChecker.cpp                                     \
+                                    MmapWriteExecChecker.cpp                           \
+                                    MoveChecker.cpp                                    \
+                                    NSAutoreleasePoolChecker.cpp                       \
+                                    NSErrorChecker.cpp                                 \
+                                    NoReturnFunctionChecker.cpp                        \
+                                    NonNullParamChecker.cpp                            \
+                                    NonnullGlobalConstantsChecker.cpp                  \
+                                    NullabilityChecker.cpp                             \
+                                    NumberObjectConversionChecker.cpp                  \
+                                    ObjCAtSyncChecker.cpp                              \
+                                    ObjCAutoreleaseWriteChecker.cpp                    \
+                                    ObjCContainersASTChecker.cpp                       \
+                                    ObjCContainersChecker.cpp                          \
+                                    ObjCMissingSuperCallChecker.cpp                    \
+                                    ObjCPropertyChecker.cpp                            \
+                                    ObjCSelfInitChecker.cpp                            \
+                                    ObjCSuperDeallocChecker.cpp                        \
+                                    ObjCUnusedIVarsChecker.cpp                         \
+                                    OSObjectCStyleCast.cpp                             \
+                                    PaddingChecker.cpp                                 \
+                                    PointerArithChecker.cpp                            \
+                                    PointerIterationChecker.cpp                        \
+                                    PointerSortingChecker.cpp                          \
+                                    PointerSubChecker.cpp                              \
+                                    PthreadLockChecker.cpp                             \
+                                    ReturnPointerRangeChecker.cpp                      \
+                                    ReturnUndefChecker.cpp                             \
+                                    ReturnValueChecker.cpp                             \
+                                    RunLoopAutoreleaseLeakChecker.cpp                  \
+                                    SimpleStreamChecker.cpp                            \
+                                    StackAddrEscapeChecker.cpp                         \
+                                    SmartPtrModeling.cpp                               \
+                                    StdLibraryFunctionsChecker.cpp                     \
+                                    StreamChecker.cpp                                  \
+                                    Taint.cpp                                          \
+                                    TaintTesterChecker.cpp                             \
+                                    TestAfterDivZeroChecker.cpp                        \
+                                    TraversalChecker.cpp                               \
+                                    TrustNonnullChecker.cpp                            \
+                                    UndefBranchChecker.cpp                             \
+                                    UndefCapturedBlockVarChecker.cpp                   \
+                                    UndefResultChecker.cpp                             \
+                                    UndefinedArraySubscriptChecker.cpp                 \
+                                    UndefinedAssignmentChecker.cpp                     \
+                                    UnixAPIChecker.cpp                                 \
+                                    UnreachableCodeChecker.cpp                         \
+                                    VforkChecker.cpp                                   \
+                                    VLASizeChecker.cpp                                 \
+                                    ValistChecker.cpp                                  \
+                                    VirtualCallChecker.cpp)
+
+clangStaticAnalyzerCheckers_SRC += $(addprefix Checkers/MPI-Checker/, \
+                                     MPIBugReporter.cpp               \
+                                     MPIChecker.cpp                   \
+                                     MPIFunctionClassifier.cpp)
+
+clangStaticAnalyzerCheckers_SRC += $(addprefix Checkers/RetainCountChecker/, \
+                                     RetainCountChecker.cpp                  \
+                                     RetainCountDiagnostics.cpp)
+
+clangStaticAnalyzerCheckers_SRC += $(addprefix Checkers/UninitializedObject/, \
+                                     UninitializedObjectChecker.cpp           \
+                                     UninitializedPointee.cpp)
+
+clangStaticAnalyzerCore_SRC = $(addprefix Core/,            \
+                                APSIntType.cpp              \
+                                AnalysisManager.cpp         \
+                                AnalyzerOptions.cpp         \
+                                BasicValueFactory.cpp       \
+                                BlockCounter.cpp            \
+                                BugReporter.cpp             \
+                                BugReporterVisitors.cpp     \
+                                CallEvent.cpp               \
+                                Checker.cpp                 \
+                                CheckerContext.cpp          \
+                                CheckerHelpers.cpp          \
+                                CheckerManager.cpp          \
+                                CommonBugCategories.cpp     \
+                                ConstraintManager.cpp       \
+                                CoreEngine.cpp              \
+                                Environment.cpp             \
+                                ExplodedGraph.cpp           \
+                                ExprEngine.cpp              \
+                                ExprEngineC.cpp             \
+                                ExprEngineCXX.cpp           \
+                                ExprEngineCallAndReturn.cpp \
+                                ExprEngineObjC.cpp          \
+                                FunctionSummary.cpp         \
+                                HTMLDiagnostics.cpp         \
+                                IssueHash.cpp               \
+                                LoopUnrolling.cpp           \
+                                LoopWidening.cpp            \
+                                MemRegion.cpp               \
+                                PlistDiagnostics.cpp        \
+                                ProgramState.cpp            \
+                                RangeConstraintManager.cpp  \
+                                RangedConstraintManager.cpp \
+                                RegionStore.cpp             \
+                                SarifDiagnostics.cpp        \
+                                SimpleConstraintManager.cpp \
+                                SimpleSValBuilder.cpp       \
+                                SMTConstraintManager.cpp    \
+                                Store.cpp                   \
+                                SubEngine.cpp               \
+                                SValBuilder.cpp             \
+                                SVals.cpp                   \
+                                SymbolManager.cpp           \
+                                WorkList.cpp)
+
+clangStaticAnalyzerFrontend_SRC = $(addprefix Frontend/,    \
+                                    AnalysisConsumer.cpp    \
+                                    CheckerRegistration.cpp \
+                                    CheckerRegistry.cpp     \
+                                    FrontendActions.cpp     \
+                                    ModelConsumer.cpp       \
+                                    ModelInjector.cpp)
+
+ALL_SOURCES = $(clangStaticAnalyzerCheckers_SRC) \
+              $(clangStaticAnalyzerCore_SRC)     \
+              $(clangStaticAnalyzerFrontend_SRC)
+
+clangStaticAnalyzerCheckers_OBJ = $(call cpp_to_obj, $(clangStaticAnalyzerCheckers_SRC))
+clangStaticAnalyzerCore_OBJ     = $(call cpp_to_obj, $(clangStaticAnalyzerCore_SRC))
+clangStaticAnalyzerFrontend_OBJ = $(call cpp_to_obj, $(clangStaticAnalyzerFrontend_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(clangStaticAnalyzerCheckers_OBJ): $(clangStaticAnalyzerCheckers_SRC)
+	$(call MP_compile, $(clangStaticAnalyzerCheckers_SRC))
+
+$(clangStaticAnalyzerCore_OBJ): $(clangStaticAnalyzerCore_SRC)
+	$(call MP_compile, $(clangStaticAnalyzerCore_SRC))
+
+$(clangStaticAnalyzerFrontend_OBJ): $(clangStaticAnalyzerFrontend_SRC)
+	$(call MP_compile, $(clangStaticAnalyzerFrontend_SRC))
+endif
+
+
+$(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib: $(clangStaticAnalyzerCheckers_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib: $(clangStaticAnalyzerCore_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib: $(clangStaticAnalyzerFrontend_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

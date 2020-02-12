@@ -1,0 +1,63 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/tools/clang-refactor'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/bin/clang-refactor.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = ClangRefactor.cpp \
+              TestSupport.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAST.lib                 \
+         clangAnalysis.lib            \
+         clangBasic.lib               \
+         clangDriver.lib              \
+         clangEdit.lib                \
+         clangFormat.lib              \
+         clangFrontend.lib            \
+         clangIndex.lib               \
+         clangLex.lib                 \
+         clangParse.lib               \
+         clangRewrite.lib             \
+         clangSema.lib                \
+         clangSerialization.lib       \
+         clangTooling.lib             \
+         clangToolingCore.lib         \
+         clangToolingInclusions.lib   \
+         clangToolingRefactor.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/,\
+          LLVMBinaryFormat.lib        \
+          LLVMBitstreamReader.lib     \
+          LLVMCore.lib                \
+          LLVMDemangle.lib            \
+          LLVMMC.lib                  \
+          LLVMMCParser.lib            \
+          LLVMOption.lib              \
+          LLVMProfileData.lib         \
+          LLVMRemarks.lib             \
+          LLVMSupport.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-refactor.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-refactor.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-refactor.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-refactor.exe, VFT_APP, A tool for source transformations.)
+
+-include .depend.Windows
+

@@ -1,0 +1,102 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-mc'.
+#
+TOP_DIR = ../../..
+TARGETS = $(BUILD_DIR)/bin/llvm-mc.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = Disassembler.cpp \
+              llvm-mc.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         LLVMAArch64AsmParser.lib        \
+         LLVMAArch64Desc.lib             \
+         LLVMAArch64Disassembler.lib     \
+         LLVMAArch64Info.lib             \
+         LLVMAArch64Utils.lib            \
+         LLVMAMDGPUAsmParser.lib         \
+         LLVMAMDGPUDesc.lib              \
+         LLVMAMDGPUDisassembler.lib      \
+         LLVMAMDGPUInfo.lib              \
+         LLVMAMDGPUUtils.lib             \
+         LLVMARMAsmParser.lib            \
+         LLVMARMDesc.lib                 \
+         LLVMARMDisassembler.lib         \
+         LLVMARMInfo.lib                 \
+         LLVMARMUtils.lib                \
+         LLVMBPFAsmParser.lib            \
+         LLVMBPFDesc.lib                 \
+         LLVMBPFDisassembler.lib         \
+         LLVMBPFInfo.lib                 \
+         LLVMBinaryFormat.lib            \
+         LLVMCore.lib                    \
+         LLVMHexagonAsmParser.lib        \
+         LLVMHexagonDesc.lib             \
+         LLVMHexagonDisassembler.lib     \
+         LLVMHexagonInfo.lib             \
+         LLVMLanaiAsmParser.lib          \
+         LLVMLanaiDesc.lib               \
+         LLVMLanaiDisassembler.lib       \
+         LLVMLanaiInfo.lib               \
+         LLVMMC.lib                      \
+         LLVMMCDisassembler.lib          \
+         LLVMMCParser.lib                \
+         LLVMMSP430AsmParser.lib         \
+         LLVMMSP430Desc.lib              \
+         LLVMMSP430Disassembler.lib      \
+         LLVMMSP430Info.lib              \
+         LLVMMipsAsmParser.lib           \
+         LLVMMipsDesc.lib                \
+         LLVMMipsDisassembler.lib        \
+         LLVMMipsInfo.lib                \
+         LLVMNVPTXDesc.lib               \
+         LLVMNVPTXInfo.lib               \
+         LLVMPowerPCAsmParser.lib        \
+         LLVMPowerPCDesc.lib             \
+         LLVMPowerPCDisassembler.lib     \
+         LLVMPowerPCInfo.lib             \
+         LLVMRemarks.lib                 \
+         LLVMSparcAsmParser.lib          \
+         LLVMSparcDesc.lib               \
+         LLVMSparcDisassembler.lib       \
+         LLVMSparcInfo.lib               \
+         LLVMSupport.lib                 \
+         LLVMSystemZAsmParser.lib        \
+         LLVMSystemZDesc.lib             \
+         LLVMSystemZDisassembler.lib     \
+         LLVMSystemZInfo.lib             \
+         LLVMWebAssemblyAsmParser.lib    \
+         LLVMWebAssemblyDesc.lib         \
+         LLVMWebAssemblyDisassembler.lib \
+         LLVMWebAssemblyInfo.lib         \
+         LLVMX86AsmParser.lib            \
+         LLVMX86Desc.lib                 \
+         LLVMX86Disassembler.lib         \
+         LLVMX86Info.lib                 \
+         LLVMX86Utils.lib                \
+         LLVMXCoreDesc.lib               \
+         LLVMXCoreDisassembler.lib       \
+         LLVMXCoreInfo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-mc.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-mc.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-mc.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-mc.exe, VFT_APP, LLVM tool; command line hacking on machine code.)
+
+-include .depend.Windows
+

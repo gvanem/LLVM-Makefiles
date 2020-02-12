@@ -1,0 +1,113 @@
+#
+# GNU Makefile for LLVM 'tools/Clang/lib/Basic'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/clangBasic.lib
+VPATH   = Targets
+
+CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+
+#
+# .inc-files needed here:
+#
+INC_FILES = $(addprefix $(CLANG_INC)/AST/,     \
+              Attrs.inc                        \
+              AttrVisitor.inc                  \
+              DeclNodes.inc                    \
+              StmtNodes.inc                    \
+              CommentCommandList.inc)          \
+                                               \
+            $(addprefix $(CLANG_INC)/Basic/,   \
+              AttrList.inc                     \
+              DiagnosticAnalysisKinds.inc      \
+              DiagnosticASTKinds.inc           \
+              DiagnosticCommentKinds.inc       \
+              DiagnosticCrossTUKinds.inc       \
+              DiagnosticFrontendKinds.inc      \
+              DiagnosticGroups.inc             \
+              DiagnosticSemaKinds.inc          \
+              DiagnosticCommonKinds.inc        \
+              DiagnosticDriverKinds.inc        \
+              DiagnosticIndexName.inc          \
+              DiagnosticLexKinds.inc           \
+              DiagnosticParseKinds.inc         \
+              DiagnosticRefactoringKinds.inc   \
+              DiagnosticSerializationKinds.inc \
+              Version.inc)
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = Attributes.cpp               \
+          Builtins.cpp                 \
+          CharInfo.cpp                 \
+          CodeGenOptions.cpp           \
+          Cuda.cpp                     \
+          Diagnostic.cpp               \
+          DiagnosticIDs.cpp            \
+          DiagnosticOptions.cpp        \
+          FileManager.cpp              \
+          FileSystemStatCache.cpp      \
+          FixedPoint.cpp               \
+          IdentifierTable.cpp          \
+          LangOptions.cpp              \
+          Module.cpp                   \
+          ObjCRuntime.cpp              \
+          OpenMPKinds.cpp              \
+          OperatorPrecedence.cpp       \
+          SanitizerBlacklist.cpp       \
+          SanitizerSpecialCaseList.cpp \
+          Sanitizers.cpp               \
+          SourceLocation.cpp           \
+          SourceManager.cpp            \
+          TargetInfo.cpp               \
+          Targets.cpp                  \
+          TokenKinds.cpp               \
+          Version.cpp                  \
+          Warnings.cpp                 \
+          XRayInstr.cpp                \
+          XRayLists.cpp
+
+LIB_SRC += $(addprefix Targets/, \
+             AArch64.cpp         \
+             AMDGPU.cpp          \
+             ARC.cpp             \
+             ARM.cpp             \
+             AVR.cpp             \
+             BPF.cpp             \
+             Hexagon.cpp         \
+             Lanai.cpp           \
+             Le64.cpp            \
+             MSP430.cpp          \
+             Mips.cpp            \
+             NVPTX.cpp           \
+             OSTargets.cpp       \
+             PNaCl.cpp           \
+             PPC.cpp             \
+             RISCV.cpp           \
+             SPIR.cpp            \
+             Sparc.cpp           \
+             SystemZ.cpp         \
+             TCE.cpp             \
+             WebAssembly.cpp     \
+             X86.cpp             \
+             XCore.cpp)
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(INC_FILES) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/clangBasic.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(INC_FILES):
+	$(call do_make, $(CLANG_INC), all)
+
+-include .depend.Windows
+

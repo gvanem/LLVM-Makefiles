@@ -1,0 +1,92 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/Utils'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMTransformUtils.lib
+
+include $(TOP_DIR)/Common.Windows
+
+LIB_SRC = AddDiscriminators.cpp                   \
+          AMDGPUEmitPrintf.cpp                    \
+          ASanStackFrameLayout.cpp                \
+          BasicBlockUtils.cpp                     \
+          BreakCriticalEdges.cpp                  \
+          BuildLibCalls.cpp                       \
+          BypassSlowDivision.cpp                  \
+          CallGraphUpdater.cpp                    \
+          CallPromotionUtils.cpp                  \
+          CanonicalizeAliases.cpp                 \
+          CloneFunction.cpp                       \
+          CloneModule.cpp                         \
+          CodeExtractor.cpp                       \
+          CodeMoverUtils.cpp                      \
+          CtorUtils.cpp                           \
+          Debugify.cpp                            \
+          DemoteRegToStack.cpp                    \
+          EntryExitInstrumenter.cpp               \
+          EscapeEnumerator.cpp                    \
+          Evaluator.cpp                           \
+          FlattenCFG.cpp                          \
+          FunctionComparator.cpp                  \
+          FunctionImportUtils.cpp                 \
+          GlobalStatus.cpp                        \
+          GuardUtils.cpp                          \
+          ImportedFunctionsInliningStatistics.cpp \
+          InjectTLIMappings.cpp                   \
+          InlineFunction.cpp                      \
+          InstructionNamer.cpp                    \
+          IntegerDivision.cpp                     \
+          KnowledgeRetention.cpp                  \
+          LCSSA.cpp                               \
+          LibCallsShrinkWrap.cpp                  \
+          Local.cpp                               \
+          LoopRotationUtils.cpp                   \
+          LoopSimplify.cpp                        \
+          LoopUnroll.cpp                          \
+          LoopUnrollAndJam.cpp                    \
+          LoopUnrollPeel.cpp                      \
+          LoopUnrollRuntime.cpp                   \
+          LoopUtils.cpp                           \
+          LoopVersioning.cpp                      \
+          LowerInvoke.cpp                         \
+          LowerMemIntrinsics.cpp                  \
+          LowerSwitch.cpp                         \
+          Mem2Reg.cpp                             \
+          MetaRenamer.cpp                         \
+          MisExpect.cpp                           \
+          ModuleUtils.cpp                         \
+          NameAnonGlobals.cpp                     \
+          PredicateInfo.cpp                       \
+          PromoteMemoryToRegister.cpp             \
+          SanitizerStats.cpp                      \
+          SimplifyCFG.cpp                         \
+          SimplifyIndVar.cpp                      \
+          SimplifyLibCalls.cpp                    \
+          SizeOpts.cpp                            \
+          SplitModule.cpp                         \
+          SSAUpdater.cpp                          \
+          SSAUpdaterBulk.cpp                      \
+          StripGCRelocates.cpp                    \
+          StripNonLineTableDebugInfo.cpp          \
+          SymbolRewriter.cpp                      \
+          UnifyFunctionExitNodes.cpp              \
+          Utils.cpp                               \
+          ValueMapper.cpp                         \
+          VNCoercion.cpp
+
+ALL_SOURCES = $(LIB_SRC)
+
+LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
+
+all: $(GENERATED) $(TARGETS)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(LIB_OBJ): $(LIB_SRC)
+	$(call MP_compile, $(LIB_SRC))
+endif
+
+$(BUILD_DIR)/lib/LLVMTransformUtils.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

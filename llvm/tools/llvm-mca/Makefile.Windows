@@ -1,0 +1,104 @@
+#
+# GNU Makefile for 'llvm/tools/llvm-mca'.
+#
+TOP_DIR = ../../..
+VPATH   = Views
+TARGETS = $(BUILD_DIR)/bin/llvm-mca.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = CodeRegion.cpp          \
+              CodeRegionGenerator.cpp \
+              llvm-mca.cpp            \
+              PipelinePrinter.cpp
+
+ALL_SOURCES += $(addprefix Views/,               \
+                 BottleneckAnalysis.cpp          \
+                 DispatchStatistics.cpp          \
+                 InstructionInfoView.cpp         \
+                 RegisterFileStatistics.cpp      \
+                 ResourcePressureView.cpp        \
+                 RetireControlUnitStatistics.cpp \
+                 SchedulerStatistics.cpp         \
+                 SummaryView.cpp                 \
+                 TimelineView.cpp                \
+                 View.cpp)
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         LLVMAArch64AsmParser.lib        \
+         LLVMAArch64Desc.lib             \
+         LLVMAArch64Info.lib             \
+         LLVMAArch64Utils.lib            \
+         LLVMAMDGPUAsmParser.lib         \
+         LLVMAMDGPUDesc.lib              \
+         LLVMAMDGPUInfo.lib              \
+         LLVMAMDGPUUtils.lib             \
+         LLVMARMAsmParser.lib            \
+         LLVMARMDesc.lib                 \
+         LLVMARMInfo.lib                 \
+         LLVMARMUtils.lib                \
+         LLVMBPFAsmParser.lib            \
+         LLVMBPFDesc.lib                 \
+         LLVMBPFInfo.lib                 \
+         LLVMBinaryFormat.lib            \
+         LLVMCore.lib                    \
+         LLVMHexagonAsmParser.lib        \
+         LLVMHexagonDesc.lib             \
+         LLVMHexagonInfo.lib             \
+         LLVMLanaiAsmParser.lib          \
+         LLVMLanaiDesc.lib               \
+         LLVMLanaiInfo.lib               \
+         LLVMMCA.lib                     \
+         LLVMMC.lib                      \
+         LLVMMCDisassembler.lib          \
+         LLVMMCParser.lib                \
+         LLVMMSP430AsmParser.lib         \
+         LLVMMSP430Desc.lib              \
+         LLVMMSP430Info.lib              \
+         LLVMMipsAsmParser.lib           \
+         LLVMMipsDesc.lib                \
+         LLVMMipsInfo.lib                \
+         LLVMNVPTXDesc.lib               \
+         LLVMNVPTXInfo.lib               \
+         LLVMPowerPCAsmParser.lib        \
+         LLVMPowerPCDesc.lib             \
+         LLVMPowerPCInfo.lib             \
+         LLVMRemarks.lib                 \
+         LLVMSparcAsmParser.lib          \
+         LLVMSparcDesc.lib               \
+         LLVMSparcInfo.lib               \
+         LLVMSupport.lib                 \
+         LLVMSystemZAsmParser.lib        \
+         LLVMSystemZDesc.lib             \
+         LLVMSystemZInfo.lib             \
+         LLVMWebAssemblyAsmParser.lib    \
+         LLVMWebAssemblyDesc.lib         \
+         LLVMWebAssemblyInfo.lib         \
+         LLVMX86AsmParser.lib            \
+         LLVMX86Desc.lib                 \
+         LLVMX86Info.lib                 \
+         LLVMX86Utils.lib                \
+         LLVMXCoreDesc.lib               \
+         LLVMXCoreInfo.lib)
+
+#
+# External libraries needed:
+#
+EX_LIBS = shell32.lib advapi32.lib ole32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/llvm-mca.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-mca.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/llvm-mca.rc: $(MDEPEND)
+	$(call make_rc, $@, llvm-mca.exe, VFT_APP, LLVM tool; does static performance analysis on machine code.)
+
+-include .depend.Windows
+
