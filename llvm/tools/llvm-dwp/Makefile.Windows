@@ -39,12 +39,15 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMBPFInfo.lib               \
          LLVMBinaryFormat.lib          \
          LLVMBitReader.lib             \
+         LLVMBitWriter.lib             \
          LLVMBitstreamReader.lib       \
+         LLVMCFGuard.lib               \
          LLVMCodeGen.lib               \
          LLVMCore.lib                  \
          LLVMDebugInfoCodeView.lib     \
          LLVMDebugInfoDwarf.lib        \
          LLVMDemangle.lib              \
+         LLVMFrontendOpenMP.lib        \
          LLVMGlobalISel.lib            \
          LLVMHexagonCodeGen.lib        \
          LLVMHexagonDesc.lib           \
@@ -106,7 +109,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMXCoreDesc.lib             \
          LLVMXCoreDesc.lib             \
          LLVMXCoreInfo.lib             \
-         LLVMipo.lib)
+         LLVMipo.lib                   \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed:

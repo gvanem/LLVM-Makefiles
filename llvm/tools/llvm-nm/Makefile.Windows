@@ -61,6 +61,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMSystemZAsmParser.lib     \
          LLVMSystemZDesc.lib          \
          LLVMSystemZInfo.lib          \
+         LLVMTextAPI.lib              \
          LLVMWebAssemblyAsmParser.lib \
          LLVMWebAssemblyDesc.lib      \
          LLVMWebAssemblyInfo.lib      \

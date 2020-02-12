@@ -16,22 +16,24 @@ GENERATED += $(OBJ_DIR)/LLVM-Remarks.def
 all: $(GENERATED) $(TARGETS)
 
 LIBS = $(addprefix $(BUILD_DIR)/lib/, \
-         LLVMSupport.lib \
-         LLVMRemarks.lib)
+         LLVMBitstreamReader.lib      \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
 
 EX_LIBS = shell32.lib ole32.lib advapi32.lib
 
 $(BUILD_DIR)/lib/LLVM-Remarks.lib: $(BUILD_DIR)/bin/LLVM-Remarks.dll
 
 $(BUILD_DIR)/bin/LLVM-Remarks.dll: $(OBJECTS) $(OBJ_DIR)/LLVM-Remarks.res $(OBJ_DIR)/LLVM-Remarks.def $(LIBS)
-	$(call colour_msg,$(BRIGHT_YELLOW)This will take a $(BRIGHT_RED)long time.)
-	$(call create_rsp_file, link.args, $(OBJECTS) $(OBJ_DIR)/LLVM-Remarks.res -def:$(OBJ_DIR)/LLVM-Remarks.def $(LIBS) $(EX_LIBS))
-	$(call link_DLL, $@, $(BUILD_DIR)/lib/LLVM-Remarks.lib, @link.args)
+	$(call link_DLL, $@, $(BUILD_DIR)/lib/LLVM-Remarks.lib,     \
+	                     $(OBJECTS) $(OBJ_DIR)/LLVM-Remarks.res \
+	                     -def:$(OBJ_DIR)/LLVM-Remarks.def $(LIBS) $(EX_LIBS))
 
 $(OBJ_DIR)/LLVM-Remarks.def: $(MDEPEND) $(BUILD_DIR)/bin/llvm-nm.exe
 	$(call Generating, $@, ;)
 	echo -en 'LIBRARY LLVM-Remarks.dll\nEXPORTS\n' >> $@
-	$(BUILD_DIR)/bin/llvm-nm.exe $(BUILD_DIR)/lib/LLVMRemarks.lib | grep -e ' T $(uscore)LLVM.*' | sed 's/^.* T $(uscore)/  /' | sort >> $@
+	$(BUILD_DIR)/bin/llvm-nm.exe $(BUILD_DIR)/lib/LLVMRemarks.lib | \
+	   grep -e ' T $(uscore)LLVM.*' | sed 's/^.* T $(uscore)/  /' | sort >> $@
 
 $(OBJ_DIR)/LLVM-Remarks.rc: $(MDEPEND)
 	$(call make_rc, $@, LLVM-Remarks.dll, VFT_DLL, A LLVM 'Remarks' library.)

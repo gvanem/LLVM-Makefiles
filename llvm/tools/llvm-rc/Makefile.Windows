@@ -39,7 +39,7 @@ $(OBJ_DIR)/llvm-rc.rc: $(MDEPEND)
 	$(call make_rc, $@, llvm-rc.exe, VFT_APP, The LLVM Resource compiler.)
 
 Opts.inc: Opts.td $(TOP_DIR)/llvm/include/llvm/Option/OptParser.td $(BUILD_DIR)/bin/llvm-tblgen.exe
-	$(call llvm_tblgen, $@, $<)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
 
 -include .depend.Windows
 

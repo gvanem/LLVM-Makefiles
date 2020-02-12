@@ -18,6 +18,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMBinaryFormat.lib         \
          LLVMBitReader.lib            \
          LLVMBitstreamReader.lib      \
+         LLVMCFGuard.lib              \
          LLVMCodeGen.lib              \
          LLVMCore.lib                 \
          LLVMDebugInfoCodeView.lib    \
@@ -38,6 +39,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMSelectionDAG.lib         \
          LLVMSupport.lib              \
          LLVMTarget.lib               \
+         LLVMTextAPI.lib              \
          LLVMTransformUtils.lib       \
          LLVMX86CodeGen.lib           \
          LLVMX86Desc.lib              \

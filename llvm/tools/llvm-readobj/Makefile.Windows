@@ -35,7 +35,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMMCParser.lib             \
          LLVMObject.lib               \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed:

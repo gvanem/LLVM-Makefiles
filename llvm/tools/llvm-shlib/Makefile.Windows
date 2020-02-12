@@ -6,11 +6,13 @@ TOP_DIR = ../../..
 LLVM_DLL     = $(BUILD_DIR)/bin/LLVM-C.dll
 LLVM_IMP_LIB = $(BUILD_DIR)/lib/LLVM-C.lib
 
-TARGETS     = $(LLVM_DLL) $(LLVM_IMP_LIB)
+TARGETS = $(LLVM_DLL) $(LLVM_IMP_LIB)
+
+#
+# This .cpp-file is empty!
+#
 ALL_SOURCES = libllvm.cpp
 OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
-
-EXTRA_CLEAN = rm_tmp
 
 include $(TOP_DIR)/Common.Windows
 
@@ -19,15 +21,16 @@ GENERATED += $(OBJ_DIR)/LLVM-C.def
 all: $(GENERATED) $(TARGETS)
 
 #
-# All the 'LLVM' libraries we must link with.
-# A bit too many for '$(call link_DLL, ...)'.
+# All the 'LLVM' libraries we must link with
+# and use to create the .def-file.
 #
 ALL_LLVM_LIBS = $(wildcard $(BUILD_DIR)/lib/LLVM*.lib)
 
 #
-# Except this:
+# Except these:
 #
 ALL_LLVM_LIBS := $(filter-out $(LLVM_IMP_LIB), $(ALL_LLVM_LIBS))
+ALL_LLVM_LIBS := $(filter-out $(BUILD_DIR)/lib/LLVM-Remarks.lib, $(ALL_LLVM_LIBS))
 
 #
 # Needed in 'LLVMSupport.lib (Path.obj)'
@@ -53,22 +56,22 @@ endif
 $(LLVM_IMP_LIB): $(LLVM_DLL)
 
 $(LLVM_DLL): $(OBJECTS) $(OBJ_DIR)/LLVM-C.res $(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS)
-	$(call colour_msg,$(BRIGHT_YELLOW)This will take a $(BRIGHT_RED)long time.)
-	$(call create_rsp_file, link.args, $(OBJECTS) $(OBJ_DIR)/LLVM-C.res -def:$(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS) $(EX_LIBS))
-	$(call link_DLL, $@, $(LLVM_IMP_LIB), @link.args)
+	$(call link_DLL, $@, $(LLVM_IMP_LIB), $(OBJECTS) $(OBJ_DIR)/LLVM-C.res \
+	                                      -def:$(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS) $(EX_LIBS))
 
+#
+# Use 'link.args' as the temporary responce-file here.
+# It will be overwritten by '$(call link_DLL)' above.
+#
 $(OBJ_DIR)/LLVM-C.def: $(MDEPEND) $(BUILD_DIR)/bin/llvm-nm.exe
 	$(call Generating, $@, ;)
-	$(call create_rsp_file, llvm-nm.tmp, $(ALL_LLVM_LIBS))
+	$(call create_rsp_file, link.args, $(ALL_LLVM_LIBS))
 	echo -en 'LIBRARY $(notdir $(LLVM_DLL))\nEXPORTS\n' >> $@
-	$(BUILD_DIR)/bin/llvm-nm.exe @llvm-nm.tmp | grep -e ' T $(uscore)LLVM.*' | sed 's/^.* T $(uscore)/  /' | sort >> $@
+	$(BUILD_DIR)/bin/llvm-nm.exe @link.args | grep -e ' T $(uscore)LLVM.*' | sed 's/^.* T $(uscore)/  /' | sort >> $@
 	@echo
 
 $(OBJ_DIR)/LLVM-C.rc: $(MDEPEND)
 	$(call make_rc, $@, $(notdir $(LLVM_DLL)), VFT_DLL, The LLVM C-API.)
-
-rm_tmp:
-	rm -f llvm-nm.tmp
 
 -include .depend.Windows
 

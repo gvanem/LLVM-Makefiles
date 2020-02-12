@@ -3,7 +3,6 @@
 #
 TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/llvm-c-test.exe
-MDEPEND = $(THIS_FILE)
 
 include $(TOP_DIR)/Common.Windows
 
@@ -45,16 +44,19 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMAsmParser.lib             \
          LLVMAggressiveInstCombine.lib \
          LLVMAnalysis.lib              \
+         LLVMBitWriter.lib             \
          LLVMBPFCodeGen.lib            \
          LLVMBPFDesc.lib               \
          LLVMBPFInfo.lib               \
          LLVMBinaryFormat.lib          \
          LLVMBitReader.lib             \
          LLVMBitstreamReader.lib       \
+         LLVMCFGuard.lib               \
          LLVMCodeGen.lib               \
          LLVMCodeGen.lib               \
          LLVMCore.lib                  \
          LLVMDemangle.lib              \
+         LLVMFrontendOpenMP.lib        \
          LLVMGlobalISel.lib            \
          LLVMHexagonCodeGen.lib        \
          LLVMHexagonDesc.lib           \
@@ -111,7 +113,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMXCoreCodeGen.lib          \
          LLVMXCoreDesc.lib             \
          LLVMXCoreInfo.lib             \
-         LLVMipo.lib)
+         LLVMipo.lib                   \
+         LLVMTextAPI.lib)
 
 LIBS += $(addprefix $(BUILD_DIR)/lib/,    \
           LLVMAArch64Disassembler.lib     \

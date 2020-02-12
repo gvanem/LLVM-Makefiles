@@ -20,16 +20,13 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMMCParser.lib             \
          LLVMObject.lib               \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed:
 #
 EX_LIBS = shell32.lib advapi32.lib ole32.lib
-
-ifeq ($(USE_ZLIB),1)
-  EX_LIBS += $(ZLIB_LIB)
-endif
 
 $(BUILD_DIR)/bin/llvm-size.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-size.res
 	$(call link_EXE, $@, $^ $(EX_LIBS))

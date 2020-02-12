@@ -72,6 +72,7 @@ MDEPEND ?= # $(THIS_FILE) $(TOP_DIR)/Common.Windows
 # Location of required + optional packages.
 # Change to suite.
 #
+LZMA_ROOT  ?= f:/MinGW32/src/Compression/xz
 ZLIB_ROOT  ?= f:/MinGW32/src/Compression/zlib-1.2.8
 XML2_ROOT  ?= f:/MinGW32/src/Parsers/libxml2
 ICONV_ROOT ?= f:/MinGW32/src/libiconv-for-windows
@@ -83,9 +84,15 @@ GTEST_ROOT ?= f:/MinGW32/src/inet/GoogleCode/gtest
 ZLIB_LIB = $(ZLIB_ROOT)/lib/$(CPU)/zlib$(D).lib
 
 #
+# These might be needed for 'XML2_LIB'.
+#
+LZMA_LIB  = $(LZMA_ROOT)/lib/$(CPU)/lzma.lib
+ICONV_LIB = $(ICONV_ROOT)/lib/libiconvStatic$(D).lib
+
+#
 # Add this to 'EX_LIBS' if 'USE_XML2 = 1'.
 # May also need 'Iconv' if 'LIBXML_ICONV_ENABLED' was defined.
-# May also need 'ws2_32.lib'.
+# May also need 'LZMA_LIB', 'ZLIB_LIB' and 'ws2_32.lib'.
 #
 XML2_LIB = $(XML2_ROOT)/xml2$(D).lib
 
@@ -349,7 +356,7 @@ FORCE:
 # Descend into directory '$(1)' making target '$(2)'.
 #
 define do_make
-  $(call green_msg,Descending into $(BRIGHT_WHITE)$(realpath $(1)) $(BRIGHT_GREEN)making target $(BRIGHT_WHITE)$(strip $(2)).)
+  $(call green_msg,\nDescending into $(BRIGHT_WHITE)$(realpath $(1)) $(BRIGHT_GREEN)making target $(BRIGHT_WHITE)$(strip $(2)).)
   @$(MAKE) -f Makefile.Windows -C $(1) $(2)
 endef
 

@@ -24,7 +24,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMMCDisassembler.lib       \
          LLVMMCParser.lib             \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 LIBS += $(addprefix $(BUILD_DIR)/lib/, \
           LLVMAArch64Info.lib          \

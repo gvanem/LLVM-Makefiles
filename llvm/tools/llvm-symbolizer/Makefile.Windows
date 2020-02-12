@@ -26,7 +26,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMObject.lib               \
          LLVMRemarks.lib              \
          LLVMSupport.lib              \
-         LLVMSymbolize.lib)
+         LLVMSymbolize.lib            \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed.

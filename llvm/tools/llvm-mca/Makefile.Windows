@@ -45,6 +45,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
          LLVMBPFDesc.lib                 \
          LLVMBPFInfo.lib                 \
          LLVMBinaryFormat.lib            \
+         LLVMBitstreamReader.lib         \
          LLVMCore.lib                    \
          LLVMHexagonAsmParser.lib        \
          LLVMHexagonDesc.lib             \

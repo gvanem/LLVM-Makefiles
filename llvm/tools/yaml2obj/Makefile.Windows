@@ -7,8 +7,7 @@ TARGETS = $(BUILD_DIR)/bin/yaml2obj.exe
 include $(TOP_DIR)/Common.Windows
 
 ALL_SOURCES = yaml2obj.cpp
-
-OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
 
 all: $(GENERATED) $(TARGETS)
 
@@ -23,15 +22,12 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMObject.lib               \
          LLVMObjectYAML.lib           \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed:
 #
-ifeq ($(USE_ZLIB),1)
-  EX_LIBS = $(ZLIB_LIB)
-endif
-
 EX_LIBS += shell32.lib advapi32.lib ole32.lib
 
 ifeq ($(USE_MP_COMPILE),1)

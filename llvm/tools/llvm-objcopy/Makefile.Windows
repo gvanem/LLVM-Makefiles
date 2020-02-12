@@ -3,11 +3,12 @@
 #
 TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/llvm-objcopy.exe
-VPATH   = COFF ELF MachO
+VPATH   = COFF ELF MachO wasm
 
 include $(TOP_DIR)/Common.Windows
 
-GENERATED += ObjcopyOpts.inc \
+GENERATED += InstallNameToolOpts.inc \
+             ObjcopyOpts.inc         \
              StripOpts.inc
 
 ALL_SOURCES = Buffer.cpp                   \
@@ -24,14 +25,17 @@ ALL_SOURCES = Buffer.cpp                   \
               MachO/MachOObjcopy.cpp       \
               MachO/MachOReader.cpp        \
               MachO/MachOWriter.cpp        \
-              MachO/Object.cpp
+              MachO/Object.cpp             \
+              wasm/WasmObjcopy.cpp
 
 #
 # '$(sort x)' will create a unique list.
 #
 OBJECTS = $(sort $(call cpp_to_obj, $(ALL_SOURCES))) \
           $(OBJ_DIR)/ELF_Object.obj                  \
-          $(OBJ_DIR)/MachO_Object.obj
+          $(OBJ_DIR)/MachO_Object.obj                \
+          $(OBJ_DIR)/Wasm_Reader.obj                 \
+          $(OBJ_DIR)/Wasm_Writer.obj
 
 all: $(GENERATED) $(TARGETS)
 
@@ -45,7 +49,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMObject.lib               \
          LLVMOption.lib               \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed:
@@ -62,6 +67,9 @@ $(BUILD_DIR)/bin/llvm-objcopy.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-objcopy.re
 $(OBJ_DIR)/llvm-objcopy.rc: $(MDEPEND)
 	$(call make_rc, $@, llvm-objcopy.exe, VFT_APP, Copy and translate object files.)
 
+InstallNameToolOpts.inc: InstallNameToolOpts.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
+
 ObjcopyOpts.inc: ObjcopyOpts.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
 
@@ -75,6 +83,15 @@ $(OBJ_DIR)/ELF_Object.obj: ELF/Object.cpp
 	$(call CPP_compile, $< -Fo$@)
 
 $(OBJ_DIR)/MachO_Object.obj: MachO/Object.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+#
+# Since there are 2 of 'Reader.cpp' and 'Writer.cpp' files.
+#
+$(OBJ_DIR)/Wasm_Reader.obj: wasm/Reader.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/Wasm_Writer.obj: wasm/Writer.cpp
 	$(call CPP_compile, $< -Fo$@)
 
 -include .depend.Windows

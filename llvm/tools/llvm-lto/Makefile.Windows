@@ -46,11 +46,13 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMBitstreamReader.lib       \
          LLVMBitReader.lib             \
          LLVMBitWriter.lib             \
+         LLVMCFGuard.lib               \
          LLVMCodeGen.lib               \
          LLVMCore.lib                  \
          LLVMDebugInfoCodeView.lib     \
          LLVMDebugInfoDwarf.lib        \
          LLVMDemangle.lib              \
+         LLVMFrontendOpenMP.lib        \
          LLVMGlobalISel.lib            \
          LLVMHexagonAsmParser.lib      \
          LLVMHexagonCodeGen.lib        \
@@ -101,6 +103,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMSystemZDesc.lib           \
          LLVMSystemZInfo.lib           \
          LLVMTarget.lib                \
+         LLVMTextAPI.lib               \
          LLVMTransformUtils.lib        \
          LLVMVectorize.lib             \
          LLVMWebAssemblyAsmParser.lib  \

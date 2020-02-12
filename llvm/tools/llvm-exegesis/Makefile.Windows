@@ -7,32 +7,34 @@ TARGETS = $(BUILD_DIR)/bin/llvm-exegesis.exe
 
 include $(TOP_DIR)/Common.Windows
 
-CFLAGS += -I$(TOP_DIR)/lib/Target/AArch64 \
-          -I$(TOP_DIR)/lib/Target/PowerPC \
-          -I$(TOP_DIR)/lib/Target/X86
+CFLAGS += $(addprefix -I$(TOP_DIR)/llvm/lib/Target/, \
+            AArch64 MIPS PowerPC X86)
 
 BASE_SRC = llvm-exegesis.cpp
 BASE_OBJ = $(call cpp_to_obj, $(BASE_SRC))
 
-LIB_SRC = $(addprefix lib/,          \
-            Analysis.cpp             \
-            Assembler.cpp            \
-            BenchmarkResult.cpp      \
-            BenchmarkRunner.cpp      \
-            Clustering.cpp           \
-            CodeTemplate.cpp         \
-            Latency.cpp              \
-            LlvmState.cpp            \
-            MCInstrDescView.cpp      \
-            PerfHelper.cpp           \
-            RegisterAliasing.cpp     \
-            RegisterValue.cpp        \
-            SchedClassResolution.cpp \
-            SnippetFile.cpp          \
-            SnippetGenerator.cpp     \
-            SnippetRepetitor.cpp     \
-            Target.cpp               \
-            Uops.cpp)
+LIB_SRC = $(addprefix lib/,              \
+            Analysis.cpp                 \
+            Assembler.cpp                \
+            BenchmarkResult.cpp          \
+            BenchmarkRunner.cpp          \
+            Clustering.cpp               \
+            CodeTemplate.cpp             \
+            Error.cpp                    \
+            LatencyBenchmarkRunner.cpp   \
+            LlvmState.cpp                \
+            MCInstrDescView.cpp          \
+            ParallelSnippetGenerator.cpp \
+            PerfHelper.cpp               \
+            RegisterAliasing.cpp         \
+            RegisterValue.cpp            \
+            SerialSnippetGenerator.cpp   \
+            SchedClassResolution.cpp     \
+            SnippetFile.cpp              \
+            SnippetGenerator.cpp         \
+            SnippetRepetitor.cpp         \
+            Target.cpp                   \
+            UopsBenchmarkRunner.cpp)
 
 LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))  \
           $(addprefix $(OBJ_DIR)/Target_, \
@@ -55,6 +57,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMBinaryFormat.lib         \
          LLVMBitReader.lib            \
          LLVMBitstreamReader.lib      \
+         LLVMCFGuard.lib              \
          LLVMCodeGen.lib              \
          LLVMCore.lib                 \
          LLVMDebugInfoCodeView.lib    \
@@ -62,6 +65,9 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMDemangle.lib             \
          LLVMExecutionEngine.lib      \
          LLVMGlobalISel.lib           \
+         LLVMMipsCodeGen.lib          \
+         LLVMMipsDesc.lib             \
+         LLVMMipsInfo.lib             \
          LLVMMC.lib                   \
          LLVMMCDisassembler.lib       \
          LLVMMCJIT.lib                \
@@ -78,6 +84,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMSelectionDAG.lib         \
          LLVMSupport.lib              \
          LLVMTarget.lib               \
+         LLVMTextAPI.lib              \
          LLVMTransformUtils.lib       \
          LLVMX86AsmParser.lib         \
          LLVMX86CodeGen.lib           \

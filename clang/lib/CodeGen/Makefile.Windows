@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/CodeGen'.
+# GNU Makefile for 'clang/lib/CodeGen'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangCodeGen.lib
 
 CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang

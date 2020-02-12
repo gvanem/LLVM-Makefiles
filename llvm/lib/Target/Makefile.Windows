@@ -250,6 +250,7 @@ GENERATED += $(addprefix Mips/,                 \
                MipsGenCallingConv.inc           \
                MipsGenDAGISel.inc               \
                MipsGenDisassemblerTables.inc    \
+               MipsGenExegesis.inc              \
                MipsGenFastISel.inc              \
                MipsGenGlobalISel.inc            \
                MipsGenInstrInfo.inc             \
@@ -2076,6 +2077,9 @@ Mips/MipsGenDAGISel.inc: $(Mips_DEPS)
 
 Mips/MipsGenDisassemblerTables.inc: $(Mips_DEPS)
 	$(call llvm_tblgen, $@, -gen-disassembler $<)
+
+Mips/MipsGenExegesis.inc: $(Mips_DEPS)
+	$(call llvm_tblgen, $@, -gen-exegesis $<)
 
 Mips/MipsGenFastISel.inc: $(Mips_DEPS)
 	$(call llvm_tblgen, $@, -gen-fast-isel $<)
