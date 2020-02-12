@@ -6,10 +6,11 @@ TOP_DIR = ../..
 include $(TOP_DIR)/Common.Windows
 
 all depend clean vclean:
-	$(call do_make, TableGen,      $@)
+	$(call do_make, FileCheck,     $@)
 	$(call do_make, benchmark,     $@)
 	$(call do_make, KillTheDoctor, $@)
 	$(call do_make, not,           $@)
+	$(call do_make, TableGen,      $@)
 	$(call do_make, unittest,      $@)
 
 
