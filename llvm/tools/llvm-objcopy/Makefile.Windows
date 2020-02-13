@@ -34,6 +34,7 @@ ALL_SOURCES = Buffer.cpp                   \
 OBJECTS = $(sort $(call cpp_to_obj, $(ALL_SOURCES))) \
           $(OBJ_DIR)/ELF_Object.obj                  \
           $(OBJ_DIR)/MachO_Object.obj                \
+          $(OBJ_DIR)/Wasm_Object.obj                 \
           $(OBJ_DIR)/Wasm_Reader.obj                 \
           $(OBJ_DIR)/Wasm_Writer.obj
 
@@ -77,12 +78,15 @@ StripOpts.inc: StripOpts.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
 
 #
-# Since there are 3 'Object.cpp' files.
+# Since there are 4 'Object.cpp' files.
 #
 $(OBJ_DIR)/ELF_Object.obj: ELF/Object.cpp
 	$(call CPP_compile, $< -Fo$@)
 
 $(OBJ_DIR)/MachO_Object.obj: MachO/Object.cpp
+	$(call CPP_compile, $< -Fo$@)
+
+$(OBJ_DIR)/Wasm_Object.obj: wasm/Object.cpp
 	$(call CPP_compile, $< -Fo$@)
 
 #

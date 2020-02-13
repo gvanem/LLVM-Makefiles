@@ -567,7 +567,6 @@ AMDGPUCodeGen_SRC =           $(addprefix AMDGPU/,                    \
                                 AMDGPUPromoteAlloca.cpp               \
                                 AMDGPUPropagateAttributes.cpp         \
                                 AMDGPURegisterBankInfo.cpp            \
-                                AMDGPURegisterInfo.cpp                \
                                 AMDGPURewriteOutArguments.cpp         \
                                 AMDGPUSubtarget.cpp                   \
                                 AMDGPUTargetMachine.cpp               \
