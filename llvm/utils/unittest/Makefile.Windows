@@ -2,19 +2,23 @@
 # GNU Makefile for 'llvm/utils/unittest'.
 #
 TOP_DIR = ../../..
-VPATH   = googletest/src $(OBJ_DIR)
+VPATH   = googletest/src googlemock/src $(OBJ_DIR)
 
-TARGETS = $(BUILD_DIR)/lib/gtest.lib \
-          $(BUILD_DIR)/lib/gtest_main.lib
+TARGETS = $(BUILD_DIR)/lib/gtest32.lib      \
+          $(BUILD_DIR)/lib/gtest32_main.lib \
+          $(BUILD_DIR)/lib/gmock32.lib
 
-ALL_SOURCES = googletest/src/gtest-all.cc \
-              googletest/src/gtest_main.cc
+ALL_SOURCES = googlemock/src/gmock-all.cc \
+              googletest/src/gtest-all.cc \
+              googletest/src/gtest32_main.cc
 
 include $(TOP_DIR)/Common.Windows
 
-GENERATED += $(OBJ_DIR)/gtest_main.cc
+GENERATED += $(OBJ_DIR)/gtest32_main.cc
 
-CFLAGS += -I./googletest/include \
+CFLAGS += -I./googlemock/include \
+          -I./googletest/include \
+          -I./googlemock         \
           -I./googletest         \
           -DNDEBUG               \
           -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
@@ -22,26 +26,39 @@ CFLAGS += -I./googletest/include \
 all: $(GENERATED) $(TARGETS)
 	$(call green_msg,Welcome to $(TARGETS).)
 
-$(BUILD_DIR)/lib/gtest.lib: $(OBJ_DIR)/gtest-all.obj
+$(BUILD_DIR)/lib/gtest32.lib: $(OBJ_DIR)/gtest-all.obj
 	$(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/gtest_main.lib: $(OBJ_DIR)/gtest_main.obj
+$(BUILD_DIR)/lib/gtest32_main.lib: $(OBJ_DIR)/gtest32_main.obj
+	$(call create_lib, $@, $^)
+	cp --update $(OBJ_DIR)/gtest32_main.obj $(BUILD_DIR)/lib
+
+$(BUILD_DIR)/lib/gmock32.lib: $(OBJ_DIR)/gmock-all.obj
 	$(call create_lib, $@, $^)
 
-$(OBJ_DIR)/gtest_main.cc: $(MDEPEND)
+$(OBJ_DIR)/gtest32_main.cc: $(MDEPEND)
 	$(call Generating, $@, //)
-	$(file >> $@, $(gtest_main_cc))
+	$(file >> $@, $(gtest32_main_cc))
 
-define gtest_main_cc
+define gtest32_main_cc
   #include <stdio.h>
   #include "gtest/gtest.h"
 
-  GTEST_API_ int main (int argc, char **argv)
+  int main (int argc, char **argv)
   {
-    printf ("Running main() from gtest_main.cc\n");
+ // printf ("Running main() from gtest32_main.cc\n");
     testing::InitGoogleTest (&argc, argv);
     return RUN_ALL_TESTS();
   }
 endef
+
+$(OBJ_DIR)/gtest-all.obj: $(addprefix googletest/src/, \
+                            gtest.cc                   \
+                            gtest-death-test.cc        \
+                            gtest-filepath.cc          \
+                            gtest-port.cc              \
+                            gtest-printers.cc          \
+                            gtest-test-part.cc         \
+                            gtest-typed-test.cc)
 
 -include .depend.Windows

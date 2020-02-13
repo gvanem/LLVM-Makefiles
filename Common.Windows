@@ -28,10 +28,9 @@ BUILD_DIR = $(TOP_DIR)/gv-build
 #
 # Options for compiler + linker:
 #
-USE_CRT_DEBUG      ?= 1
-USE_CRT_STATIC     ?= 0
+USE_CRT_DEBUG      ?= 0
 USE_MP_COMPILE     ?= 1
-USE_CLANG_CL       ?= 1
+USE_CLANG_CL       ?= 0
 USE_CLANG_FORMATER ?= 1
 USE_GOOGLE_TEST    ?= 0
 USE_ASM_TEST       ?= 0
@@ -76,7 +75,7 @@ LZMA_ROOT  ?= f:/MinGW32/src/Compression/xz
 ZLIB_ROOT  ?= f:/MinGW32/src/Compression/zlib-1.2.8
 XML2_ROOT  ?= f:/MinGW32/src/Parsers/libxml2
 ICONV_ROOT ?= f:/MinGW32/src/libiconv-for-windows
-GTEST_ROOT ?= f:/MinGW32/src/inet/GoogleCode/gtest
+GTEST_ROOT = $(TOP_DIR)/llvm/utils/unittest
 
 #
 # Add this to 'EX_LIBS' if 'USE_ZLIB = 1'.
@@ -139,7 +138,7 @@ endef
 #
 # 'CFLAGS' and 'LDFLAGS' common to *all* included 'Makefile.Windows' files.
 #
-CFLAGS += -nologo -Ot -Z7 -EHsc -GF -GS -GR -Fo$(OBJ_DIR)\\
+CFLAGS += -nologo -MD$(D) -Ot -Z7 -EHsc -GF -GS -GR -Fo$(OBJ_DIR)\\
        # was '-Zi -Zo' ^
 
 #
@@ -174,15 +173,6 @@ ifeq ($(USE_CRT_DEBUG),1)
   CFLAGS += -D_HAS_ITERATOR_DEBUGGING=0 -D_SECURE_SCL=0
 endif
 
-#
-# The 'ZLIB_LIB' and 'XML2_LIB' *must* match this.
-# Otherwise one have to use the dynamic versions of those.
-#
-ifeq ($(USE_CRT_STATIC),1)
-  CFLAGS += -MT$(D)
-else
-  CFLAGS += -MD$(D)
-endif
 
 #
 # Compile using 'clang-cl'?
@@ -252,6 +242,31 @@ LDFLAGS += -nodefaultlib:advapi32.lib \
 # These include-directories are used in most places.
 #
 CFLAGS += -I. -I$(TOP_DIR)/llvm/include
+
+#
+# When a Makefile.Windows sets 'USE_GOOGLE_TEST = 1', add these 'CFLAGS' here:
+#
+ifeq ($(USE_GOOGLE_TEST),1)
+  GTEST_LIBS = $(BUILD_DIR)/lib/gtest32.lib \
+               $(BUILD_DIR)/lib/gtest32_main.lib
+
+  GMOCK_LIB = $(BUILD_DIR)/lib/gmock32.lib
+
+  CFLAGS += -I$(GTEST_ROOT)/googletest/include \
+            -I$(GTEST_ROOT)/googlemock/include \
+            -DGTEST_LANG_CXX11=1               \
+            -D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING
+
+  ifeq ($(CXX),cl)
+    CFLAGS += -wd5046
+  endif
+
+  #
+  # But the above 'GTEST_LIBS' must be added to the '$(call link_EXE, ..)'
+  # command manually.
+  #
+endif
+
 
 #
 # All .obj-files are created under the 'objects' directory by
@@ -328,9 +343,7 @@ ifeq ($(USE_CLANG_FORMATER),1)
 endif
 
 #
-# Add stuff like '-Dsdrbase_EXPORTS' to 'EXTRA_CFLAGS'.
-# But only while compiling/preprocessing those .cpp-file that will export
-# stuff to the outside world.
+# Add extra stuff to 'EXTRA_CFLAGS'.
 #
 define C_preprocess
   @echo "The result of preprocessing $(strip $(1)) with these CFLAGS:" > $(2)
@@ -374,161 +387,9 @@ $(BUILD_DIR)/lib/benchmark.lib:
 	$(call do_make, $(TOP_DIR)/utils/benchmark, all)
 endif
 
-ifeq (,$(findstring $(BUILD_DIR)/lib/gtest.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/gtest.lib:
-	$(call do_make, $(TOP_DIR)/utils/unittest, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/gtest_main.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/gtest_main.lib:
-	$(call do_make, $(TOP_DIR)/utils/unittest, all)
-endif
-
-########### $(BUILD_DIR)/lib/clang*.lib ###########################################
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangAnalysis.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangAnalysis.lib:
-	$(call do_make, $(TOP_DIR)/llvm/tools/Clang/lib/Analysis, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangARCMigrate.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangARCMigrate.lib:
-	$(call do_make, $(TOP_DIR)/clang/lib/ARCMigrate, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangAST.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangAST.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/AST, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangASTMatchers.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangASTMatchers.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangBasic.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangBasic.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Basic, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangCodeGen.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangCodeGen.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CodeGen, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangCrossTU.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangCrossTU.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CrossTU, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangDriver.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangDriver.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Driver, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangDynamicASTMatchers.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangDynamicASTMatchers.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangEdit.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangEdit.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Edit, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangFormat.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangFormat.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Format, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontend.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangFrontend.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontendTool.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangFrontendTool.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/FrontendTool, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangIndex.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangIndex.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Index, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangLex.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangLex.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Lex, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangParse.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangParse.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Parse, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewrite.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangRewrite.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Rewrite, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewriteFrontend.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangRewriteFrontend.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangSema.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangSema.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Sema, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangSerialization.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangSerialization.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Serialization, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangTooling.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangTooling.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingASTDiff.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangToolingASTDiff.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingCore.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangToolingCore.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingInclusions.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangToolingInclusions.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingRefactor.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangToolingRefactor.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
-endif
-
-ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingSyntax.lib,$(TARGETS)))
-$(BUILD_DIR)/lib/clangToolingSyntax.lib:
-	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+ifeq (,$(findstring $(BUILD_DIR)/lib/gtest32.lib,$(TARGETS)))
+$(GTEST_LIBS) $(GMOCK_LIB):
+	$(call do_make, $(TOP_DIR)/llvm/utils/unittest, all)
 endif
 
 ########### $(BUILD_DIR)/lib/LLVM*.lib ############################################
@@ -1137,6 +998,173 @@ $(BUILD_DIR)/lib/LLVMWebAssemblyInfo.lib:
 	$(call do_make, $(TOP_DIR)/llvm/lib/Targets, all)
 endif
 
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMBinaryFormat.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMBinaryFormat.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/BinaryFormat, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMDebugInfoDwarf.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMDebugInfoDwarf.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/DebugInfo, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMTestingSupport.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMTestingSupport.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Testing, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/LLVMTransformUtils.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/LLVMTransformUtils.lib:
+	$(call do_make, $(TOP_DIR)/llvm/lib/Transforms, all)
+endif
+
+########### $(BUILD_DIR)/lib/clang*.lib ###########################################
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangAnalysis.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangAnalysis.lib:
+	$(call do_make, $(TOP_DIR)/llvm/tools/Clang/lib/Analysis, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangARCMigrate.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangARCMigrate.lib:
+	$(call do_make, $(TOP_DIR)/clang/lib/ARCMigrate, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangAST.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangAST.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/AST, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangASTMatchers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangASTMatchers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangBasic.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangBasic.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Basic, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangCodeGen.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangCodeGen.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CodeGen, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangCrossTU.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangCrossTU.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/CrossTU, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangDriver.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangDriver.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Driver, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangDynamicASTMatchers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangDynamicASTMatchers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/ASTMatchers, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangEdit.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangEdit.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Edit, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFormat.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFormat.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Format, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangFrontendTool.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangFrontendTool.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/FrontendTool, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangIndex.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangIndex.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Index, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangLex.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangLex.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Lex, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangParse.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangParse.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Parse, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewrite.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangRewrite.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Rewrite, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangRewriteFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangRewriteFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Frontend, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangSema.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangSema.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Sema, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangSerialization.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangSerialization.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Serialization, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerCheckers.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerCore.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangStaticAnalyzerFrontend.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/StaticAnalyzer, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangTooling.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangTooling.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingASTDiff.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingASTDiff.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingCore.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingCore.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingInclusions.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingInclusions.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingRefactor.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingRefactor.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
+ifeq (,$(findstring $(BUILD_DIR)/lib/clangToolingSyntax.lib,$(TARGETS)))
+$(BUILD_DIR)/lib/clangToolingSyntax.lib:
+	$(call do_make, $(TOP_DIR)/tools/Clang/lib/Tooling, all)
+endif
+
 ########### $(BUILD_DIR)/bin/*.exe ################################################
 
 ifeq (,$(findstring $(BUILD_DIR)/bin/clang-tblgen.exe,$(TARGETS)))
@@ -1210,14 +1238,18 @@ define MP_compile
   $(call CPP_compile, -MP $(1))
 endef
 
+ifneq ($(EXTRA_CFLAGS),)
+ _echo = @echo
+endif
+
 define CPP_compile
   $(CXX) @$(CXX).args $(EXTRA_CFLAGS) $(1)
-  @echo
+  $(_echo)
 endef
 
 define C_compile
   $(CXX) @$(CXX).args $(EXTRA_CFLAGS) $(1)
-  @echo
+  $(_echo)
 endef
 
 #
