@@ -1,8 +1,7 @@
 #
-# LLVM top-level makefile.
+# 'LLVM-Project' top-level makefile.
 #
-CC      ?= cl
-DO_MAKE = $(MAKE) CC=$(CC) -f Makefile.Windows
+DO_MAKE = $(MAKE) -f Makefile.Windows
 DIRS    = llvm/lib llvm/tools llvm/utils
 
 default: all
