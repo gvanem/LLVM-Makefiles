@@ -1,0 +1,78 @@
+#
+# GNU Makefile for 'llvm/unittests/Analysis'.
+#
+TOP_DIR         = ../../..
+USE_GOOGLE_TEST = 1
+TARGETS         = AnalysisTests.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = AliasAnalysisTest.cpp         \
+              AliasSetTrackerTest.cpp       \
+              BasicAliasAnalysisTest.cpp    \
+              BlockFrequencyInfoTest.cpp    \
+              BranchProbabilityInfoTest.cpp \
+              CallGraphTest.cpp             \
+              CaptureTrackingTest.cpp       \
+              CFGTest.cpp                   \
+              CGSCCPassManagerTest.cpp      \
+              DivergenceAnalysisTest.cpp    \
+              DomTreeUpdaterTest.cpp        \
+              GlobalsModRefTest.cpp         \
+              IVDescriptorsTest.cpp         \
+              LazyCallGraphTest.cpp         \
+              LoadsTest.cpp                 \
+              LoopInfoTest.cpp              \
+              MemoryBuiltinsTest.cpp        \
+              MemorySSATest.cpp             \
+              OrderedBasicBlockTest.cpp     \
+              OrderedInstructionsTest.cpp   \
+              PhiValuesTest.cpp             \
+              ProfileSummaryInfoTest.cpp    \
+              ScalarEvolutionTest.cpp       \
+              VectorFunctionABITest.cpp     \
+              SparsePropagation.cpp         \
+              TargetLibraryInfoTest.cpp     \
+              TBAATest.cpp                  \
+              UnrollAnalyzerTest.cpp        \
+              ValueLatticeTest.cpp          \
+              ValueTrackingTest.cpp         \
+              VectorUtilsTest.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Internal libraries and GooglTest .objs needed here.
+#
+INT_LIBS = $(addprefix $(BUILD_DIR)/lib/LLVM, \
+             Analysis.lib                     \
+             AsmParser.lib                    \
+             BinaryFormat.lib                 \
+             BitstreamReader.lib              \
+             Core.lib                         \
+             Remarks.lib                      \
+             Support.lib                      \
+             TransformUtils.lib)
+
+INT_LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+              gtest32.lib                  \
+              gtest32_main.obj)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+AnalysisTests.exe: $(OBJECTS) $(INT_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+	@echo
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+-include .depend.Windows
+

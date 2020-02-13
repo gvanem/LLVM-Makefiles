@@ -1,0 +1,40 @@
+#
+# GNU Makefile for 'llvm/unittests/AsmParser'.
+#
+TOP_DIR         = ../../..
+USE_GOOGLE_TEST = 1
+TARGETS         = AsmParserTests.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = AsmParserTest.cpp
+OBJECTS     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Internal libraries and GooglTest .objs needed here.
+#
+INT_LIBS = $(addprefix $(BUILD_DIR)/lib/LLVM, \
+             AsmParser.lib                    \
+             BinaryFormat.lib                 \
+             BitstreamReader.lib              \
+             Core.lib                         \
+             Remarks.lib                      \
+             Support.lib)
+
+INT_LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+              gtest32.lib                  \
+              gtest32_main.obj)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+AsmParserTests.exe: $(OBJECTS) $(INT_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+	@echo
+
+-include .depend.Windows
+

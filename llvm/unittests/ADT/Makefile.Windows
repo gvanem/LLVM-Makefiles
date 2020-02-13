@@ -1,0 +1,110 @@
+#
+# GNU Makefile for 'llvm/unittests/ADT'.
+#
+TOP_DIR         = ../../..
+USE_GOOGLE_TEST = 1
+TARGETS         = ADTTests.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = AnyTest.cpp                  \
+              APFloatTest.cpp              \
+              APIntTest.cpp                \
+              APSIntTest.cpp               \
+              ArrayRefTest.cpp             \
+              BitmaskEnumTest.cpp          \
+              BitVectorTest.cpp            \
+              BreadthFirstIteratorTest.cpp \
+              BumpPtrListTest.cpp          \
+              DAGDeltaAlgorithmTest.cpp    \
+              DeltaAlgorithmTest.cpp       \
+              DenseMapTest.cpp             \
+              DenseSetTest.cpp             \
+              DepthFirstIteratorTest.cpp   \
+              DirectedGraphTest.cpp        \
+              EnumeratedArrayTest.cpp      \
+              EquivalenceClassesTest.cpp   \
+              FallibleIteratorTest.cpp     \
+              FloatingPointMode.cpp        \
+              FoldingSet.cpp               \
+              FunctionExtrasTest.cpp       \
+              FunctionRefTest.cpp          \
+              HashingTest.cpp              \
+              IListBaseTest.cpp            \
+              IListIteratorTest.cpp        \
+              IListNodeBaseTest.cpp        \
+              IListNodeTest.cpp            \
+              IListSentinelTest.cpp        \
+              IListTest.cpp                \
+              ImmutableListTest.cpp        \
+              ImmutableMapTest.cpp         \
+              ImmutableSetTest.cpp         \
+              IntEqClassesTest.cpp         \
+              IntervalMapTest.cpp          \
+              IntrusiveRefCntPtrTest.cpp   \
+              IteratorTest.cpp             \
+              MappedIteratorTest.cpp       \
+              MapVectorTest.cpp            \
+              OptionalTest.cpp             \
+              PackedVectorTest.cpp         \
+              PointerEmbeddedIntTest.cpp   \
+              PointerIntPairTest.cpp       \
+              PointerSumTypeTest.cpp       \
+              PointerUnionTest.cpp         \
+              PostOrderIteratorTest.cpp    \
+              PriorityWorklistTest.cpp     \
+              RangeAdapterTest.cpp         \
+              SCCIteratorTest.cpp          \
+              STLExtrasTest.cpp            \
+              ScopeExitTest.cpp            \
+              SequenceTest.cpp             \
+              SetVectorTest.cpp            \
+              SimpleIListTest.cpp          \
+              SmallPtrSetTest.cpp          \
+              SmallSetTest.cpp             \
+              SmallStringTest.cpp          \
+              SmallVectorTest.cpp          \
+              SparseBitVectorTest.cpp      \
+              SparseMultiSetTest.cpp       \
+              SparseSetTest.cpp            \
+              StatisticTest.cpp            \
+              StringExtrasTest.cpp         \
+              StringMapTest.cpp            \
+              StringRefTest.cpp            \
+              StringSetTest.cpp            \
+              StringSwitchTest.cpp         \
+              TinyPtrVectorTest.cpp        \
+              TripleTest.cpp               \
+              TwineTest.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Internal libraries and GooglTest .objs needed here.
+#
+INT_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+             LLVMSupport.lib              \
+             LLVMTestingSupport.lib       \
+                                          \
+             gmock32.lib                  \
+             gtest32.lib                  \
+             gtest32_main.obj)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ADTTests.exe: $(OBJECTS) $(INT_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+	@echo
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+-include .depend.Windows
+
