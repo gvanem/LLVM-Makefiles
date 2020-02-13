@@ -1,0 +1,9 @@
+#
+# LLVM top-level makefile for 'llvm/unittests'.
+#
+TOP_DIR = ../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, Support, $@)

@@ -1,0 +1,126 @@
+#
+# GNU Makefile for 'llvm/unittests/Support'.
+#
+USE_GOOGLE_TEST = 1
+
+TOP_DIR = ../../..
+
+TARGETS = ExportedFuncs.dll      \
+          PipSqueak.dll          \
+          DynamicLibraryTest.exe \
+          SupportTests.exe
+
+VPATH = DynamicLibrary
+
+EXTRA_CLEAN = clean_junk
+
+include $(TOP_DIR)/Common.Windows
+
+DynamicLibraryTest_SRC = DynamicLibrary/DynamicLibraryTest.cpp
+
+SupportTests_SRC = AlignmentTest.cpp                    \
+                   AlignOfTest.cpp                      \
+                   AllocatorTest.cpp                    \
+                   AnnotationsTest.cpp                  \
+                   ARMAttributeParser.cpp               \
+                   ArrayRecyclerTest.cpp                \
+                   BinaryStreamTest.cpp                 \
+                   BlockFrequencyTest.cpp               \
+                   BranchProbabilityTest.cpp            \
+                   CachePruningTest.cpp                 \
+                   Casting.cpp                          \
+                   CheckedArithmeticTest.cpp            \
+                   Chrono.cpp                           \
+                   CommandLineTest.cpp                  \
+                   CompressionTest.cpp                  \
+                   ConvertUTFTest.cpp                   \
+                   CrashRecoveryTest.cpp                \
+                   CRCTest.cpp                          \
+                   DataExtractorTest.cpp                \
+                   DebugCounterTest.cpp                 \
+                   DebugTest.cpp                        \
+                   DJBTest.cpp                          \
+                   EndianStreamTest.cpp                 \
+                   EndianTest.cpp                       \
+                   ErrnoTest.cpp                        \
+                   ErrorOrTest.cpp                      \
+                   ErrorTest.cpp                        \
+                   FileCheckTest.cpp                    \
+                   FileCollectorTest.cpp                \
+                   FileOutputBufferTest.cpp             \
+                   FileUtilitiesTest.cpp                \
+                   formatted_raw_ostream_test.cpp       \
+                   FormatVariadicTest.cpp               \
+                   GlobPatternTest.cpp                  \
+                   Host.cpp                             \
+                   ItaniumManglingCanonicalizerTest.cpp \
+                   JSONTest.cpp                         \
+                   KnownBitsTest.cpp                    \
+                   LEB128Test.cpp                       \
+                   LineIteratorTest.cpp                 \
+                   LockFileManagerTest.cpp              \
+                   ManagedStatic.cpp                    \
+                   MatchersTest.cpp                     \
+                   MathExtrasTest.cpp
+
+SupportTests_OBJ       = $(call cpp_to_obj, $(SupportTests_SRC))
+DynamicLibraryTest_OBJ = $(call cpp_to_obj, $(DynamicLibraryTest_SRC))
+
+ALL_SOURCES = $(SupportTests_SRC) $(DynamicLibraryTest_SRC)
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Internal libraries and GooglTest .objs needed here.
+#
+# Note: MSVC's linker have problems locating 'main()' when
+#       it's located in 'gtest32_main.lib'.
+#       fatal error LNK1561: entry point must be defined
+#
+#       Hence link to 'gtest32_main.obj' instead.
+#
+INT_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+             LLVMDemangle.lib             \
+             LLVMSupport.lib              \
+             LLVMTestingSupport.lib       \
+                                          \
+             gmock32.lib                  \
+             gtest32.lib                  \
+             gtest32_main.obj)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+DynamicLibraryTest.exe: $(DynamicLibraryTest_OBJ) $(INT_LIBS) ExportedFuncs.lib
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+	@echo
+
+SupportTests.exe: $(SupportTests_OBJ) $(INT_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+ExportedFuncs.lib: ExportedFuncs.dll
+
+ExportedFuncs.dll: $(OBJ_DIR)/ExportedFuncs.obj
+	$(call link_DLL, $@, ExportedFuncs.lib, $^)
+	@echo
+
+PipSqueak.dll: $(OBJ_DIR)/PipSqueak.obj
+	$(call link_DLL, $@, PipSqueak.lib, $^)
+	@echo
+
+ifeq ($(USE_MP_COMPILE),1)
+$(SupportTests_OBJ): $(SupportTests_SRC)
+	$(call MP_compile, $(SupportTests_SRC))
+endif
+
+clean_junk:
+	rm -f ExportedFuncs.exp ExportedFuncs.lib PipSqueak.lib PipSqueak.exp
+
+-include .depend.Windows
+
