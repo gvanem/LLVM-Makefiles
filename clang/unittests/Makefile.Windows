@@ -1,0 +1,11 @@
+#
+# Top-level makefile for 'clang/unittests'.
+#
+TOP_DIR = ../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, Analysis,    $@)
+	$(call do_make, AST,         $@)
+	$(call do_make, ASTMatchers, $@)

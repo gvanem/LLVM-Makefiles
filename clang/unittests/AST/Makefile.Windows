@@ -1,0 +1,99 @@
+#
+# GNU Makefile for 'clang/unittests/AST'.
+#
+TOP_DIR         = ../../..
+USE_GOOGLE_TEST = 1
+TARGETS         = ClangASTTests.exe
+
+include $(TOP_DIR)/Common.Windows
+
+#
+# Needed?
+#
+ifeq ($(CXX),cl)
+  CFLAGS += -bigobj
+endif
+
+ALL_SOURCES = ASTContextParentMapTest.cpp      \
+              ASTImporterFixtures.cpp          \
+              ASTImporterTest.cpp              \
+              ASTImporterGenericRedeclTest.cpp \
+              ASTImporterODRStrategiesTest.cpp \
+              ASTImporterVisibilityTest.cpp    \
+              ASTTraverserTest.cpp             \
+              ASTTypeTraitsTest.cpp            \
+              ASTTraverserTest.cpp             \
+              ASTVectorTest.cpp                \
+              CommentLexer.cpp                 \
+              CommentParser.cpp                \
+              CommentTextTest.cpp              \
+              DataCollectionTest.cpp           \
+              DeclPrinterTest.cpp              \
+              DeclTest.cpp                     \
+              EvaluateAsRValueTest.cpp         \
+              ExternalASTSourceTest.cpp        \
+              Language.cpp                     \
+              NamedDeclPrinterTest.cpp         \
+              OMPStructuredBlockTest.cpp       \
+              RecursiveASTVisitorTest.cpp      \
+              SourceLocationTest.cpp           \
+              StmtPrinterTest.cpp              \
+              StructuralEquivalenceTest.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+#
+# Internal libraries and GooglTest .objs needed here.
+#
+INT_LIBS = $(addprefix $(BUILD_DIR)/lib/LLVM, \
+             BinaryFormat.lib                 \
+             BitstreamReader.lib              \
+             Core.lib                         \
+             Demangle.lib                     \
+             FrontendOpenMP.lib               \
+             MC.lib                           \
+             MCParser.lib                     \
+             Option.lib                       \
+             ProfileData.lib                  \
+             Remarks.lib                      \
+             Support.lib)
+
+INT_LIBS += $(addprefix $(BUILD_DIR)/lib/clang, \
+              Analysis.lib                      \
+              AST.lib                           \
+              ASTMatchers.lib                   \
+              Basic.lib                         \
+              Driver.lib                        \
+              Edit.lib                          \
+              Frontend.lib                      \
+              Lex.lib                           \
+              Parse.lib                         \
+              Sema.lib                          \
+              Serialization.lib                 \
+              Tooling.lib)
+
+INT_LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+              gtest32.lib                  \
+              gtest32_main.obj)
+
+#
+# External libraries needed.
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+ClangASTTests.exe: $(OBJECTS) $(INT_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+ifeq ($(USE_MP_COMPILE),1)
+$(OBJECTS): $(ALL_SOURCES)
+	$(call MP_compile, $(ALL_SOURCES))
+endif
+
+-include .depend.Windows
+
