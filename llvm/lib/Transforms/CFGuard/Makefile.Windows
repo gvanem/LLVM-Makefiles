@@ -1,0 +1,18 @@
+#
+# GNU Makefile for 'llvm/lib/Transforms/CFGuard'.
+#
+TOP_DIR = ../../../..
+TARGETS = $(BUILD_DIR)/lib/LLVMCFGuard.lib
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = CFGuard.cpp
+LIB_OBJ     = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+$(BUILD_DIR)/lib/LLVMCFGuard.lib: $(LIB_OBJ)
+	 $(call create_lib, $@, $^)
+
+-include .depend.Windows
+

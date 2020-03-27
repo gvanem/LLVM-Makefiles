@@ -1,0 +1,9 @@
+#
+# Top-level makefile for 'clang/utils'.
+#
+TOP_DIR = ../..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, TableGen, $@)
