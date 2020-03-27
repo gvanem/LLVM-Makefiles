@@ -98,7 +98,6 @@ LIB_SRC = AliasAnalysis.cpp                 \
           ObjCARCAnalysisUtils.cpp          \
           ObjCARCInstKind.cpp               \
           OptimizationRemarkEmitter.cpp     \
-          OrderedBasicBlock.cpp             \
           OrderedInstructions.cpp           \
           PHITransAddr.cpp                  \
           PhiValues.cpp                     \

@@ -1,12 +1,12 @@
 #
-# LLVM top-level makefile for 'llvm/unittests'.
+# Top-level makefile for 'llvm/unittests'.
 #
 TOP_DIR = ../..
 
 include $(TOP_DIR)/Common.Windows
 
 all depend clean vclean:
-	$(call do_make, ADT,           $@)
-	$(call do_make, AsmParser,     $@)
-	$(call do_make, BinaryVFormat, $@)
-	$(call do_make, Support,       $@)
+	$(call do_make, ADT,          $@)
+	$(call do_make, AsmParser,    $@)
+	$(call do_make, BinaryFormat, $@)
+	$(call do_make, Support,      $@)

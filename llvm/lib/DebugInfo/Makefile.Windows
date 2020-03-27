@@ -49,14 +49,15 @@ DebugInfoDwarf_SRC = $(addprefix DWARF/,                \
 
 VPATH += GSYM
 
-DebugInfoGSYM_SRC = $(addprefix GSYM/, \
-                      FileWriter.cpp   \
-                      FunctionInfo.cpp \
-                      InlineInfo.cpp   \
-                      GsymCreator.cpp  \
-                      GsymReader.cpp   \
-                      Header.cpp       \
-                      LineTable.cpp    \
+DebugInfoGSYM_SRC = $(addprefix GSYM/,     \
+                      DwarfTransformer.cpp \
+                      FileWriter.cpp       \
+                      FunctionInfo.cpp     \
+                      InlineInfo.cpp       \
+                      GsymCreator.cpp      \
+                      GsymReader.cpp       \
+                      Header.cpp           \
+                      LineTable.cpp        \
                       Range.cpp)
 
 VPATH += MSF

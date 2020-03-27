@@ -1,7 +1,7 @@
 #
-# LLVM top-level makefile for 'tools/Clang/lib'.
+# Top-level makefile for 'clang/lib'.
 #
-TOP_DIR = ../../..
+TOP_DIR = ../..
 
 include $(TOP_DIR)/Common.Windows
 

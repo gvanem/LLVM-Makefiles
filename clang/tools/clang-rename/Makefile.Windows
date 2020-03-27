@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/clang-rename'.
+# GNU Makefile for 'clang/tools/clang-rename'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/clang-rename.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -35,6 +35,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/, \
           LLVMBitstreamReader.lib      \
           LLVMCore.lib                 \
           LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
           LLVMMC.lib                   \
           LLVMMCParser.lib             \
           LLVMOption.lib               \

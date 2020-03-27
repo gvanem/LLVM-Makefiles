@@ -1,22 +1,21 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Analysis'.
+# GNU Makefile for 'clang/lib/Analysis'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangAnalysis.lib
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/AST/Attrs.inc              \
-            $(CLANG_INC)/AST/AttrVisitor.inc        \
-            $(CLANG_INC)/AST/DeclNodes.inc          \
-            $(CLANG_INC)/AST/StmtNodes.inc          \
-            $(CLANG_INC)/AST/CommentCommandList.inc \
-            $(CLANG_INC)/Basic/AttrList.inc
-
-include $(TOP_DIR)/Common.Windows
+INC_FILES = $(CLANG_INCLUDE_DIR)/AST/Attrs.inc              \
+            $(CLANG_INCLUDE_DIR)/AST/AttrVisitor.inc        \
+            $(CLANG_INCLUDE_DIR)/AST/CommentCommandList.inc \
+            $(CLANG_INCLUDE_DIR)/AST/DeclNodes.inc          \
+            $(CLANG_INCLUDE_DIR)/AST/StmtNodes.inc          \
+            $(CLANG_INCLUDE_DIR)/AST/TypeNodes.inc          \
+            $(CLANG_INCLUDE_DIR)/Basic/AttrList.inc
 
 LIB_SRC = AnalysisDeclContext.cpp     \
           BodyFarm.cpp                \
@@ -33,6 +32,7 @@ LIB_SRC = AnalysisDeclContext.cpp     \
           ExprMutationAnalyzer.cpp    \
           LiveVariables.cpp           \
           ObjCNoReturn.cpp            \
+          PathDiagnostic.cpp          \
           PostOrderCFGView.cpp        \
           ProgramPoint.cpp            \
           ReachableCode.cpp           \
@@ -58,7 +58,8 @@ $(BUILD_DIR)/lib/clangAnalysis.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call green_msg, Generating INC_FILES.)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

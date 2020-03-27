@@ -1,22 +1,28 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/utils/TableGen'.
+# GNU Makefile for 'clang/utils/TableGen'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/clang-tblgen.exe
 
 include $(TOP_DIR)/Common.Windows
 
-ALL_SOURCES = ClangASTNodesEmitter.cpp                           \
+ALL_SOURCES = ASTTableGen.cpp                                    \
+              ClangASTNodesEmitter.cpp                           \
+              ClangASTPropertiesEmitter.cpp                      \
               ClangAttrEmitter.cpp                               \
               ClangCommentCommandInfoEmitter.cpp                 \
               ClangCommentHTMLNamedCharacterReferenceEmitter.cpp \
               ClangCommentHTMLTagsEmitter.cpp                    \
               ClangDataCollectorsEmitter.cpp                     \
               ClangDiagnosticsEmitter.cpp                        \
+              ClangOpcodesEmitter.cpp                            \
               ClangOpenCLBuiltinEmitter.cpp                      \
               ClangOptionDocEmitter.cpp                          \
               ClangSACheckersEmitter.cpp                         \
+              ClangTypeNodesEmitter.cpp                          \
+              MveEmitter.cpp                                     \
               NeonEmitter.cpp                                    \
+              SveEmitter.cpp                                     \
               TableGen.cpp
 
 OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))

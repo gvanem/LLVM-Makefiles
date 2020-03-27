@@ -1,18 +1,26 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Parse'.
+# GNU Makefile for 'clang/lib/Parse'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangParse.lib
 
 include $(TOP_DIR)/Common.Windows
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
-
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc \
-            $(CLANG_INC)/Basic/DiagnosticLexKinds.inc
+INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc
+
+#
+# .def-files needed to compile .pp-files here.
+# Rules for these are in '$(TOP_DIR)/Common.Windows'.
+#
+DEF_FILES = $(addprefix $(TOP_DIR)/llvm/include/llvm/Config/, \
+              AsmPrinters.def                                 \
+              AsmParsers.def                                  \
+              Disassemblers.def                               \
+              Targets.def)
 
 LIB_SRC = ParseAST.cpp              \
           ParseCXXInlineMethods.cpp \
@@ -34,7 +42,7 @@ ALL_SOURCES = $(LIB_SRC)
 
 LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+all: $(GENERATED) $(INC_FILES) $(DEF_FILES) $(TARGETS)
 
 ifeq ($(USE_MP_COMPILE),1)
 $(LIB_OBJ): $(LIB_SRC)
@@ -45,7 +53,7 @@ $(BUILD_DIR)/lib/clangParse.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

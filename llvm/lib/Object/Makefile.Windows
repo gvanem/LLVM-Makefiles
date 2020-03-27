@@ -6,6 +6,11 @@ TARGETS = $(BUILD_DIR)/lib/LLVMObject.lib
 
 include $(TOP_DIR)/Common.Windows
 
+#
+# This is needed here:
+#
+GENERATED += $(TOP_DIR)/llvm/include/llvm/Support/VCSRevision.h
+
 LIB_SRC = Archive.cpp              \
           ArchiveWriter.cpp        \
           Binary.cpp               \

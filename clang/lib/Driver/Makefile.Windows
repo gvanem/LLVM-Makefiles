@@ -1,21 +1,18 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Driver'.
+# GNU Makefile for 'clang/lib/Driver'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangDriver.lib
 VPATH   = ToolChains ToolChains/Arch
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
-
 EXTRA_CFLAGS = -DCLANG_DEFAULT_UNWINDLIB=\"none\"
 
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
-
-include $(TOP_DIR)/Common.Windows
+INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc
 
 LIB_SRC = Action.cpp        \
           Compilation.cpp   \
@@ -25,6 +22,7 @@ LIB_SRC = Action.cpp        \
           DriverOptions.cpp \
           Job.cpp           \
           Multilib.cpp      \
+          OptionUtils.cpp   \
           Phases.cpp        \
           SanitizerArgs.cpp \
           Tool.cpp          \
@@ -33,6 +31,7 @@ LIB_SRC = Action.cpp        \
           XRayArgs.cpp
 
 LIB_SRC += $(addprefix ToolChains/, \
+             AIX.cpp                \
              AMDGPU.cpp             \
              Ananas.cpp             \
              AVR.cpp                \
@@ -45,6 +44,7 @@ LIB_SRC += $(addprefix ToolChains/, \
              Cuda.cpp               \
              Darwin.cpp             \
              DragonFly.cpp          \
+             Flang.cpp              \
              FreeBSD.cpp            \
              Fuchsia.cpp            \
              Gnu.cpp                \
@@ -52,6 +52,7 @@ LIB_SRC += $(addprefix ToolChains/, \
              Hexagon.cpp            \
              HIP.cpp                \
              Hurd.cpp               \
+             InterfaceStubs.cpp     \
              Linux.cpp              \
              MinGW.cpp              \
              Minix.cpp              \
@@ -91,12 +92,11 @@ $(LIB_OBJ): $(LIB_SRC)
 	$(call MP_compile, $(LIB_SRC))
 endif
 
-
 $(BUILD_DIR)/lib/clangDriver.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

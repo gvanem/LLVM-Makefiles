@@ -1,17 +1,15 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Format'.
+# GNU Makefile for 'clang/lib/Format'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangFormat.lib
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
-
-include $(TOP_DIR)/Common.Windows
+INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc
 
 LIB_SRC = AffectedRangeManager.cpp      \
           BreakableToken.cpp            \
@@ -43,7 +41,7 @@ $(BUILD_DIR)/lib/clangFormat.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

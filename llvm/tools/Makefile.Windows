@@ -1,5 +1,5 @@
 #
-# LLVM makefile for 'llvm/tools'.
+# Top-level makefile for 'llvm/tools'.
 #
 TOP_DIR = ../..
 

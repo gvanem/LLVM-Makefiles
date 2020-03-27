@@ -7,8 +7,7 @@ TARGETS = $(BUILD_DIR)/bin/opt.exe
 include $(TOP_DIR)/Common.Windows
 
 #
-# Ref. '$(TOP_DIR)/llvm/cmake/modules/AddLLVM.cmake' on how this is created.
-# For now this is just an empty stub.
+# We need this:
 #
 GENERATED += $(TOP_DIR)/llvm/include/llvm/Support/Extension.def
 
@@ -145,10 +144,6 @@ $(BUILD_DIR)/bin/opt.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/opt.res
 
 $(OBJ_DIR)/opt.rc: $(MDEPEND)
 	$(call make_rc, $@, opt.exe, VFT_APP, LLVM tool; .bc modular optimizer and analysis printer.)
-
-$(TOP_DIR)/llvm/include/llvm/Support/Extension.def: $(MDEPEND)
-	$(call Generating, $@, //)
-	$(file >> $@, #undef HANDLE_EXTENSION)
 
 -include .depend.Windows
 

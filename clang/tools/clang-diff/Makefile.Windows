@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/clang-diff'.
+# GNU Makefile for 'clang/tools/clang-diff'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/clang-diff.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -30,6 +30,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/, \
           LLVMBitstreamReader.lib      \
           LLVMCore.lib                 \
           LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
           LLVMMC.lib                   \
           LLVMMCParser.lib             \
           LLVMOption.lib               \

@@ -1,8 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/libclang'.
+# GNU Makefile for 'clang/tools/libclang'.
 #
-TOP_DIR = ../../../..
-
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/libclang.dll \
           $(BUILD_DIR)/lib/libclang.lib
 
@@ -11,7 +10,7 @@ include $(TOP_DIR)/Common.Windows
 #
 # Since we will 'dllexport' from these .cpp-files.
 # Ref:
-#   '$(TOP_DIR)/tools/Clang/include/clang-c/Platform.h'.
+#   '$(TOP_DIR)/clang/include/clang-c/Platform.h'.
 #
 CFLAGS += -D_CINDEX_LIB_
 
@@ -34,6 +33,7 @@ ALL_SOURCES = ARCMigrate.cpp            \
               CXStoredDiagnostic.cpp    \
               CXString.cpp              \
               CXType.cpp                \
+              FatalErrorHandler.cpp     \
               Indexing.cpp
 
 OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
@@ -68,18 +68,21 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMAnalysis.lib              \
          LLVMAsmParser.lib             \
          LLVMAsmPrinter.lib            \
+         LLVMBinaryFormat.lib          \
+         LLVMBitstreamReader.lib       \
+         LLVMBitReader.lib             \
+         LLVMBitWriter.lib             \
          LLVMBPFAsmParser.lib          \
          LLVMBPFCodeGen.lib            \
          LLVMBPFDesc.lib               \
          LLVMBPFInfo.lib               \
-         LLVMBinaryFormat.lib          \
-         LLVMBitReader.lib             \
-         LLVMBitstreamReader.lib       \
+         LLVMCFGuard.lib               \
          LLVMCodeGen.lib               \
          LLVMCore.lib                  \
          LLVMDebugInfoCodeView.lib     \
          LLVMDebugInfoDwarf.lib        \
          LLVMDemangle.lib              \
+         LLVMFrontendOpenMP.lib        \
          LLVMGlobalISel.lib            \
          LLVMHexagonAsmParser.lib      \
          LLVMHexagonCodeGen.lib        \
@@ -141,6 +144,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMXCoreDesc.lib             \
          LLVMXCoreInfo.lib             \
          LLVMipo.lib                   \
+         LLVMTextAPI.lib               \
          clangARCMigrate.lib           \
          clangAST.lib                  \
          clangASTMatchers.lib          \
@@ -190,6 +194,7 @@ endif
 $(BUILD_DIR)/lib/libclang.lib: $(BUILD_DIR)/bin/libclang.dll
 
 $(BUILD_DIR)/bin/libclang.dll: $(OBJECTS) $(OBJ_DIR)/libclang.res $(LIBS)
+	$(call green_msg,This will take a $(BRIGHT_RED)long time.)
 	$(call link_DLL, $@, $(BUILD_DIR)/lib/libclang.lib, $^ $(EX_LIBS))
 
 $(OBJ_DIR)/libclang.rc: $(MDEPEND)

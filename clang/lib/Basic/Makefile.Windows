@@ -1,41 +1,40 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Basic'.
+# GNU Makefile for 'clang/lib/Basic'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangBasic.lib
 VPATH   = Targets
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(addprefix $(CLANG_INC)/AST/,     \
-              Attrs.inc                        \
-              AttrVisitor.inc                  \
-              DeclNodes.inc                    \
-              StmtNodes.inc                    \
-              CommentCommandList.inc)          \
-                                               \
-            $(addprefix $(CLANG_INC)/Basic/,   \
-              AttrList.inc                     \
-              DiagnosticAnalysisKinds.inc      \
-              DiagnosticASTKinds.inc           \
-              DiagnosticCommentKinds.inc       \
-              DiagnosticCrossTUKinds.inc       \
-              DiagnosticFrontendKinds.inc      \
-              DiagnosticGroups.inc             \
-              DiagnosticSemaKinds.inc          \
-              DiagnosticCommonKinds.inc        \
-              DiagnosticDriverKinds.inc        \
-              DiagnosticIndexName.inc          \
-              DiagnosticLexKinds.inc           \
-              DiagnosticParseKinds.inc         \
-              DiagnosticRefactoringKinds.inc   \
-              DiagnosticSerializationKinds.inc \
+INC_FILES = $(addprefix $(CLANG_INCLUDE_DIR)/AST/,   \
+              Attrs.inc                              \
+              AttrVisitor.inc                        \
+              DeclNodes.inc                          \
+              StmtNodes.inc                          \
+              CommentCommandList.inc)                \
+                                                     \
+            $(addprefix $(CLANG_INCLUDE_DIR)/Basic/, \
+              arm_mve_builtins.inc                   \
+              AttrList.inc                           \
+              DiagnosticAnalysisKinds.inc            \
+              DiagnosticASTKinds.inc                 \
+              DiagnosticCommentKinds.inc             \
+              DiagnosticCrossTUKinds.inc             \
+              DiagnosticFrontendKinds.inc            \
+              DiagnosticGroups.inc                   \
+              DiagnosticSemaKinds.inc                \
+              DiagnosticCommonKinds.inc              \
+              DiagnosticDriverKinds.inc              \
+              DiagnosticIndexName.inc                \
+              DiagnosticLexKinds.inc                 \
+              DiagnosticParseKinds.inc               \
+              DiagnosticRefactoringKinds.inc         \
+              DiagnosticSerializationKinds.inc       \
               Version.inc)
-
-include $(TOP_DIR)/Common.Windows
 
 LIB_SRC = Attributes.cpp               \
           Builtins.cpp                 \
@@ -50,6 +49,7 @@ LIB_SRC = Attributes.cpp               \
           FixedPoint.cpp               \
           IdentifierTable.cpp          \
           LangOptions.cpp              \
+          LangStandards.cpp            \
           Module.cpp                   \
           ObjCRuntime.cpp              \
           OpenMPKinds.cpp              \
@@ -59,6 +59,7 @@ LIB_SRC = Attributes.cpp               \
           Sanitizers.cpp               \
           SourceLocation.cpp           \
           SourceManager.cpp            \
+          Stack.cpp                    \
           TargetInfo.cpp               \
           Targets.cpp                  \
           TokenKinds.cpp               \
@@ -107,7 +108,7 @@ $(BUILD_DIR)/lib/clangBasic.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

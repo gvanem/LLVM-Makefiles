@@ -1,13 +1,17 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/driver'.
+# GNU Makefile for 'clang/tools/driver'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
+
 TARGETS = $(BUILD_DIR)/bin/clang.exe     \
           $(BUILD_DIR)/bin/clang-cl.exe  \
           $(BUILD_DIR)/bin/clang-cpp.exe \
           $(BUILD_DIR)/bin/clang++.exe
 
 include $(TOP_DIR)/Common.Windows
+
+CFLAGS  += -DCLANG_SPAWN_CC1=0
+LDFLAGS += -delayload:shell32.dll -delayload:ole32.dll
 
 ALL_SOURCES = cc1as_main.cpp             \
               cc1gen_reproducer_main.cpp \
@@ -69,6 +73,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMBitstreamReader.lib       \
           LLVMBitReader.lib             \
           LLVMBitWriter.lib             \
+          LLVMCFGuard.lib               \
           LLVMCodeGen.lib               \
           LLVMCore.lib                  \
           LLVMCoroutines.lib            \
@@ -76,6 +81,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMDebugInfoCodeView.lib     \
           LLVMDebugInfoDwarf.lib        \
           LLVMDemangle.lib              \
+          LLVMFrontendOpenMP.lib        \
           LLVMGlobalISel.lib            \
           LLVMHexagonAsmParser.lib      \
           LLVMHexagonCodeGen.lib        \
@@ -127,6 +133,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMSystemZDesc.lib           \
           LLVMSystemZInfo.lib           \
           LLVMTarget.lib                \
+          LLVMTextAPI.lib               \
           LLVMTransformUtils.lib        \
           LLVMVectorize.lib             \
           LLVMWebAssemblyAsmParser.lib  \
@@ -158,22 +165,22 @@ ifeq ($(USE_ZLIB),1)
 endif
 
 $(BUILD_DIR)/bin/clang.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang.res
-	$(call link_EXE, $@, -delayload:shell32.dll -delayload:ole32.dll $^ $(EX_LIBS))
+	$(call link_EXE, $@, $^ $(EX_LIBS))
 
 $(BUILD_DIR)/bin/clang-cl.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-cl.res
-	$(call link_EXE, $@, -delayload:shell32.dll -delayload:ole32.dll $^ $(EX_LIBS))
+	$(call link_EXE, $@, $^ $(EX_LIBS))
 
 $(BUILD_DIR)/bin/clang-cpp.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-cpp.res
-	$(call link_EXE, $@, -delayload:shell32.dll -delayload:ole32.dll $^ $(EX_LIBS))
+	$(call link_EXE, $@, $^ $(EX_LIBS))
 
 $(BUILD_DIR)/bin/clang++.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang++.res
-	$(call link_EXE, $@, -delayload:shell32.dll -delayload:ole32.dll $^ $(EX_LIBS))
+	$(call link_EXE, $@, $^ $(EX_LIBS))
 
 $(OBJ_DIR)/clang.rc: $(MDEPEND)
 	$(call make_rc, $@, clang.exe, VFT_APP, The clang compiler.)
 
 $(OBJ_DIR)/clang-cl.rc: $(MDEPEND)
-	$(call make_rc, $@, clang-cl.exe, VFT_APP, The clang kick-ass replacement for MSVC's 'cl'.)
+	$(call make_rc, $@, clang-cl.exe, VFT_APP, The clang replacement for MSVC's 'cl'.)
 
 $(OBJ_DIR)/clang-cpp.rc: $(MDEPEND)
 	$(call make_rc, $@, clang-cpp.exe, VFT_APP, The clang pre-processor.)

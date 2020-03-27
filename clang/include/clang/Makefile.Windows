@@ -1,9 +1,13 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/include/clang'.
+# GNU Makefile for 'clang/include/clang'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 
 INC_FILES = $(addprefix AST/,                         \
+              AbstractBasicReader.inc                 \
+              AbstractBasicWriter.inc                 \
+              AbstractTypeReader.inc                  \
+              AbstractTypeWriter.inc                  \
               Attrs.inc                               \
               AttrImpl.inc                            \
               AttrNodeTraverse.inc                    \
@@ -17,12 +21,17 @@ INC_FILES = $(addprefix AST/,                         \
               CommentNodes.inc                        \
               DeclNodes.inc                           \
               StmtDataCollectors.inc                  \
-              StmtNodes.inc)
+              StmtNodes.inc                           \
+              TypeNodes.inc)
 
 # INC_FILES += AST/AttrDump.inc
 
 INC_FILES += $(addprefix Basic/,                \
                arm_fp16.inc                     \
+               arm_mve_builtins.inc             \
+               arm_mve_builtin_aliases.inc      \
+               arm_mve_builtin_cg.inc           \
+               arm_mve_builtin_sema.inc         \
                arm_neon.inc                     \
                AttrList.inc                     \
                AttrSubMatchRulesList.inc        \
@@ -73,6 +82,19 @@ all: $(GENERATED)
 $(INC_FILES):       $(BUILD_DIR)/bin/clang-tblgen.exe $(MDEPEND)
 Driver/Options.inc: $(BUILD_DIR)/bin/llvm-tblgen.exe  $(MDEPEND)
 
+
+AST/AbstractBasicReader.inc: AST/PropertiesBase.td
+	$(call clang_tblgen, $@, -gen-clang-basic-reader $<)
+
+AST/AbstractBasicWriter.inc: AST/PropertiesBase.td
+	$(call clang_tblgen, $@, -gen-clang-basic-writer $<)
+
+AST/AbstractTypeReader.inc: AST/TypeProperties.td
+	$(call clang_tblgen, $@, -gen-clang-type-reader $<)
+
+AST/AbstractTypeWriter.inc: AST/TypeProperties.td
+	$(call clang_tblgen, $@, -gen-clang-type-writer $<)
+
 AST/Attrs.inc: Basic/Attr.td
 	$(call clang_tblgen, $@, -gen-clang-attr-classes -I./Basic $<)
 
@@ -118,8 +140,23 @@ AST/StmtDataCollectors.inc: AST/StmtDataCollectors.td
 AST/StmtNodes.inc: Basic/StmtNodes.td
 	$(call clang_tblgen, $@, -gen-clang-stmt-nodes -I./Basic $<)
 
+AST/TypeNodes.inc: Basic/TypeNodes.td
+	$(call clang_tblgen, $@, -gen-clang-type-nodes -I./Basic $<)
+
+Basic/arm_mve_builtin_cg.inc: Basic/arm_mve.td
+	$(call clang_tblgen, $@, -gen-arm-mve-builtin-codegen -I./Basic $<)
+
+Basic/arm_mve_builtin_aliases.inc: Basic/arm_mve.td
+	$(call clang_tblgen, $@, -gen-arm-mve-builtin-aliases -I./Basic $<)
+
 Basic/arm_fp16.inc: Basic/arm_fp16.td
 	$(call clang_tblgen, $@, -gen-arm-neon-sema -I./Basic $<)
+
+Basic/arm_mve_builtins.inc: Basic/arm_mve.td
+	$(call clang_tblgen, $@, -gen-arm-mve-builtin-def -I./Basic $<)
+
+Basic/arm_mve_builtin_sema.inc: Basic/arm_mve.td
+	$(call clang_tblgen, $@, -gen-arm-mve-builtin-sema -I./Basic $<)
 
 Basic/arm_neon.inc: Basic/arm_neon.td
 	$(call clang_tblgen, $@, -gen-arm-neon-sema -I./Basic $<)
@@ -244,7 +281,7 @@ define clang_config_H
   #define C_INCLUDE_DIRS                       ""
   #define DEFAULT_SYSROOT                      ""
   #define GCC_INSTALL_PREFIX                   ""
-//#define CLANG_HAVE_LIBXML                    1
+  #define CLANG_HAVE_LIBXML                    $(USE_XML2)
 
   #define ENABLE_X86_RELAX_RELOCATIONS         0
   #define ENABLE_EXPERIMENTAL_NEW_PASS_MANAGER 0

@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/clang-check'.
+# GNU Makefile for 'clang/tools/clang-check'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/clang-check.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -54,16 +54,19 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,   \
           LLVMAsmPrinter.lib             \
           LLVMBinaryFormat.lib           \
           LLVMBitReader.lib              \
+          LLVMBitWriter.lib              \
           LLVMBitstreamReader.lib        \
           LLVMBPFAsmParser.lib           \
           LLVMBPFCodeGen.lib             \
           LLVMBPFDesc.lib                \
           LLVMBPFInfo.lib                \
+          LLVMCFGuard.lib                \
           LLVMCodeGen.lib                \
           LLVMCore.lib                   \
           LLVMDebugInfoCodeView.lib      \
           LLVMDemangle.lib               \
           LLVMDebugInfoDwarf.lib         \
+          LLVMFrontendOpenMP.lib         \
           LLVMGlobalISel.lib             \
           LLVMHexagonAsmParser.lib       \
           LLVMHexagonCodeGen.lib         \
@@ -111,6 +114,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,   \
           LLVMSystemZDesc.lib            \
           LLVMSystemZInfo.lib            \
           LLVMTarget.lib                 \
+          LLVMTextAPI.lib                \
           LLVMTransformUtils.lib         \
           LLVMVectorize.lib              \
           LLVMWebAssemblyAsmParser.lib   \

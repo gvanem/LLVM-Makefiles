@@ -6,7 +6,7 @@ TOP_DIR = ../../..
 #
 # 'cl -MP' doesn't work here. Not sure why...
 #
-USE_MP_COMPILE = 0
+USE_MP_COMPILE = 1
 
 EXTRA_CLEAN = rm_depend_args
 
@@ -819,10 +819,7 @@ HexagonCodeGen_SRC =          $(addprefix Hexagon/,               \
                                 HexagonVExtract.cpp               \
                                 HexagonVLIWPacketizer.cpp         \
                                 RDFCopy.cpp                       \
-                                RDFDeadCode.cpp                   \
-                                RDFGraph.cpp                      \
-                                RDFLiveness.cpp                   \
-                                RDFRegisters.cpp)
+                                RDFDeadCode.cpp)
 
 HexagonDesc_SRC =             $(addprefix Hexagon/MCTargetDesc/, \
                                 HexagonAsmBackend.cpp            \
@@ -1038,7 +1035,6 @@ PowerPCDesc_SRC =             $(addprefix PowerPC/MCTargetDesc/, \
                                 PPCMCCodeEmitter.cpp             \
                                 PPCMCExpr.cpp                    \
                                 PPCPredicates.cpp                \
-                                PPCMachObjectWriter.cpp          \
                                 PPCELFObjectWriter.cpp           \
                                 PPCXCOFFObjectWriter.cpp)
 
@@ -1115,7 +1111,6 @@ WebAssemblyCodeGen_SRC =      $(addprefix WebAssembly/,                  \
                                 WebAssemblyAddMissingPrototypes.cpp      \
                                 WebAssemblyArgumentMove.cpp              \
                                 WebAssemblyAsmPrinter.cpp                \
-                                WebAssemblyCallIndirectFixup.cpp         \
                                 WebAssemblyCFGStackify.cpp               \
                                 WebAssemblyCFGSort.cpp                   \
                                 WebAssemblyDebugValueManager.cpp         \
@@ -1202,6 +1197,7 @@ X86CodeGen_SRC =              $(addprefix X86/,                   \
                                 X86MacroFusion.cpp                \
                                 X86OptimizeLEAs.cpp               \
                                 X86PadShortFunction.cpp           \
+                                X86PartialReduction.cpp           \
                                 X86RegisterBankInfo.cpp           \
                                 X86RegisterInfo.cpp               \
                                 X86RetpolineThunks.cpp            \
@@ -1443,6 +1439,15 @@ XCoreInfo_OBJ               = $(call cpp_to_obj, $(XCoreInfo_SRC))
 
 #########################################################################################
 
+ifeq ($(CXX),cl)
+  #
+  # Because of things like:
+  #  AMDGPU\AMDGPUGenRegisterInfo.inc(5300): fatal error C1091: compiler limit:
+  #   string exceeds 65535 bytes in length
+  #
+  EXTRA_TBLGEN_FLAGS = --long-string-literals=0
+endif
+
 all: $(GENERATED) $(TARGETS)
 
 #
@@ -1454,11 +1459,14 @@ $(Target_OBJ):         $(Target_SRC)
 
 $(AArch64AsmParser_OBJ) $(AArch64CodeGen_OBJ) $(AArch64Desc_OBJ) $(AArch64Disassembler_OBJ) $(AArch64Info_OBJ): \
 $(AArch64AsmParser_SRC) $(AArch64CodeGen_SRC) $(AArch64Desc_SRC) $(AArch64Disassembler_SRC) $(AArch64Info_SRC)
-	$(call MP_compile, $(AArch64AsmParser_SRC) $(AArch64Desc_SRC) $(AArch64Disassembler_SRC) $(AArch64Info_SRC))
+	$(call MP_compile, $(AArch64AsmParser_SRC) $(AArch64CodeGen_SRC) $(AArch64Desc_SRC) $(AArch64Disassembler_SRC) $(AArch64Info_SRC))
 
-$(AMDGPUAsmParser_OBJ) $(AMDGPUCodeGen_OBJ) $(AMDGPUDesc_OBJ) $(AMDGPUDisassembler_OBJ) $(AMDGPUInfo_OBJ): \
-$(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC) $(AMDGPUInfo_SRC)
-	$(call MP_compile, $(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC) $(AMDGPUInfo_SRC))
+$(AMDGPUAsmParser_OBJ) $(AMDGPUCodeGen_OBJ) $(AMDGPUDesc_OBJ) $(AMDGPUDisassembler_OBJ): \
+$(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC)
+	$(call MP_compile, $(AMDGPUAsmParser_SRC) $(AMDGPUCodeGen_SRC) $(AMDGPUDesc_SRC) $(AMDGPUDisassembler_SRC))
+
+$(AMDGPUUtils_OBJ) $(AMDGPUInfo_OBJ): $(AMDGPUUtils_SRC) $(AMDGPUInfo_SRC)
+	$(call MP_compile, $(AMDGPUUtils_SRC) $(AMDGPUInfo_SRC))
 
 $(ARCCodeGen_OBJ) $(ARCDesc_OBJ) $(ARCDisassembler_OBJ) $(ARCInfo_OBJ): \
 $(ARCCodeGen_SRC) $(ARCDesc_SRC) $(ARCDisassembler_SRC) $(ARCInfo_SRC)
@@ -1491,9 +1499,23 @@ $(MSP430AsmParser_SRC) $(MSP430CodeGen_SRC) $(MSP430Desc_SRC) $(MSP430Disassembl
 $(NVPTXDesc_OBJ) $(NVPTXInfo_OBJ): $(NVPTXDesc_SRC) $(NVPTXInfo_SRC)
 	$(call MP_compile, $(NVPTXDesc_SRC) $(NVPTXInfo_SRC))
 
-$(X86AsmParser_OBJ) $(X86CodeGen_OBJ) $(X86Desc_OBJ) $(X86Disassembler_OBJ) $(X86Info_OBJ): \
-$(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC) $(X86Disassembler_SRC) $(X86Info_SRC)
-	$(call MP_compile, $(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC) $(X86Disassembler_SRC) $(X86Info_SRC))
+$(PowerPCCodeGen_OBJ) $(PowerPCDesc_OBJ): $(PowerPCCodeGen_SRC) $(PowerPCDesc_SRC)
+	$(call MP_compile, $(PowerPCCodeGen_SRC) $(PowerPCDesc_SRC))
+
+$(SystemZCodeGen_OBJ) $(SystemZDesc_OBJ):    $(SystemZCodeGen_SRC) $(SystemZDesc_SRC)
+	$(call MP_compile, $(SystemZCodeGen_SRC) $(SystemZDesc_SRC))
+
+$(WebAssemblyCodeGen_OBJ) $(WebAssemblyDesc_OBJ): $(WebAssemblyCodeGen_SRC) $(WebAssemblyDesc_SRC)
+	$(call MP_compile, $(WebAssemblyCodeGen_SRC) $(WebAssemblyDesc_SRC))
+
+$(X86Disassembler_OBJ) $(X86Info_OBJ): $(X86Disassembler_SRC) $(X86Info_SRC)
+	$(call MP_compile, $(X86Disassembler_SRC) $(X86Info_SRC))
+
+$(X86AsmParser_OBJ) $(X86CodeGen_OBJ) $(X86Desc_OBJ): $(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC)
+	$(call MP_compile, $(X86AsmParser_SRC) $(X86CodeGen_SRC) $(X86Desc_SRC))
+
+$(XCoreCodeGen_OBJ) $(XCoreDesc_OBJ): $(XCoreCodeGen_SRC) $(XCoreDesc_SRC)
+	$(call MP_compile, $(XCoreCodeGen_SRC) $(XCoreDesc_SRC))
 endif
 
 $(BUILD_DIR)/lib/LLVMAArch64CodeGen.lib: $(AArch64CodeGen_OBJ)
@@ -1826,7 +1848,7 @@ AMDGPU/AMDGPUGenDisassemblerTables.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-disassembler $<)
 
 AMDGPU/AMDGPUGenInstrInfo.inc: $(AMDGPU_DEPS)
-	$(call llvm_tblgen, $@, -gen-instr-info $<)
+	$(call llvm_tblgen, $@, -gen-instr-info $(EXTRA_TBLGEN_FLAGS) $<)
 
 AMDGPU/AMDGPUGenIntrinsicEnums.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-tgt-intrinsic-enums $<)
@@ -1844,7 +1866,7 @@ AMDGPU/AMDGPUGenRegisterBank.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-register-bank $<)
 
 AMDGPU/AMDGPUGenRegisterInfo.inc: $(AMDGPU_DEPS)
-	$(call llvm_tblgen, $@, -gen-register-info $<)
+	$(call llvm_tblgen, $@, -gen-register-info $(EXTRA_TBLGEN_FLAGS) $<)
 
 AMDGPU/AMDGPUGenSearchableTables.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
@@ -2150,7 +2172,7 @@ NVPTX/NVPTXGenDAGISel.inc: $(NVPTX_DEPS)
 	$(call llvm_tblgen, $@, -gen-dag-isel $<)
 
 NVPTX/NVPTXGenInstrInfo.inc: $(NVPTX_DEPS)
-	$(call llvm_tblgen, $@, -gen-instr-info $<)
+	$(call llvm_tblgen, $@, -gen-instr-info $(EXTRA_TBLGEN_FLAGS) $<)
 
 NVPTX/NVPTXGenRegisterInfo.inc: $(NVPTX_DEPS)
 	$(call llvm_tblgen, $@, -gen-register-info $<)
@@ -2330,7 +2352,7 @@ X86/X86GenGlobalISel.inc: $(X86_DEPS)
 	$(call llvm_tblgen, $@, -gen-global-isel $<)
 
 X86/X86GenInstrInfo.inc: $(X86_DEPS)
-	$(call llvm_tblgen, $@, -gen-instr-info $<)
+	$(call llvm_tblgen, $@, -gen-instr-info $(EXTRA_TBLGEN_FLAGS) $<)
 
 X86/X86GenRegisterBank.inc: $(X86_DEPS)
 	$(call llvm_tblgen, $@, -gen-register-bank $<)

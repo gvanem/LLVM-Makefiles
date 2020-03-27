@@ -1,9 +1,13 @@
 #
 # GNU Makefile for 'llvm/utils/benchmark'.
 #
-VPATH = src test
-
+VPATH   = src test
 TOP_DIR = ../../..
+
+#
+# A local var; does not work yet.
+#
+USE_ASM_TEST = 0
 
 LIB_SRC = $(addprefix src/,       \
             benchmark.cc          \

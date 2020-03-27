@@ -1,18 +1,20 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Serialization'.
+# GNU Makefile for 'clang/lib/Serialization'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangSerialization.lib
 
 include $(TOP_DIR)/Common.Windows
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
-
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc \
-            $(CLANG_INC)/Basic/DiagnosticLexKinds.inc
+INC_FILES = $(CLANG_INCLUDE_DIR)/AST/AbstractBasicReader.inc     \
+            $(CLANG_INCLUDE_DIR)/AST/AbstractBasicWriter.inc     \
+            $(CLANG_INCLUDE_DIR)/AST/AbstractTypeReader.inc      \
+            $(CLANG_INCLUDE_DIR)/AST/AbstractTypeWriter.inc      \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc
 
 LIB_SRC = ASTCommon.cpp           \
           ASTReader.cpp           \
@@ -24,7 +26,7 @@ LIB_SRC = ASTCommon.cpp           \
           GeneratePCH.cpp         \
           GlobalModuleIndex.cpp   \
           InMemoryModuleCache.cpp \
-          Module.cpp              \
+          ModuleFile.cpp          \
           ModuleFileExtension.cpp \
           ModuleManager.cpp       \
           PCHContainerOperations.cpp
@@ -44,7 +46,7 @@ $(BUILD_DIR)/lib/clangSerialization.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

@@ -1,28 +1,26 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Edit'.
+# GNU Makefile for 'clang/lib/Edit'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangEdit.lib
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/AST/Attrs.inc                     \
-            $(CLANG_INC)/AST/AttrVisitor.inc               \
-            $(CLANG_INC)/AST/DeclNodes.inc                 \
-            $(CLANG_INC)/AST/StmtNodes.inc                 \
-            $(CLANG_INC)/AST/CommentCommandList.inc        \
-            $(CLANG_INC)/Basic/AttrList.inc                \
-            $(CLANG_INC)/Basic/DiagnosticASTKinds.inc      \
-            $(CLANG_INC)/Basic/DiagnosticCommentKinds.inc  \
-            $(CLANG_INC)/Basic/DiagnosticFrontendKinds.inc \
-            $(CLANG_INC)/Basic/DiagnosticGroups.inc        \
-            $(CLANG_INC)/Basic/DiagnosticSemaKinds.inc     \
-            $(CLANG_INC)/Basic/Version.inc
-
-include $(TOP_DIR)/Common.Windows
+INC_FILES = $(CLANG_INCLUDE_DIR)/AST/Attrs.inc                     \
+            $(CLANG_INCLUDE_DIR)/AST/AttrVisitor.inc               \
+            $(CLANG_INCLUDE_DIR)/AST/DeclNodes.inc                 \
+            $(CLANG_INCLUDE_DIR)/AST/StmtNodes.inc                 \
+            $(CLANG_INCLUDE_DIR)/AST/CommentCommandList.inc        \
+            $(CLANG_INCLUDE_DIR)/Basic/AttrList.inc                \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticASTKinds.inc      \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommentKinds.inc  \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticFrontendKinds.inc \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticGroups.inc        \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticSemaKinds.inc     \
+            $(CLANG_INCLUDE_DIR)/Basic/Version.inc
 
 LIB_SRC = Commit.cpp       \
           EditedSource.cpp \
@@ -43,7 +41,7 @@ $(BUILD_DIR)/lib/clangEdit.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

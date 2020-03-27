@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/c-index-test'.
+# GNU Makefile for 'clang/tools/c-index-test'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/c-index-test.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -17,7 +17,6 @@ all: $(GENERATED) $(TARGETS)
 
 LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          clangAST.lib                 \
-         clangASTMatchers.lib         \
          clangAnalysis.lib            \
          clangBasic.lib               \
          clangCodeGen.lib             \
@@ -44,6 +43,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMCoroutines.lib            \
           LLVMCoverage.lib              \
           LLVMDemangle.lib              \
+          LLVMFrontendOpenMP.lib        \
           LLVMInstCombine.lib           \
           LLVMInstrumentation.lib       \
           LLVMIpo.lib                   \
@@ -61,6 +61,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMScalarOpts.lib            \
           LLVMSupport.lib               \
           LLVMTarget.lib                \
+          LLVMTextAPI.lib               \
           LLVMTransformUtils.lib        \
           LLVMVectorize.lib)
 
@@ -76,7 +77,7 @@ endif
 $(BUILD_DIR)/bin/c-index-test.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/c-index-test.res
 	$(call link_EXE, $@, $^ $(EX_LIBS))
 
-$(OBJ_DIR)/c-index-test.rc: $(THIS_FILE) $(TOP_DIR)/Common.Windows
+$(OBJ_DIR)/c-index-test.rc: $(MDEPEND)
 	$(call make_rc, $@, c-index-test.exe, VFT_APP, Clang test-tool.)
 
 -include .depend.Windows

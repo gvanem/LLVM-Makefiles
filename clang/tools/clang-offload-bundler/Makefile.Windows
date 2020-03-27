@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/clang-offload-bundler'.
+# GNU Makefile for 'clang/tools/clang-offload-bundler'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/clang-offload-bundler.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -13,28 +13,21 @@ all: $(GENERATED) $(TARGETS)
 
 LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          clangBasic.lib               \
-         LLVMAnalysis.lib             \
          LLVMBinaryFormat.lib         \
          LLVMBitstreamReader.lib      \
          LLVMBitReader.lib            \
-         LLVMBitWriter.lib            \
          LLVMCore.lib                 \
-         LLVMDemangle.lib             \
          LLVMMC.lib                   \
          LLVMMCParser.lib             \
          LLVMObject.lib               \
-         LLVMProfileData.lib          \
          LLVMRemarks.lib              \
-         LLVMSupport.lib)
+         LLVMSupport.lib              \
+         LLVMTextAPI.lib)
 
 #
 # External libraries needed.
 #
 EX_LIBS = advapi32.lib ole32.lib shell32.lib
-
-ifeq ($(USE_ZLIB),1)
-  EX_LIBS += $(ZLIB_LIB)
-endif
 
 $(BUILD_DIR)/bin/clang-offload-bundler.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-offload-bundler.res
 	$(call link_EXE, $@, $^ $(EX_LIBS))

@@ -4,15 +4,13 @@
 TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangCodeGen.lib
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
+include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/AST/DeclNodes.inc \
-            $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc
-
-include $(TOP_DIR)/Common.Windows
+INC_FILES = $(CLANG_INCLUDE_DIR)/AST/DeclNodes.inc \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc
 
 LIB_SRC = BackendUtil.cpp                      \
           CGAtomic.cpp                         \
@@ -75,7 +73,7 @@ ALL_SOURCES = $(LIB_SRC)
 
 LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+all: $(GENERATED) $(INC_FILES) $(TOP_DIR)/llvm/include/llvm/Support/Extension.def $(TARGETS)
 
 ifeq ($(USE_MP_COMPILE),1)
 $(LIB_OBJ): $(LIB_SRC)
@@ -86,7 +84,7 @@ $(BUILD_DIR)/lib/clangCodeGen.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

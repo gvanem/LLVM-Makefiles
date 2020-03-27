@@ -1,7 +1,7 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/tools/diagtool'.
+# GNU Makefile for 'clang/tools/diagtool'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/bin/diagtool.exe
 
 include $(TOP_DIR)/Common.Windows
@@ -34,6 +34,7 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/, \
           LLVMBitstreamReader.lib      \
           LLVMCore.lib                 \
           LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
           LLVMOption.lib               \
           LLVMBinaryFormat.lib         \
           LLVMRemarks.lib              \

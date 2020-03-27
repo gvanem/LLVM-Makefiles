@@ -1,18 +1,16 @@
 #
-# GNU Makefile for LLVM 'tools/Clang/lib/Rewrite'.
+# GNU Makefile for 'clang/lib/Rewrite'.
 #
-TOP_DIR = ../../../..
+TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangRewrite.lib
 
 include $(TOP_DIR)/Common.Windows
 
-CLANG_INC = $(TOP_DIR)/tools/Clang/include/clang
-
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INC)/Basic/DiagnosticCommonKinds.inc \
-            $(CLANG_INC)/Basic/DiagnosticLexKinds.inc
+INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc
 
 LIB_SRC = DeltaTree.cpp   \
           HTMLRewrite.cpp \
@@ -35,7 +33,7 @@ $(BUILD_DIR)/lib/clangRewrite.lib: $(LIB_OBJ) $(THIS_FILE)
 	 $(call create_lib, $@, $(LIB_OBJ))
 
 $(INC_FILES):
-	$(call do_make, $(CLANG_INC), all)
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 
