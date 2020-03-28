@@ -37,7 +37,6 @@ ExecutionEngine_SRC = ExecutionEngine.cpp         \
                       SectionMemoryManager.cpp    \
                       TargetSelect.cpp
 
-
 Interpreter_SRC = $(addprefix Interpreter/, \
                     Execution.cpp           \
                     ExternalFunctions.cpp   \
@@ -55,13 +54,15 @@ JITLink_SRC = $(addprefix JITLink/,      \
 
 MCJIT_SRC = MCJIT/MCJIT.cpp
 
-OProfileJIT_SRC = OProfileJIT/OProfileJITEventListener.cpp \
-                  OProfileJIT/OProfileWrapper.cpp
+OProfileJIT_SRC = $(addprefix OProfileJIT/,      \
+                    OProfileJITEventListener.cpp \
+                    OProfileWrapper.cpp)
 
 OrcJIT_SRC = $(addprefix Orc/,              \
                CompileOnDemandLayer.cpp     \
                CompileUtils.cpp             \
                Core.cpp                     \
+               DebugUtils.cpp               \
                ExecutionUtils.cpp           \
                IndirectionUtils.cpp         \
                IRCompileLayer.cpp           \
@@ -71,16 +72,19 @@ OrcJIT_SRC = $(addprefix Orc/,              \
                Legacy.cpp                   \
                Layer.cpp                    \
                LLJIT.cpp                    \
+               MachOPlatform.cpp            \
+               Mangling.cpp                 \
                NullResolver.cpp             \
                ObjectLinkingLayer.cpp       \
                ObjectTransformLayer.cpp     \
                OrcABISupport.cpp            \
                OrcCBindings.cpp             \
+               OrcV2CBindings.cpp           \
                OrcMCJITReplacement.cpp      \
                RTDyldObjectLinkingLayer.cpp \
-               SpeculateAnalyses.cpp        \
+               ThreadSafeModule.cpp         \
                Speculation.cpp              \
-               ThreadSafeModule.cpp)
+               SpeculateAnalyses.cpp)
 
 OrcError_SRC = $(addprefix OrcError/, \
                  OrcError.cpp         \

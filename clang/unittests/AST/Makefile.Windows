@@ -22,7 +22,6 @@ ALL_SOURCES = ASTContextParentMapTest.cpp      \
               ASTImporterVisibilityTest.cpp    \
               ASTTraverserTest.cpp             \
               ASTTypeTraitsTest.cpp            \
-              ASTTraverserTest.cpp             \
               ASTVectorTest.cpp                \
               CommentLexer.cpp                 \
               CommentParser.cpp                \
@@ -34,7 +33,6 @@ ALL_SOURCES = ASTContextParentMapTest.cpp      \
               ExternalASTSourceTest.cpp        \
               Language.cpp                     \
               NamedDeclPrinterTest.cpp         \
-              OMPStructuredBlockTest.cpp       \
               RecursiveASTVisitorTest.cpp      \
               SourceLocationTest.cpp           \
               StmtPrinterTest.cpp              \
@@ -58,7 +56,8 @@ INT_LIBS = $(addprefix $(BUILD_DIR)/lib/LLVM, \
              Option.lib                       \
              ProfileData.lib                  \
              Remarks.lib                      \
-             Support.lib)
+             Support.lib                      \
+             TestingSupport.lib)
 
 INT_LIBS += $(addprefix $(BUILD_DIR)/lib/clang, \
               Analysis.lib                      \

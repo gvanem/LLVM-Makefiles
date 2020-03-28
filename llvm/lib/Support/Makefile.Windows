@@ -79,6 +79,7 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
               MD5.cpp                          \
               NativeFormatting.cpp             \
               Optional.cpp                     \
+              OptimalLayout.cpp                \
               Parallel.cpp                     \
               PluginLoader.cpp                 \
               PrettyStackTrace.cpp             \

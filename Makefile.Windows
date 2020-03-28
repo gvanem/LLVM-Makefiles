@@ -16,3 +16,4 @@ all clean vclean depend:
 			exit 1 ;             \
 		fi ;                     \
 	done
+	@echo "Done $@."

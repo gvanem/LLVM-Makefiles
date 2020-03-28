@@ -57,8 +57,8 @@ LIB_SRC = AliasAnalysis.cpp                 \
           DependenceGraphBuilder.cpp        \
           DivergenceAnalysis.cpp            \
           DomPrinter.cpp                    \
-          DominanceFrontier.cpp             \
           DomTreeUpdater.cpp                \
+          DominanceFrontier.cpp             \
           EHPersonalities.cpp               \
           GlobalsModRef.cpp                 \
           GuardUtils.cpp                    \
@@ -81,6 +81,7 @@ LIB_SRC = AliasAnalysis.cpp                 \
           LoopAccessAnalysis.cpp            \
           LoopAnalysisManager.cpp           \
           LoopCacheAnalysis.cpp             \
+          LoopNestAnalysis.cpp              \
           LoopUnrollAnalyzer.cpp            \
           LoopInfo.cpp                      \
           LoopPass.cpp                      \
@@ -123,8 +124,8 @@ LIB_SRC = AliasAnalysis.cpp                 \
           ValueLattice.cpp                  \
           ValueLatticeUtils.cpp             \
           ValueTracking.cpp                 \
-          VFABIDemangling.cpp               \
-          VectorUtils.cpp
+          VectorUtils.cpp                   \
+          VFABIDemangling.cpp
 
 ALL_SOURCES = $(LIB_SRC)
 

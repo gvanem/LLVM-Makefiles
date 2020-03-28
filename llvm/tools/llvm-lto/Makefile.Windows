@@ -49,6 +49,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,  \
          LLVMCFGuard.lib               \
          LLVMCodeGen.lib               \
          LLVMCore.lib                  \
+         LLVMCoroutines.lib            \
          LLVMDebugInfoCodeView.lib     \
          LLVMDebugInfoDwarf.lib        \
          LLVMDemangle.lib              \

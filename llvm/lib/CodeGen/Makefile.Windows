@@ -19,12 +19,14 @@ CodeGen_SRC = AggressiveAntiDepBreaker.cpp         \
               BranchRelaxation.cpp                 \
               BreakFalseDeps.cpp                   \
               BuiltinGCs.cpp                       \
+              BBSectionsPrepare.cpp                \
               CalcSpillWeights.cpp                 \
               CallingConvLower.cpp                 \
               CFGuardLongjmp.cpp                   \
               CFIInstrInserter.cpp                 \
               CodeGen.cpp                          \
               CodeGenPrepare.cpp                   \
+              CommandFlags.cpp                     \
               CriticalAntiDepBreaker.cpp           \
               DeadMachineInstructionElim.cpp       \
               DetectDeadLanes.cpp                  \
@@ -113,10 +115,8 @@ CodeGen_SRC = AggressiveAntiDepBreaker.cpp         \
               MBFIWrapper.cpp                      \
               MIRPrinter.cpp                       \
               MIRPrintingPass.cpp                  \
-              MIRCanonicalizerPass.cpp             \
-              MIRNamerPass.cpp                     \
-              MIRVRegNamerUtils.cpp                \
               MacroFusion.cpp                      \
+              NonRelocatableStringpool.cpp         \
               OptimizePHIs.cpp                     \
               ParallelCG.cpp                       \
               PeepholeOptimizer.cpp                \
@@ -128,6 +128,9 @@ CodeGen_SRC = AggressiveAntiDepBreaker.cpp         \
               ProcessImplicitDefs.cpp              \
               PrologEpilogInserter.cpp             \
               PseudoSourceValue.cpp                \
+              RDFGraph.cpp                         \
+              RDFLiveness.cpp                      \
+              RDFRegisters.cpp                     \
               ReachingDefAnalysis.cpp              \
               RegAllocBase.cpp                     \
               RegAllocBasic.cpp                    \
@@ -139,6 +142,9 @@ CodeGen_SRC = AggressiveAntiDepBreaker.cpp         \
               RegisterPressure.cpp                 \
               RegisterScavenging.cpp               \
               RenameIndependentSubregs.cpp         \
+              MIRVRegNamerUtils.cpp                \
+              MIRNamerPass.cpp                     \
+              MIRCanonicalizerPass.cpp             \
               RegisterUsageInfo.cpp                \
               RegUsageInfoCollector.cpp            \
               RegUsageInfoPropagate.cpp            \
@@ -252,14 +258,14 @@ MIRParser_SRC = $(addprefix MIRParser/, \
 VPATH += GlobalISel
 
 GlobalISel_SRC = $(addprefix GlobalISel/,  \
+                   CSEInfo.cpp             \
+                   GISelKnownBits.cpp      \
+                   CSEMIRBuilder.cpp       \
                    CallLowering.cpp        \
+                   GlobalISel.cpp          \
                    Combiner.cpp            \
                    CombinerHelper.cpp      \
-                   CSEInfo.cpp             \
-                   CSEMIRBuilder.cpp       \
                    GISelChangeObserver.cpp \
-                   GISelKnownBits.cpp      \
-                   GlobalISel.cpp          \
                    IRTranslator.cpp        \
                    InstructionSelect.cpp   \
                    InstructionSelector.cpp \
@@ -303,19 +309,21 @@ $(SelectionDAG_OBJ): $(SelectionDAG_SRC)
 endif
 
 $(BUILD_DIR)/lib/LLVMAsmPrinter.lib: $(AsmPrinter_OBJ)
-	 $(call create_lib, $@, $^)
+	$(call create_lib, $@, $^)
 
 $(BUILD_DIR)/lib/LLVMCodeGen.lib: $(CodeGen_OBJ)
-	 $(call create_lib, $@, $^)
+	$(call create_rsp_file, lib.args, $(CodeGen_OBJ))
+	$(call create_lib, $@, @lib.args)
+	rm -f lib.args
 
 $(BUILD_DIR)/lib/LLVMGlobalISel.lib: $(GlobalISel_OBJ)
-	 $(call create_lib, $@, $^)
+	$(call create_lib, $@, $^)
 
 $(BUILD_DIR)/lib/LLVMMIRParser.lib: $(MIRParser_OBJ)
-	 $(call create_lib, $@, $^)
+	$(call create_lib, $@, $^)
 
 $(BUILD_DIR)/lib/LLVMSelectionDAG.lib: $(SelectionDAG_OBJ)
-	 $(call create_lib, $@, $^)
+	$(call create_lib, $@, $^)
 
 -include .depend.Windows
 

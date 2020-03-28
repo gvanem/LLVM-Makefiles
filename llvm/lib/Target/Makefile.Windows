@@ -6,7 +6,7 @@ TOP_DIR = ../../..
 #
 # 'cl -MP' doesn't work here. Not sure why...
 #
-USE_MP_COMPILE = 1
+USE_MP_COMPILE = 0
 
 EXTRA_CLEAN = rm_depend_args
 
@@ -152,27 +152,28 @@ GENERATED += $(addprefix AArch64/,              \
                AArch64GenSystemOperands.inc     \
                AArch64GenExegesis.inc)
 
-GENERATED += $(addprefix AMDGPU/,               \
-               AMDGPUGenAsmMatcher.inc          \
-               AMDGPUGenAsmWriter.inc           \
-               AMDGPUGenCallingConv.inc         \
-               AMDGPUGenGICombiner.inc          \
-               AMDGPUGenDAGISel.inc             \
-               AMDGPUGenDisassemblerTables.inc  \
-               AMDGPUGenInstrInfo.inc           \
-               AMDGPUGenMCCodeEmitter.inc       \
-               AMDGPUGenMCPseudoLowering.inc    \
-               AMDGPUGenRegisterBank.inc        \
-               AMDGPUGenRegisterInfo.inc        \
-               AMDGPUGenSearchableTables.inc    \
-               AMDGPUGenSubtargetInfo.inc       \
-               AMDGPUGenGlobalISel.inc          \
-               R600GenAsmWriter.inc             \
-               R600GenCallingConv.inc           \
-               R600GenDAGISel.inc               \
-               R600GenInstrInfo.inc             \
-               R600GenMCCodeEmitter.inc         \
-               R600GenRegisterInfo.inc          \
+GENERATED += $(addprefix AMDGPU/,                  \
+               AMDGPUGenAsmMatcher.inc             \
+               AMDGPUGenAsmWriter.inc              \
+               AMDGPUGenCallingConv.inc            \
+               AMDGPUGenDAGISel.inc                \
+               AMDGPUGenDisassemblerTables.inc     \
+               AMDGPUGenGlobalISel.inc             \
+               AMDGPUGenInstrInfo.inc              \
+               AMDGPUGenMCCodeEmitter.inc          \
+               AMDGPUGenMCPseudoLowering.inc       \
+               AMDGPUGenPostLegalizeGICombiner.inc \
+               AMDGPUGenPreLegalizeGICombiner.inc  \
+               AMDGPUGenRegisterBank.inc           \
+               AMDGPUGenRegisterInfo.inc           \
+               AMDGPUGenSearchableTables.inc       \
+               AMDGPUGenSubtargetInfo.inc          \
+               R600GenAsmWriter.inc                \
+               R600GenCallingConv.inc              \
+               R600GenDAGISel.inc                  \
+               R600GenInstrInfo.inc                \
+               R600GenMCCodeEmitter.inc            \
+               R600GenRegisterInfo.inc             \
                R600GenSubtargetInfo.inc)
 
 #
@@ -180,6 +181,7 @@ GENERATED += $(addprefix AMDGPU/,               \
 #
 # GENERATED += AMDGPU/AMDGPUGenIntrinsicImpl.inc
 # GENERATED += AMDGPU/AMDGPUGenIntrinsicEnums.inc
+# GENERATED += AMDGPU/AMDGPUGenGICombiner.inc
 #
 
 GENERATED += AMDGPU/R600GenDFAPacketizer.inc
@@ -562,6 +564,7 @@ AMDGPUCodeGen_SRC =           $(addprefix AMDGPU/,                    \
                                 AMDGPUMacroFusion.cpp                 \
                                 AMDGPUMCInstLower.cpp                 \
                                 AMDGPUOpenCLEnqueuedBlockLowering.cpp \
+                                AMDGPUPostLegalizerCombiner.cpp       \
                                 AMDGPUPreLegalizerCombiner.cpp        \
                                 AMDGPUPrintfRuntimeBinding.cpp        \
                                 AMDGPUPromoteAlloca.cpp               \
@@ -621,6 +624,7 @@ AMDGPUCodeGen_SRC =           $(addprefix AMDGPU/,                    \
                                 SIPeepholeSDWA.cpp                    \
                                 SIPostRABundler.cpp                   \
                                 SIPreAllocateWWMRegs.cpp              \
+                                SIPreEmitPeephole.cpp                 \
                                 SIRegisterInfo.cpp                    \
                                 SIRemoveShortExecBranches.cpp         \
                                 SIShrinkInstructions.cpp              \
@@ -1000,6 +1004,7 @@ PowerPCCodeGen_SRC =          $(addprefix PowerPC/,        \
                                 PPCCTRLoops.cpp            \
                                 PPCHazardRecognizers.cpp   \
                                 PPCInstrInfo.cpp           \
+                                PPCMacroFusion.cpp         \
                                 PPCISelDAGToDAG.cpp        \
                                 PPCISelLowering.cpp        \
                                 PPCEarlyReturn.cpp         \
@@ -1075,6 +1080,7 @@ SystemZCodeGen_SRC =          $(addprefix SystemZ/,            \
                                 SystemZAsmPrinter.cpp          \
                                 SystemZCallingConv.cpp         \
                                 SystemZConstantPoolValue.cpp   \
+                                SystemZCopyPhysRegs.cpp        \
                                 SystemZElimCompare.cpp         \
                                 SystemZFrameLowering.cpp       \
                                 SystemZHazardRecognizer.cpp    \
@@ -1838,8 +1844,8 @@ AMDGPU/AMDGPUGenAsmWriter.inc: $(AMDGPU_DEPS)
 AMDGPU/AMDGPUGenCallingConv.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-callingconv $<)
 
-AMDGPU/AMDGPUGenGICombiner.inc: AMDGPUGISel.td $(AMDGPU_DEPS)
-	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners="AMDGPUPreLegalizerCombinerHelper" $<)
+# AMDGPU/AMDGPUGenGICombiner.inc: AMDGPU/AMDGPUGISel.td $(AMDGPU_DEPS)
+#	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners= $<)
 
 AMDGPU/AMDGPUGenDAGISel.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-dag-isel $<)
@@ -1862,6 +1868,15 @@ AMDGPU/AMDGPUGenMCCodeEmitter.inc: $(AMDGPU_DEPS)
 AMDGPU/AMDGPUGenMCPseudoLowering.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-pseudo-lowering $<)
 
+AMDGPU/AMDGPUGenPreLegalizeGICombiner.inc: AMDGPU/AMDGPUGISel.td $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners=AMDGPUPreLegalizerCombinerHelper $<)
+
+AMDGPU/AMDGPUGenPostLegalizeGICombiner.inc: AMDGPU/AMDGPUGISel.td $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel-combiner -combiners=AMDGPUPostLegalizerCombinerHelper $<)
+
+AMDGPU/AMDGPUGenGlobalISel.inc: AMDGPU/AMDGPUGISel.td $(AMDGPU_DEPS)
+	$(call llvm_tblgen, $@, -gen-global-isel $<)
+
 AMDGPU/AMDGPUGenRegisterBank.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-register-bank $<)
 
@@ -1873,9 +1888,6 @@ AMDGPU/AMDGPUGenSearchableTables.inc: $(AMDGPU_DEPS)
 
 AMDGPU/AMDGPUGenSubtargetInfo.inc: $(AMDGPU_DEPS)
 	$(call llvm_tblgen, $@, -gen-subtarget $<)
-
-AMDGPU/AMDGPUGenGlobalISel.inc: AMDGPUGISel.td $(AMDGPU_DEPS)
-	$(call llvm_tblgen, $@, -gen-global-isel $<)
 
 AMDGPU/R600GenAsmWriter.inc: $(R600_DEPS)
 	$(call llvm_tblgen, $@, -gen-asm-writer $<)

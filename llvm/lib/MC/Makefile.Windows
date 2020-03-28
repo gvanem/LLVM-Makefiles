@@ -11,76 +11,80 @@ include $(TOP_DIR)/Common.Windows
 VPATH = MCParser \
         MCDisassembler
 
-MC_SRC = ConstantPools.cpp             \
-         ELFObjectWriter.cpp           \
-         MachObjectWriter.cpp          \
-         MCAsmBackend.cpp              \
-         MCAsmInfo.cpp                 \
-         MCAsmInfoCOFF.cpp             \
-         MCAsmInfoXCOFF.cpp            \
-         MCAsmInfoDarwin.cpp           \
-         MCAsmInfoELF.cpp              \
-         MCAsmInfoWasm.cpp             \
-         MCAsmMacro.cpp                \
-         MCAsmStreamer.cpp             \
-         MCAssembler.cpp               \
-         MCCodeEmitter.cpp             \
-         MCCodeView.cpp                \
-         MCContext.cpp                 \
-         MCDwarf.cpp                   \
-         MCELFObjectTargetWriter.cpp   \
-         MCELFStreamer.cpp             \
-         MCExpr.cpp                    \
-         MCFragment.cpp                \
-         MCInst.cpp                    \
-         MCInstPrinter.cpp             \
-         MCInstrAnalysis.cpp           \
-         MCInstrDesc.cpp               \
-         MCLabel.cpp                   \
-         MCLinkerOptimizationHint.cpp  \
-         MCMachOStreamer.cpp           \
-         MCMachObjectTargetWriter.cpp  \
-         MCNullStreamer.cpp            \
-         MCObjectFileInfo.cpp          \
-         MCObjectStreamer.cpp          \
-         MCObjectWriter.cpp            \
-         MCRegisterInfo.cpp            \
-         MCSchedule.cpp                \
-         MCSection.cpp                 \
-         MCSectionCOFF.cpp             \
-         MCSectionXCOFF.cpp            \
-         MCSectionELF.cpp              \
-         MCSectionMachO.cpp            \
-         MCSectionWasm.cpp             \
-         MCStreamer.cpp                \
-         MCSubtargetInfo.cpp           \
-         MCSymbol.cpp                  \
-         MCSymbolELF.cpp               \
-         MCTargetOptions.cpp           \
-         MCValue.cpp                   \
-         MCWasmObjectTargetWriter.cpp  \
-         MCWasmStreamer.cpp            \
-         MCWin64EH.cpp                 \
-         MCWinCOFFStreamer.cpp         \
-         MCWinEH.cpp                   \
-         MCXCOFFObjectTargetWriter.cpp \
-         MCXCOFFStreamer.cpp           \
-         StringTableBuilder.cpp        \
-         SubtargetFeature.cpp          \
-         WasmObjectWriter.cpp          \
-         WinCOFFObjectWriter.cpp       \
+MC_SRC = ConstantPools.cpp               \
+         ELFObjectWriter.cpp             \
+         MCAsmBackend.cpp                \
+         MCAsmInfo.cpp                   \
+         MCAsmInfoCOFF.cpp               \
+         MCAsmInfoDarwin.cpp             \
+         MCAsmInfoELF.cpp                \
+         MCAsmInfoWasm.cpp               \
+         MCAsmInfoXCOFF.cpp              \
+         MCAsmMacro.cpp                  \
+         MCAsmStreamer.cpp               \
+         MCAssembler.cpp                 \
+         MCCodeEmitter.cpp               \
+         MCCodeView.cpp                  \
+         MCContext.cpp                   \
+         MCDwarf.cpp                     \
+         MCELFObjectTargetWriter.cpp     \
+         MCELFStreamer.cpp               \
+         MCExpr.cpp                      \
+         MCFragment.cpp                  \
+         MCInst.cpp                      \
+         MCInstPrinter.cpp               \
+         MCInstrAnalysis.cpp             \
+         MCInstrDesc.cpp                 \
+         MCLabel.cpp                     \
+         MCLinkerOptimizationHint.cpp    \
+         MCMachOStreamer.cpp             \
+         MCMachObjectTargetWriter.cpp    \
+         MCNullStreamer.cpp              \
+         MCObjectFileInfo.cpp            \
+         MCObjectStreamer.cpp            \
+         MCObjectWriter.cpp              \
+         MCRegisterInfo.cpp              \
+         MCSchedule.cpp                  \
+         MCSection.cpp                   \
+         MCSectionCOFF.cpp               \
+         MCSectionELF.cpp                \
+         MCSectionMachO.cpp              \
+         MCSectionWasm.cpp               \
+         MCSectionXCOFF.cpp              \
+         MCStreamer.cpp                  \
+         MCSubtargetInfo.cpp             \
+         MCSymbol.cpp                    \
+         MCSymbolELF.cpp                 \
+         MCTargetOptions.cpp             \
+         MCTargetOptionsCommandFlags.cpp \
+         MCValue.cpp                     \
+         MCWasmObjectTargetWriter.cpp    \
+         MCWasmStreamer.cpp              \
+         MCWin64EH.cpp                   \
+         MCWinCOFFStreamer.cpp           \
+         MCWinEH.cpp                     \
+         MCXCOFFObjectTargetWriter.cpp   \
+         MCXCOFFStreamer.cpp             \
+         MachObjectWriter.cpp            \
+         StringTableBuilder.cpp          \
+         SubtargetFeature.cpp            \
+         WasmObjectWriter.cpp            \
+         WinCOFFObjectWriter.cpp         \
          XCOFFObjectWriter.cpp
+
 
 MCParser_SRC = $(addprefix MCParser/,     \
                  AsmLexer.cpp             \
                  AsmParser.cpp            \
                  COFFAsmParser.cpp        \
+                 COFFMasmParser.cpp       \
                  DarwinAsmParser.cpp      \
                  ELFAsmParser.cpp         \
                  MCAsmLexer.cpp           \
                  MCAsmParser.cpp          \
                  MCAsmParserExtension.cpp \
                  MCTargetAsmParser.cpp    \
+                 MasmParser.cpp           \
                  WasmAsmParser.cpp)
 
 MCDisassembler_SRC = $(addprefix MCDisassembler/, \

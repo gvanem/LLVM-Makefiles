@@ -71,7 +71,13 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
 EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
 
 ifeq ($(USE_ZLIB),1)
+  CFLAGS  += -I$(ZLIB_ROOT)
   EX_LIBS += $(ZLIB_LIB)
+endif
+
+ifeq ($(USE_XML2),1)
+  CFLAGS  += -I$(XML2_ROOT)/include
+  EX_LIBS += $(XML2_LIB) $(LZMA_LIB) $(ICONV_LIB) ws2_32.lib
 endif
 
 $(BUILD_DIR)/bin/c-index-test.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/c-index-test.res

@@ -49,9 +49,19 @@ INC_FILES += $(addprefix Basic/,                \
                DiagnosticSerializationKinds.inc \
                Version.inc)
 
-INC_FILES += Basic/DiagnosticASTKinds.inc     \
-             Basic/DiagnosticCommentKinds.inc \
-             Basic/DiagnosticFrontendKinds.inc
+INC_FILES += $(addprefix Basic/,          \
+               DiagnosticASTKinds.inc     \
+               DiagnosticCommentKinds.inc \
+               DiagnosticFrontendKinds.inc)
+
+INC_FILES += $(addprefix Basic/,          \
+               arm_sve_builtins.inc       \
+               arm_sve_builtin_cg.inc     \
+               arm_sve_typeflags.inc      \
+               arm_cde_builtins.inc       \
+               arm_cde_builtin_cg.inc     \
+               arm_cde_builtin_sema.inc   \
+               arm_cde_builtin_aliases.inc)
 
 INC_FILES += Driver/Options.inc
 
@@ -190,6 +200,27 @@ Basic/DiagnosticASTKinds.inc: Basic/Diagnostic.td
 
 Basic/DiagnosticCommentKinds.inc: Basic/Diagnostic.td
 	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Comment -I./Basic $<)
+
+Basic/arm_sve_builtins.inc: Basic/arm_sve.td
+	$(call clang_tblgen, $@, -gen-arm-sve-builtins -I./Basic $<)
+
+Basic/arm_sve_builtin_cg.inc: Basic/arm_sve.td
+	$(call clang_tblgen, $@, -gen-arm-sve-builtin-codegen -I./Basic $<)
+
+Basic/arm_sve_typeflags.inc: Basic/arm_sve.td
+	$(call clang_tblgen, $@, -gen-arm-sve-typeflags -I./Basic $<)
+
+Basic/arm_cde_builtins.inc: Basic/arm_cde.td
+	$(call clang_tblgen, $@, -gen-arm-cde-builtin-def -I./Basic $<)
+
+Basic/arm_cde_builtin_cg.inc: Basic/arm_cde.td
+	$(call clang_tblgen, $@, -gen-arm-cde-builtin-codegen -I./Basic $<)
+
+Basic/arm_cde_builtin_sema.inc: Basic/arm_cde.td
+	$(call clang_tblgen, $@, -gen-arm-cde-builtin-sema -I./Basic $<)
+
+Basic/arm_cde_builtin_aliases.inc: Basic/arm_cde.td
+	$(call clang_tblgen, $@, -gen-arm-cde-builtin-aliases -I./Basic $<)
 
 Basic/DiagnosticFrontendKinds.inc: Basic/Diagnostic.td
 	$(call clang_tblgen, $@, -gen-clang-diags-defs -clang-component=Frontend -I./Basic $<)

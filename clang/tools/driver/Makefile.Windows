@@ -43,7 +43,9 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
          clangSerialization.lib          \
          clangStaticAnalyzerCheckers.lib \
          clangStaticAnalyzerCore.lib     \
-         clangStaticAnalyzerFrontend.lib)
+         clangStaticAnalyzerFrontend.lib \
+         clangTooling.lib                \
+         clangToolingCore.lib)
 
 LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMAArch64AsmParser.lib      \

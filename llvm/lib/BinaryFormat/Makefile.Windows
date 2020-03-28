@@ -8,6 +8,7 @@ include $(TOP_DIR)/Common.Windows
 
 LIB_SRC = AMDGPUMetadataVerifier.cpp \
           Dwarf.cpp                  \
+          MachO.cpp                  \
           Magic.cpp                  \
           Minidump.cpp               \
           MsgPackDocument.cpp        \
