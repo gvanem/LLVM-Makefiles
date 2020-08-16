@@ -1,0 +1,68 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-doc'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clang-doc.exe
+VPATH   = tool
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = tool/ClangDocMain.cpp \
+              BitcodeReader.cpp     \
+              BitcodeWriter.cpp     \
+              ClangDoc.cpp          \
+              Generators.cpp        \
+              HTMLGenerator.cpp     \
+              Mapper.cpp            \
+              MDGenerator.cpp       \
+              Representation.cpp    \
+              Serialize.cpp         \
+              YAMLGenerator.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAnalysis.lib            \
+         clangAST.lib                 \
+         clangBasic.lib               \
+         clangDriver.lib              \
+         clangEdit.lib                \
+         clangFrontend.lib            \
+         clangIndex.lib               \
+         clangLex.lib                 \
+         clangParse.lib               \
+         clangSema.lib                \
+         clangSerialization.lib       \
+         clangTooling.lib             \
+                                      \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDemangle.lib             \
+         LLVMFrontendOpenMP.lib       \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMOption.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-doc.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-doc.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-doc.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-doc.exe, VFT_APP, A tool to generate documentation from C/C++ source code.)
+
+-include .depend.Windows
+

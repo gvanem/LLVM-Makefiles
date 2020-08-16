@@ -1,0 +1,19 @@
+#
+# Top-level GNU makefile for 'clang-tools-extra'.
+#
+TOP_DIR = ..
+
+include $(TOP_DIR)/Common.Windows
+
+all depend clean vclean:
+	$(call do_make, clang-apply-replacements, $@)
+	$(call do_make, clang-change-namespace,   $@)
+	$(call do_make, clang-doc,                $@)
+	$(call do_make, clang-include-fixer,      $@)
+	$(call do_make, clang-move,               $@)
+	$(call do_make, clang-query,              $@)
+	$(call do_make, clang-reorder-fields,     $@)
+	$(call do_make, clang-tidy,               $@)
+	$(call do_make, clangd,                   $@)
+	$(call do_make, modularize,               $@)
+	$(call do_make, pp-trace,                 $@)

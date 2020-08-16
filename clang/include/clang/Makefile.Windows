@@ -24,8 +24,6 @@ INC_FILES = $(addprefix AST/,                         \
               StmtNodes.inc                           \
               TypeNodes.inc)
 
-# INC_FILES += AST/AttrDump.inc
-
 INC_FILES += $(addprefix Basic/,                \
                arm_fp16.inc                     \
                arm_mve_builtins.inc             \
@@ -33,6 +31,7 @@ INC_FILES += $(addprefix Basic/,                \
                arm_mve_builtin_cg.inc           \
                arm_mve_builtin_sema.inc         \
                arm_neon.inc                     \
+               arm_sve_sema_rangechecks.inc     \
                AttrList.inc                     \
                AttrSubMatchRulesList.inc        \
                AttrHasAttributeImpl.inc         \
@@ -82,16 +81,15 @@ INC_FILES += $(addprefix Serialization/, \
 
 INC_FILES += StaticAnalyzer/Checkers/Checkers.inc
 
-include $(TOP_DIR)/Common.Windows
-
 GENERATED = Config/config.h \
             $(INC_FILES)
+
+include $(TOP_DIR)/Common.Windows
 
 all: $(GENERATED)
 
 $(INC_FILES):       $(BUILD_DIR)/bin/clang-tblgen.exe $(MDEPEND)
 Driver/Options.inc: $(BUILD_DIR)/bin/llvm-tblgen.exe  $(MDEPEND)
-
 
 AST/AbstractBasicReader.inc: AST/PropertiesBase.td
 	$(call clang_tblgen, $@, -gen-clang-basic-reader $<)
@@ -107,9 +105,6 @@ AST/AbstractTypeWriter.inc: AST/TypeProperties.td
 
 AST/Attrs.inc: Basic/Attr.td
 	$(call clang_tblgen, $@, -gen-clang-attr-classes -I./Basic $<)
-
-AST/AttrDump.inc: Basic/Attr.td
-	$(call clang_tblgen,$@, -gen-clang-attr-dump -I./Basic $<)
 
 AST/AttrImpl.inc: Basic/Attr.td
 	$(call clang_tblgen, $@, -gen-clang-attr-impl -I./Basic $<)
@@ -170,6 +165,9 @@ Basic/arm_mve_builtin_sema.inc: Basic/arm_mve.td
 
 Basic/arm_neon.inc: Basic/arm_neon.td
 	$(call clang_tblgen, $@, -gen-arm-neon-sema -I./Basic $<)
+
+Basic/arm_sve_sema_rangechecks.inc: Basic/arm_sve.td
+	$(call clang_tblgen, $@, -gen-arm-sve-sema-rangechecks -I./Basic $<)
 
 Basic/AttrList.inc: Basic/Attr.td
 	$(call clang_tblgen, $@, -gen-clang-attr-list -I./Basic $<)
@@ -278,7 +276,7 @@ StaticAnalyzer/Checkers/Checkers.inc: StaticAnalyzer/Checkers/Checkers.td
 
 #######################################################################################
 
-Basic/Version.inc: $(MDEPEND)
+Basic/Version.inc: $(THIS_FILE)
 	$(call Generating, $@, //)
 	$(file >> $@,$(Basic_Version_INC))
 
@@ -290,40 +288,40 @@ define Basic_Version_INC
   #define CLANG_VERSION_PATCHLEVEL $(VER_MICRO)
 endef
 
-Config/config.h: $(MDEPEND)
+Config/config.h: $(THIS_FILE)
 	$(call Generating, $@, //)
 	$(file >> $@,$(clang_config_H))
 
 define clang_config_H
   #ifdef CLANG_CONFIG_H
     #error "$(realpath ./Config/config.h) can only be included once."
+  #else
+    #define CLANG_CONFIG_H
 
-  #else /* Rest of file */
-  #define CLANG_CONFIG_H
+    #define CLANG_DEFAULT_LINKER                ""
+    #define CLANG_DEFAULT_CXX_STDLIB            ""
+    #define CLANG_DEFAULT_RTLIB                 ""
+    #define CLANG_DEFAULT_UNWINDLIB             "none"
+    #define CLANG_DEFAULT_OBJCOPY               "objcopy"
+    #define CLANG_DEFAULT_OPENMP_RUNTIME        "libomp"
+    #define CLANG_SYSTEMZ_DEFAULT_ARCH          "z10"
+    #define CLANG_OPENMP_NVPTX_DEFAULT_ARCH     "sm_35"
+    #define CLANG_LIBDIR_SUFFIX                  ""
+    #define CLANG_RESOURCE_DIR                   ""
+    #define C_INCLUDE_DIRS                       ""
+    #define DEFAULT_SYSROOT                      ""
+    #define GCC_INSTALL_PREFIX                   ""
+    #define CLANG_HAVE_LIBXML                    $(USE_XML2)
 
-  #define CLANG_DEFAULT_LINKER                ""
-  #define CLANG_DEFAULT_CXX_STDLIB            ""
-  #define CLANG_DEFAULT_RTLIB                 ""
-  #define CLANG_DEFAULT_OBJCOPY               "objcopy"
-  #define CLANG_DEFAULT_OPENMP_RUNTIME        "libomp"
-  #define CLANG_OPENMP_NVPTX_DEFAULT_ARCH     "sm_35"
-  #define CLANG_LIBDIR_SUFFIX                  ""
-  #define CLANG_RESOURCE_DIR                   ""
-  #define C_INCLUDE_DIRS                       ""
-  #define DEFAULT_SYSROOT                      ""
-  #define GCC_INSTALL_PREFIX                   ""
-  #define CLANG_HAVE_LIBXML                    $(USE_XML2)
+    #define ENABLE_X86_RELAX_RELOCATIONS         0
+    #define ENABLE_EXPERIMENTAL_NEW_PASS_MANAGER 0
 
-  #define ENABLE_X86_RELAX_RELOCATIONS         0
-  #define ENABLE_EXPERIMENTAL_NEW_PASS_MANAGER 0
+    #define CLANG_ENABLE_ARCMT                   1
+    #define CLANG_ENABLE_OBJC_REWRITER           1
+    #define CLANG_ENABLE_STATIC_ANALYZER         1
 
-  #define CLANG_ENABLE_ARCMT                   1
-  #define CLANG_ENABLE_OBJC_REWRITER           1
-  #define CLANG_ENABLE_STATIC_ANALYZER         1
-
-  #define BUG_REPORT_URL           "https://bugs.llvm.org/"
-  #define BACKEND_PACKAGE_STRING   "LLVM $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
-
-  #endif  /* CLANG_CONFIG_H */
+    #define BUG_REPORT_URL           "https://bugs.llvm.org/"
+    #define BACKEND_PACKAGE_STRING   "LLVM $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32"
+  #endif
 endef
 

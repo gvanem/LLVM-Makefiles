@@ -44,6 +44,7 @@ LIB_SRC = Attributes.cpp               \
           Diagnostic.cpp               \
           DiagnosticIDs.cpp            \
           DiagnosticOptions.cpp        \
+          ExpressionTraits.cpp         \
           FileManager.cpp              \
           FileSystemStatCache.cpp      \
           FixedPoint.cpp               \
@@ -63,6 +64,7 @@ LIB_SRC = Attributes.cpp               \
           TargetInfo.cpp               \
           Targets.cpp                  \
           TokenKinds.cpp               \
+          TypeTraits.cpp               \
           Version.cpp                  \
           Warnings.cpp                 \
           XRayInstr.cpp                \
@@ -89,6 +91,7 @@ LIB_SRC += $(addprefix Targets/, \
              Sparc.cpp           \
              SystemZ.cpp         \
              TCE.cpp             \
+             VE.cpp              \
              WebAssembly.cpp     \
              X86.cpp             \
              XCore.cpp)

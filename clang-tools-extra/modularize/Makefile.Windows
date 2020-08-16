@@ -1,0 +1,61 @@
+#
+# GNU Makefile for 'clang-tools-extra/modularize'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/modularize.exe
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = CoverageChecker.cpp     \
+              Modularize.cpp          \
+              ModularizeUtilities.cpp \
+              ModuleAssistant.cpp     \
+              PreprocessorTracker.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAnalysis.lib            \
+         clangAST.lib                 \
+         clangBasic.lib               \
+         clangDriver.lib              \
+         clangEdit.lib                \
+         clangFrontend.lib            \
+         clangLex.lib                 \
+         clangParse.lib               \
+         clangSema.lib                \
+         clangSerialization.lib       \
+         clangTooling.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMBinaryFormat.lib         \
+          LLVMBitstreamReader.lib      \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
+          LLVMOption.lib               \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/modularize.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/modularize.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/modularize.rc: $(MDEPEND)
+	$(call make_rc, $@, modularize.exe, VFT_APP, Check if a set of headers provides the consistent definitions required to use modules.)
+
+-include .depend.Windows
+

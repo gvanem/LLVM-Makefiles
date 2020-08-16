@@ -58,8 +58,12 @@ lli-LIBS = $(addprefix $(BUILD_DIR)/lib/, \
              LLVMX86Utils.lib)
 
 lli-child-target-LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+                          LLVMCore.lib                 \
+                          LLVMBinaryFormat.lib         \
+                          LLVMBitstreamReader.lib      \
                           LLVMOrcError.lib             \
                           LLVMRuntimeDyld.lib          \
+                          LLVMRemarks.lib              \
                           LLVMSupport.lib)
 
 #

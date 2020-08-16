@@ -2,15 +2,24 @@
 # GNU Makefile for 'clang/lib/Tooling'.
 #
 TOP_DIR = ../../..
+
 TARGETS = $(BUILD_DIR)/lib/clangTooling.lib           \
           $(BUILD_DIR)/lib/clangToolingASTDiff.lib    \
           $(BUILD_DIR)/lib/clangToolingCore.lib       \
           $(BUILD_DIR)/lib/clangToolingInclusions.lib \
           $(BUILD_DIR)/lib/clangToolingRefactor.lib   \
           $(BUILD_DIR)/lib/clangToolingSyntax.lib     \
+          $(BUILD_DIR)/lib/clangTransformer.lib       \
           $(BUILD_DIR)/lib/clangDependencyScanning.lib
 
-VPATH = ASTDiff Core DependencyScanning Inclusions Refactoring Refactoring/Rename Syntax
+VPATH = ASTDiff             \
+        Core                \
+        DependencyScanning  \
+        Inclusions          \
+        Refactoring         \
+        Refactoring/Extract \
+        Refactoring/Rename  \
+        Syntax
 
 include $(TOP_DIR)/Common.Windows
 
@@ -20,120 +29,137 @@ include $(TOP_DIR)/Common.Windows
 INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
             $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc
 
-clangTooling_SRC = AllTUsExecution.cpp                        \
-                   ArgumentsAdjusters.cpp                     \
-                   CommonOptionsParser.cpp                    \
-                   CompilationDatabase.cpp                    \
-                   Execution.cpp                              \
-                   ExpandResponseFilesCompilationDatabase.cpp \
-                   FileMatchTrie.cpp                          \
-                   FixIt.cpp                                  \
-                   GuessTargetAndModeCompilationDatabase.cpp  \
-                   InterpolatingCompilationDatabase.cpp       \
-                   JSONCompilationDatabase.cpp                \
-                   Refactoring.cpp                            \
-                   RefactoringCallbacks.cpp                   \
-                   StandaloneExecution.cpp                    \
-                   Tooling.cpp
+Tooling_SRC = AllTUsExecution.cpp                        \
+              ArgumentsAdjusters.cpp                     \
+              CommonOptionsParser.cpp                    \
+              CompilationDatabase.cpp                    \
+              Execution.cpp                              \
+              ExpandResponseFilesCompilationDatabase.cpp \
+              FileMatchTrie.cpp                          \
+              FixIt.cpp                                  \
+              GuessTargetAndModeCompilationDatabase.cpp  \
+              InterpolatingCompilationDatabase.cpp       \
+              JSONCompilationDatabase.cpp                \
+              Refactoring.cpp                            \
+              RefactoringCallbacks.cpp                   \
+              StandaloneExecution.cpp                    \
+              Tooling.cpp
 
-clangToolingCore_SRC = $(addprefix Core/, \
-                         Diagnostic.cpp   \
-                         Lookup.cpp       \
-                         Replacement.cpp)
+ToolingCore_SRC = $(addprefix Core/, \
+                    Diagnostic.cpp   \
+                    Lookup.cpp       \
+                    Replacement.cpp)
 
-clangToolingInclusions_SRC = $(addprefix Inclusions/, \
-                               HeaderIncludes.cpp     \
-                               IncludeStyle.cpp)
+ToolingInclusions_SRC = $(addprefix Inclusions/, \
+                          HeaderIncludes.cpp     \
+                          IncludeStyle.cpp)
 
-clangToolingRefactor_SRC = $(addprefix Refactoring/,      \
-                             ASTSelection.cpp             \
-                             ASTSelectionRequirements.cpp \
-                             AtomicChange.cpp             \
-                             RefactoringActions.cpp)
+ToolingRefactor_SRC = $(addprefix Refactoring/,      \
+                        ASTSelection.cpp             \
+                        ASTSelectionRequirements.cpp \
+                        AtomicChange.cpp             \
+                        RefactoringActions.cpp)
 
-clangToolingRefactor_SRC += $(addprefix Refactoring/Rename/, \
-                              RenamingAction.cpp             \
-                              SymbolOccurrences.cpp          \
-                              USRFinder.cpp                  \
-                              USRFindingAction.cpp           \
-                              USRLocFinder.cpp)
+ToolingRefactor_SRC += $(addprefix Refactoring/Rename/, \
+                         RenamingAction.cpp             \
+                         SymbolOccurrences.cpp          \
+                         USRFinder.cpp                  \
+                         USRFindingAction.cpp           \
+                         USRLocFinder.cpp)
 
-clangToolingRefactor_SRC += $(addprefix Refactoring/Extract/, \
-                              Extract.cpp                     \
-                              SourceExtraction.cpp)
+ToolingRefactor_SRC += $(addprefix Refactoring/Extract/, \
+                         Extract.cpp                     \
+                         SourceExtraction.cpp)
 
-clangToolingSyntax_SRC  = $(addprefix Syntax/, \
-                            BuildTree.cpp      \
-                            Nodes.cpp          \
-                            Tokens.cpp         \
-                            Tree.cpp)
+ToolingSyntax_SRC = $(addprefix Syntax/, \
+                      BuildTree.cpp      \
+                      Nodes.cpp          \
+                      Tokens.cpp         \
+                      Tree.cpp)
 
-clangToolingASTDiff_SRC = ASTDiff/AstDiff.cpp
+Transformer_SRC = $(addprefix Transformer/, \
+                    Parsing.cpp             \
+                    RangeSelector.cpp       \
+                    RewriteRule.cpp         \
+                    SourceCode.cpp          \
+                    SourceCodeBuilders.cpp  \
+                    Stencil.cpp             \
+                    Transformer.cpp)
 
-clangDependencyScanning_SRC = $(addprefix DependencyScanning/,   \
-                                DependencyScanningFilesystem.cpp \
-                                DependencyScanningService.cpp    \
-                                DependencyScanningWorker.cpp     \
-                                DependencyScanningTool.cpp       \
-                                ModuleDepCollector.cpp)
+ToolingASTDiff_SRC = ASTDiff/AstDiff.cpp
 
-ALL_SOURCES = $(clangTooling_SRC)           \
-              $(clangToolingASTDiff_SRC)    \
-              $(clangToolingCore_SRC)       \
-              $(clangToolingInclusions_SRC) \
-              $(clangToolingRefactor_SRC)   \
-              $(clangToolingSyntax_SRC)     \
-              $(clangDependencyScanning_SRC)
+DependencyScanning_SRC = $(addprefix DependencyScanning/,   \
+                           DependencyScanningFilesystem.cpp \
+                           DependencyScanningService.cpp    \
+                           DependencyScanningWorker.cpp     \
+                           DependencyScanningTool.cpp       \
+                           ModuleDepCollector.cpp)
 
-clangTooling_OBJ            = $(call cpp_to_obj, $(clangTooling_SRC))
-clangToolingASTDiff_OBJ     = $(call cpp_to_obj, $(clangToolingASTDiff_SRC))
-clangToolingCore_OBJ        = $(call cpp_to_obj, $(clangToolingCore_SRC))
-clangToolingInclusions_OBJ  = $(call cpp_to_obj, $(clangToolingInclusions_SRC))
-clangToolingRefactor_OBJ    = $(call cpp_to_obj, $(clangToolingRefactor_SRC))
-clangToolingSyntax_OBJ      = $(call cpp_to_obj, $(clangToolingSyntax_SRC))
-clangDependencyScanning_OBJ = $(call cpp_to_obj, $(clangDependencyScanning_SRC))
+ALL_SOURCES = $(Tooling_SRC)           \
+              $(ToolingASTDiff_SRC)    \
+              $(ToolingCore_SRC)       \
+              $(ToolingInclusions_SRC) \
+              $(ToolingRefactor_SRC)   \
+              $(ToolingSyntax_SRC)     \
+              $(Transformer_SRC)       \
+              $(DependencyScanning_SRC)
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+Tooling_OBJ            = $(call cpp_to_obj, $(Tooling_SRC))
+ToolingASTDiff_OBJ     = $(call cpp_to_obj, $(ToolingASTDiff_SRC))
+ToolingCore_OBJ        = $(call cpp_to_obj, $(ToolingCore_SRC))
+ToolingInclusions_OBJ  = $(call cpp_to_obj, $(ToolingInclusions_SRC))
+ToolingRefactor_OBJ    = $(call cpp_to_obj, $(ToolingRefactor_SRC))
+ToolingSyntax_OBJ      = $(call cpp_to_obj, $(ToolingSyntax_SRC))
+Transformer_OBJ        = $(call cpp_to_obj, $(Transformer_SRC))
+DependencyScanning_OBJ = $(call cpp_to_obj, $(DependencyScanning_SRC))
+
+all: $(GENERATED) inc_files $(TARGETS)
 
 ifeq ($(USE_MP_COMPILE),1)
-$(clangTooling_OBJ): $(clangTooling_SRC)
-	$(call MP_compile, $(clangTooling_SRC))
+$(Tooling_OBJ): $(Tooling_SRC)
+	$(call MP_compile, $(Tooling_SRC))
 
-$(clangToolingCore_OBJ): $(clangToolingCore_SRC)
-	$(call MP_compile, $(clangToolingCore_SRC))
+$(ToolingCore_OBJ): $(ToolingCore_SRC)
+	$(call MP_compile, $(ToolingCore_SRC))
 
-$(clangToolingRefactor_OBJ): $(clangToolingRefactor_SRC)
-	$(call MP_compile, $(clangToolingRefactor_SRC))
+$(ToolingRefactor_OBJ): $(ToolingRefactor_SRC)
+	$(call MP_compile, $(ToolingRefactor_SRC))
 
-$(clangToolingSyntax_OBJ): $(clangToolingSyntax_SRC)
-	$(call MP_compile, $(clangToolingSyntax_SRC))
+$(ToolingSyntax_OBJ): $(ToolingSyntax_SRC)
+	$(call MP_compile, $(ToolingSyntax_SRC))
 
-$(clangDependencyScanning_OBJ): $(clangDependencyScanning_SRC)
-	$(call MP_compile, $(clangDependencyScanning_SRC))
+$(Transformer_OBJ): $(Transformer_SRC)
+	$(call MP_compile, $(Transformer_SRC))
+
+$(DependencyScanning_OBJ): $(DependencyScanning_SRC)
+	$(call MP_compile, $(DependencyScanning_SRC))
 endif
 
-$(BUILD_DIR)/lib/clangTooling.lib: $(clangTooling_OBJ)
+$(BUILD_DIR)/lib/clangTooling.lib: $(Tooling_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangToolingASTDiff.lib: $(clangToolingASTDiff_OBJ)
+$(BUILD_DIR)/lib/clangToolingASTDiff.lib: $(ToolingASTDiff_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangToolingCore.lib: $(clangToolingCore_OBJ)
+$(BUILD_DIR)/lib/clangToolingCore.lib: $(ToolingCore_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangToolingInclusions.lib: $(clangToolingInclusions_OBJ)
+$(BUILD_DIR)/lib/clangToolingInclusions.lib: $(ToolingInclusions_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangToolingRefactor.lib: $(clangToolingRefactor_OBJ)
+$(BUILD_DIR)/lib/clangToolingRefactor.lib: $(ToolingRefactor_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangToolingSyntax.lib: $(clangToolingSyntax_OBJ)
+$(BUILD_DIR)/lib/clangToolingSyntax.lib: $(ToolingSyntax_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(BUILD_DIR)/lib/clangDependencyScanning.lib: $(clangDependencyScanning_OBJ)
+$(BUILD_DIR)/lib/clangTransformer.lib: $(Transformer_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(INC_FILES):
+$(BUILD_DIR)/lib/clangDependencyScanning.lib: $(DependencyScanning_OBJ)
+	 $(call create_lib, $@, $^)
+
+inc_files::
 	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows

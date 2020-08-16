@@ -7,6 +7,7 @@ TARGETS = $(BUILD_DIR)/bin/llvm-dwarfdump.exe
 include $(TOP_DIR)/Common.Windows
 
 ALL_SOURCES = llvm-dwarfdump.cpp \
+              SectionSizes.cpp   \
               Statistics.cpp
 
 OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))

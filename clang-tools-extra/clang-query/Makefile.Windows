@@ -1,0 +1,63 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-query'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clang-query.exe
+VPATH   = tool
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = Query.cpp       \
+              QueryParser.cpp \
+              tool/ClangQuery.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         clangAST.lib                    \
+         clangASTMatchers.lib            \
+         clangAnalysis.lib               \
+         clangBasic.lib                  \
+         clangDriver.lib                 \
+         clangDynamicASTMatchers.lib     \
+         clangEdit.lib                   \
+         clangFrontend.lib               \
+         clangLex.lib                    \
+         clangParse.lib                  \
+         clangSema.lib                   \
+         clangSerialization.lib          \
+         clangTooling.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMBinaryFormat.lib         \
+          LLVMBitstreamReader.lib      \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
+          LLVMLineEditor.lib           \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMOption.lib               \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = version.lib advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-query.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-query.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-query.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-query.exe, VFT_APP, A tool for interactive exploration of the Clang AST.)
+
+-include .depend.Windows
+

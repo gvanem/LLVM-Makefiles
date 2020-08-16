@@ -1,5 +1,5 @@
 #
-# Top-level makefile for 'clang/lib'.
+# Top-level GNU makefile for 'clang/lib'.
 #
 TOP_DIR = ../..
 

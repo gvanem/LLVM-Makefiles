@@ -4,6 +4,12 @@
 TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangCodeGen.lib
 
+#
+# Because of:
+#  fatal error C1060: compiler is out of heap space (compiling source file CodeGenPGO.cpp)
+#
+USE_CLANG_CL = 1
+
 include $(TOP_DIR)/Common.Windows
 
 #
@@ -43,6 +49,8 @@ LIB_SRC = BackendUtil.cpp                      \
           CGObjCRuntime.cpp                    \
           CGOpenCLRuntime.cpp                  \
           CGOpenMPRuntime.cpp                  \
+          CGOpenMPRuntimeAMDGCN.cpp            \
+          CGOpenMPRuntimeGPU.cpp               \
           CGOpenMPRuntimeNVPTX.cpp             \
           CGRecordLayoutBuilder.cpp            \
           CGStmt.cpp                           \

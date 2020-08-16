@@ -34,8 +34,11 @@ USE_CLANG_CL       ?= 0
 USE_CLANG_FORMATER ?= 1
 USE_GOOGLE_TEST    ?= 0
 USE_VECTORCALL     ?= 0
+USE_DIA            ?= 1
 USE_XML2           ?= 1
 USE_ZLIB           ?= 1
+USE_CLANGD_REMOTE  ?= 0
+USE_CHECK_LIBS     ?= 1
 
 ifeq ($(USE_CRT_DEBUG),1)
   D = d
@@ -49,12 +52,12 @@ endif
 default: all
 
 #
-# TODO: extract these from 'CMakeLists.txt':
+# TODO: extract these from 'llvm/CMakeLists.txt':
 #   set(LLVM_VERSION_MAJOR 10)
 #   set(LLVM_VERSION_MINOR 0)
 #   set(LLVM_VERSION_PATCH 0)
 #
-VER_MAJOR = 10
+VER_MAJOR = 12
 VER_MINOR = 0
 VER_MICRO = 0
 VERSION   = $(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32
@@ -70,11 +73,12 @@ MDEPEND ?= # $(THIS_FILE) $(TOP_DIR)/Common.Windows
 # Location of required + optional packages.
 # Change to suite.
 #
-LZMA_ROOT  ?= f:/MinGW32/src/Compression/xz
-ZLIB_ROOT  ?= f:/MinGW32/src/Compression/zlib-1.2.8
-XML2_ROOT  ?= f:/MinGW32/src/Parsers/libxml2
-ICONV_ROOT ?= f:/MinGW32/src/libiconv-for-windows
-GTEST_ROOT = $(TOP_DIR)/llvm/utils/unittest
+LZMA_ROOT     ?= f:/MinGW32/src/Compression/xz
+ZLIB_ROOT     ?= f:/MinGW32/src/Compression/zlib-1.2.8
+XML2_ROOT     ?= f:/MinGW32/src/Parsers/libxml2
+ICONV_ROOT    ?= f:/MinGW32/src/libiconv-for-windows
+PROTOBUF_ROOT ?= f:/MinGW32/src/inet/GoogleCode/proto-buf/install
+GTEST_ROOT     = $(TOP_DIR)/llvm/utils/unittest
 
 #
 # Add this to 'EX_LIBS' if 'USE_ZLIB = 1'.
@@ -95,7 +99,17 @@ ICONV_LIB = $(ICONV_ROOT)/lib/libiconvStatic$(D).lib
 XML2_LIB = $(XML2_ROOT)/xml2$(D).lib
 
 #
-# 'LLVM_ENABLE_DIA_SDK = 1' in below generated 'llvm-config.h'.
+# TODO: Rewrite into:
+#
+ifeq ($(NEED_XML2),1)
+  CFLAGS += -I$(XML2_ROOT)/include  \
+            -I$(ICONV_ROOT)/include \
+            -DLIBXML_STATIC
+endif
+
+
+#
+# Ref. '#define LLVM_ENABLE_DIA_SDK $(USE_DIA)' in below generated 'llvm-config.h'.
 #
 # Add this to 'EX_LIBS' as needed.
 #
@@ -118,6 +132,7 @@ BRIGHT_WHITE  = \e[1;37m
 
 colour_msg = @echo -e "$(1)\e[0m"
 green_msg  = $(call colour_msg,$(BRIGHT_GREEN)$(strip $(1)))
+white_msg  = $(call colour_msg,$(BRIGHT_WHITE)$(strip $(1)))
 yellow_msg = $(call colour_msg,$(BRIGHT_YELLOW)$(strip $(1)))
 
 define Warning
@@ -292,9 +307,9 @@ OBJ_DIR = objects
 #
 # Make a list of .obj from .cpp/.cc/.c-files.
 #
-cpp_to_obj = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.cpp=.obj)))
-cc_to_obj  = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.cc=.obj)))
-c_to_obj   = $(addprefix $(OBJ_DIR)/, $(notdir $(1:.c=.obj)))
+cpp_to_obj = $(addprefix $(OBJ_DIR)/$(strip $(2)), $(notdir $(1:.cpp=.obj)))
+cc_to_obj  = $(addprefix $(OBJ_DIR)/$(strip $(2)), $(notdir $(1:.cc=.obj)))
+c_to_obj   = $(addprefix $(OBJ_DIR)/$(strip $(2)), $(notdir $(1:.c=.obj)))
 
 #
 # Similarily; lists of preprocessed .i-files from .cpp/.cc/.c-files.
@@ -307,7 +322,7 @@ c_to_i     = $(notdir $(1:.c=.i))
 # Mainly used in the C/C++ preprocess rule below.
 # And also in 'llvm/tools/llvm-config/Makefile.Windows'.
 #
-PYTHON ?= python
+PYTHON ?= py -3
 
 GENERATED += dirs
 
@@ -320,6 +335,7 @@ GENERATED += $(CXX).args                                        \
              $(TOP_DIR)/llvm/include/llvm/Config/llvm-config.h
 
 $(CXX).args: $(THIS_FILE) $(TOP_DIR)/Common.Windows
+	$(call green_msg, Generating $@)
 	$(call create_rsp_file, $@, -c $(CFLAGS))
 
 $(OBJ_DIR)/%.obj: %.cpp $(MDEPEND)
@@ -1246,6 +1262,14 @@ realclean vclean: clean
 	               $(TARGETS:.exe=.pdb) $(TARGETS:.dll=.pdb))
 
 #
+# Use this Python script to check a .map-files for unused libraries after
+# a successful 'link' done in '$(call link_EXE ...)' or '$(call link_DLL ...)'.
+#
+ifeq ($(USE_CHECK_LIBS),1)
+  check_for_unused_libs = $(PYTHON) $(TOP_DIR)/check-for-unused-libs.py $(1)
+endif
+
+#
 # Macro to create an EXE from objects.
 # Syntax: $(call link_EXE, ...):
 #   arg1, $(1): The .exe file.
@@ -1256,6 +1280,8 @@ define link_EXE
   $(call create_rsp_file, link.args, $(LDFLAGS) $(2))
   link -out:$(strip $(1)) @link.args > link.tmp
   @cat link.tmp >> $(1:.exe=.map)
+  $(call check_for_unused_libs, link.tmp)
+  $(call white_msg, Done.\n)
   @rm -f link.tmp
 endef
 
@@ -1271,6 +1297,8 @@ define link_DLL
   $(call create_rsp_file, link.args, $(LDFLAGS) $(3))
   link -dll -out:$(strip $(1)) -implib:$(strip $(2)) @link.args > link.tmp
   @cat link.tmp >> $(1:.dll=.map)
+  $(call check_for_unused_libs, link.tmp)
+  $(call white_msg, Done.\n)
   @rm -f $(2:.lib=.exp) link.tmp
 endef
 
@@ -1304,6 +1332,7 @@ endef
 #
 define create_lib
   $(call colour_msg,Creating $(BRIGHT_GREEN)$(strip $(1)))
+  @rm -f $(1)
   lib -nologo -out:$(strip $(1)) $(2)
   @echo
   $(call create_lib_list_CPP_0, $(1:.lib=.list), $(1))
@@ -1359,7 +1388,7 @@ endef
 #   arg2: $(2): the .rc to compile.
 #
 define make_res
-  rc -nologo -D_MSC_VER -I$(TOP_DIR)/llvm/include -fo $(1) $(2)
+  rc -nologo -D_MSC_VER -fo $(1) $(2)
   @echo
 endef
 
@@ -1406,11 +1435,11 @@ define abi_breaking_H
   #ifndef LLVM_ABI_BREAKING_CHECKS_H
   #define LLVM_ABI_BREAKING_CHECKS_H
 
-  /* Define to enable checks that alter the LLVM C++ ABI
+  /* Define to enable checks that alter the LLVM C++ ABI.
    */
   #define LLVM_ENABLE_ABI_BREAKING_CHECKS 1
 
-  /* Define to enable reverse iteration of unordered llvm containers
+  /* Define to enable reverse iteration of unordered llvm containers.
    */
   #define LLVM_ENABLE_REVERSE_ITERATION   0
 
@@ -1419,13 +1448,16 @@ define abi_breaking_H
    */
   #if !LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING
 
-    // ABI_BREAKING_CHECKS protection: provides link-time failure when clients build
-    // mismatch with LLVM
+    /* ABI_BREAKING_CHECKS protection: provides link-time failure when clients build
+     *  mismatch with LLVM.
+     */
     #if defined(_MSC_VER)
-      // Use pragma with MSVC
-      #define LLVM_XSTR(s)  LLVM_STR(s)
+      /* Use pragma with MSVC.
+       */
       #define LLVM_STR(s)   #s
+      #define LLVM_XSTR(s)  LLVM_STR(s)
       #pragma detect_mismatch("LLVM_ENABLE_ABI_BREAKING_CHECKS", LLVM_XSTR(LLVM_ENABLE_ABI_BREAKING_CHECKS))
+
       #undef LLVM_XSTR
       #undef LLVM_STR
 
@@ -1434,17 +1466,17 @@ define abi_breaking_H
 
     #elif defined(__cplusplus)
       namespace llvm {
-      #if LLVM_ENABLE_ABI_BREAKING_CHECKS
-        extern int EnableABIBreakingChecks;
-        __attribute__((weak, visibility ("hidden"))) int *VerifyEnableABIBreakingChecks = &EnableABIBreakingChecks;
-      #else
-        extern int DisableABIBreakingChecks;
-        __attribute__((weak, visibility ("hidden"))) int *VerifyDisableABIBreakingChecks = &DisableABIBreakingChecks;
-      #endif
-    }
-    #endif // _MSC_VER
-  #endif   // LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING
-  #endif   // LLVM_ABI_BREAKING_CHECKS_H
+        #if LLVM_ENABLE_ABI_BREAKING_CHECKS
+          extern int EnableABIBreakingChecks;
+          __attribute__((weak, visibility ("hidden"))) int *VerifyEnableABIBreakingChecks = &EnableABIBreakingChecks;
+        #else
+          extern int DisableABIBreakingChecks;
+          __attribute__((weak, visibility ("hidden"))) int *VerifyDisableABIBreakingChecks = &DisableABIBreakingChecks;
+        #endif
+      }
+    #endif /* _MSC_VER */
+  #endif   /* LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING */
+  #endif   /* LLVM_ABI_BREAKING_CHECKS_H */
 endef
 
 define config_H
@@ -1474,8 +1506,6 @@ define config_H
   #define HAVE_STRERROR              1
   #define HAVE_SYS_STAT_H            1
   #define HAVE_SYS_TYPES_H           1
-
-//#define HAVE__ALLOCA               1
   #define HAVE__CHSIZE_S             1
 
   #if (LLVM_ENABLE_ZLIB == 1)
@@ -1503,8 +1533,8 @@ define llvm_config_H
   #define LLVM_CONFIG_H
 
   #define LLVM_ENABLE_THREADS          1
-  #define LLVM_ENABLE_DIA_SDK          1
   #define LLVM_ENABLE_CRASH_DUMPS      0
+  #define LLVM_ENABLE_DIA_SDK          $(USE_DIA)
   #define LLVM_ENABLE_ZLIB             $(USE_ZLIB)
   #define LLVM_ENABLE_LIBXML2          $(USE_XML2)
   #define LLVM_LIBXML2_ENABLED         $(USE_XML2)
@@ -1762,20 +1792,14 @@ $(TOP_DIR)/llvm/include/llvm/IR/Attributes.inc: $(TOP_DIR)/llvm/include/llvm/IR/
 $(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc: $(TOP_DIR)/llvm/include/llvm/IR/Attributes.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-attrs $<)
 
-# $(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc: $(TOP_DIR)/llvm/include/llvm/IR/AttributesCompatFunc.td $(TOP_DIR)/llvm/include/llvm/IR/Attributes.td $(INC_DEPS)
-#	$(call llvm_tblgen, $@, -gen-attrs $<)
-
 $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicEnums.inc: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-enums $<)
 
-$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicImpl.inc: $(INC_DEPS)
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicImpl.inc: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-impl $<)
 
 $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsARM.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=arm $<)
-
-$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsX86.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
-	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=x86 $<)
 
 $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsAArch64.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=aarch64 $<)
@@ -1809,6 +1833,9 @@ $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsS390.h: $(TOP_DIR)/llvm/include/llvm/I
 
 $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsWebAssembly.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=wasm $<)
+
+$(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsX86.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
+	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=x86 $<)
 
 $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicsXCore.h: $(TOP_DIR)/llvm/include/llvm/IR/Intrinsics.td $(INC_DEPS)
 	$(call llvm_tblgen, $@, -gen-intrinsic-enums -intrinsic-prefix=xcore $<)
@@ -1900,17 +1927,17 @@ $(TOP_DIR)/cpp_filter.py: $(THIS_FILE)
 define LLVM_RC_COMMON
 
   #include <winver.h>
-  #include <llvm/Config/llvm-config.h>
+//#include <llvm/Config/llvm-config.h>
 
-  #define RC_VERSION     $(VER_MAJOR),$(VER_MINOR),$(VER_MICRO),0
-  #define RC_VER_STRING  LLVM_VERSION_STRING
+  #define RC_VERSION      $(VER_MAJOR),$(VER_MINOR),$(VER_MICRO),0
+  #define RC_VER_STRING  "$(VER_MAJOR).$(VER_MINOR).$(VER_MICRO)-Win32" // == 'LLVM_VERSION_STRING'
 
   #ifndef RC_BASENAME
   #error "Add a '-DRC_BASENAME' before including me."
   #endif
 
   #ifndef RC_FILETYPE
-  #error "Add a '-DRC_FILETYPE' before including me."
+  #error "Add a '-DRC_FILETYPE=[VFT_APP|VFT_DLL]' before including me."
   #endif
 
   #ifndef RC_DESCRIPTION
@@ -1921,10 +1948,10 @@ define LLVM_RC_COMMON
   #define RC_COMMENT_EXTRA ""
   #endif
 
-  #if (RC_DEBUG_RELEASE == 1)
-    #define RC_DEBUG_RELEASE_STR  "debug"
+  #if ($(USE_CRT_DEBUG) == 1)
+    #define RC_DEBUG_RELEASE_STR  "debug"      // 'USE_CRT_DEBUG = 1'
   #else
-    #define RC_DEBUG_RELEASE_STR  "release"
+    #define RC_DEBUG_RELEASE_STR  "release"    // 'USE_CRT_DEBUG = 1'
   #endif
 
   VS_VERSION_INFO VERSIONINFO
@@ -1976,7 +2003,7 @@ DEP_REPLACE = -e 's|$(TOP_DIR)/llvm/include/llvm/Config/abi-breaking.h||' \
 
 DEP_REPLACE += -e 's|\(.*\)\.o: |\n$$(OBJ_DIR)\/\1.obj: |'
 
-DEP_CFLAGS  = -MM -std=c++1y $(filter -I% -D%, $(CFLAGS) $(EXTRA_CFLAGS))
+DEP_CFLAGS = -MM -std=c++1y $(filter -I% -D%, $(CFLAGS) $(EXTRA_CFLAGS))
 
 depend: $(OBJ_DIR) $(GENERATED)
 	$(call Generating, .depend.Windows, #)

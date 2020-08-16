@@ -3,6 +3,8 @@
 #
 TOP_DIR = ../../..
 
+USE_CHECK_LIBS = 0
+
 LLVM_DLL     = $(BUILD_DIR)/bin/LLVM-C.dll
 LLVM_IMP_LIB = $(BUILD_DIR)/lib/LLVM-C.lib
 
@@ -29,8 +31,10 @@ ALL_LLVM_LIBS = $(wildcard $(BUILD_DIR)/lib/LLVM*.lib)
 #
 # Except these:
 #
-ALL_LLVM_LIBS := $(filter-out $(LLVM_IMP_LIB), $(ALL_LLVM_LIBS))
-ALL_LLVM_LIBS := $(filter-out $(BUILD_DIR)/lib/LLVM-Remarks.lib, $(ALL_LLVM_LIBS))
+except_these = $(LLVM_IMP_LIB) \
+               $(BUILD_DIR)/lib/LLVM-Remarks.lib
+
+ALL_LLVM_LIBS := $(filter-out $(except_these), $(ALL_LLVM_LIBS))
 
 #
 # Needed in 'LLVMSupport.lib (Path.obj)'
@@ -60,7 +64,7 @@ $(LLVM_DLL): $(OBJECTS) $(OBJ_DIR)/LLVM-C.res $(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_L
 	                                      -def:$(OBJ_DIR)/LLVM-C.def $(ALL_LLVM_LIBS) $(EX_LIBS))
 
 #
-# Use 'link.args' as the temporary responce-file here.
+# Use 'link.args' as the temporary response-file here.
 # It will be overwritten by '$(call link_DLL)' above.
 #
 $(OBJ_DIR)/LLVM-C.def: $(MDEPEND) $(BUILD_DIR)/bin/llvm-nm.exe

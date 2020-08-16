@@ -9,14 +9,14 @@ TARGETS = $(BUILD_DIR)/lib/LLVMDebugInfoCodeView.lib \
           $(BUILD_DIR)/lib/LLVMDebugInfoPDB.lib      \
           $(BUILD_DIR)/lib/LLVMSymbolize.lib
 
+VPATH = DWARF GSYM MSF CodeView PDB PDB/DIA PDB/Native Symbolize
+
 #
 # Since there are 2 of 'EnumTables.cpp'.
 #
 GENERATED = CodeView/EnumTables_CodeView.cpp
 
 include $(TOP_DIR)/Common.Windows
-
-VPATH = DWARF
 
 DebugInfoDwarf_SRC = $(addprefix DWARF/,                \
                        DWARFAbbreviationDeclaration.cpp \
@@ -42,32 +42,30 @@ DebugInfoDwarf_SRC = $(addprefix DWARF/,                \
                        DWARFFormValue.cpp               \
                        DWARFGdbIndex.cpp                \
                        DWARFListTable.cpp               \
+                       DWARFLocationExpression.cpp      \
                        DWARFTypeUnit.cpp                \
                        DWARFUnitIndex.cpp               \
                        DWARFUnit.cpp                    \
                        DWARFVerifier.cpp)
 
-VPATH += GSYM
-
-DebugInfoGSYM_SRC = $(addprefix GSYM/,     \
-                      DwarfTransformer.cpp \
-                      FileWriter.cpp       \
-                      FunctionInfo.cpp     \
-                      InlineInfo.cpp       \
-                      GsymCreator.cpp      \
-                      GsymReader.cpp       \
-                      Header.cpp           \
-                      LineTable.cpp        \
+DebugInfoGSYM_SRC = $(addprefix GSYM/,          \
+                      DwarfTransformer.cpp      \
+                      FileWriter.cpp            \
+                      FunctionInfo.cpp          \
+                      InlineInfo.cpp            \
+                      GsymCreator.cpp           \
+                      GsymReader.cpp            \
+                      Header.cpp                \
+                      LineTable.cpp             \
+                      LookupResult.cpp          \
+                      ObjectFileTransformer.cpp \
                       Range.cpp)
-
-VPATH += MSF
 
 DebugInfoMSF_SRC = $(addprefix MSF/,       \
                      MappedBlockStream.cpp \
                      MSFBuilder.cpp        \
                      MSFCommon.cpp         \
                      MSFError.cpp)
-VPATH += CodeView
 
 DebugInfoCodeView_SRC = $(addprefix CodeView/,            \
                           AppendingTypeTableBuilder.cpp   \
@@ -98,9 +96,9 @@ DebugInfoCodeView_SRC = $(addprefix CodeView/,            \
                           RecordSerialization.cpp         \
                           SimpleTypeSerializer.cpp        \
                           StringsAndChecksums.cpp         \
-                          SymbolRecordMapping.cpp         \
                           SymbolDumper.cpp                \
                           SymbolRecordHelpers.cpp         \
+                          SymbolRecordMapping.cpp         \
                           SymbolSerializer.cpp            \
                           TypeDumpVisitor.cpp             \
                           TypeIndex.cpp                   \
@@ -110,51 +108,48 @@ DebugInfoCodeView_SRC = $(addprefix CodeView/,            \
                           TypeRecordMapping.cpp           \
                           TypeStreamMerger.cpp            \
                           TypeTableCollection.cpp)
-VPATH += PDB
 
-DebugInfoPDB_SRC = $(addprefix PDB/,                 \
-                     GenericError.cpp                \
-                     IPDBSourceFile.cpp              \
-                     PDB.cpp                         \
-                     PDBContext.cpp                  \
-                     PDBExtras.cpp                   \
-                     PDBInterfaceAnchors.cpp         \
-                     PDBSymbol.cpp                   \
-                     PDBSymbolAnnotation.cpp         \
-                     PDBSymbolBlock.cpp              \
-                     PDBSymbolCompiland.cpp          \
-                     PDBSymbolCompilandDetails.cpp   \
-                     PDBSymbolCompilandEnv.cpp       \
-                     PDBSymbolCustom.cpp             \
-                     PDBSymbolData.cpp               \
-                     PDBSymbolExe.cpp                \
-                     PDBSymbolFunc.cpp               \
-                     PDBSymbolFuncDebugEnd.cpp       \
-                     PDBSymbolFuncDebugStart.cpp     \
-                     PDBSymbolLabel.cpp              \
-                     PDBSymbolPublicSymbol.cpp       \
-                     PDBSymbolThunk.cpp              \
-                     PDBSymbolTypeArray.cpp          \
-                     PDBSymbolTypeBaseClass.cpp      \
-                     PDBSymbolTypeBuiltin.cpp        \
-                     PDBSymbolTypeCustom.cpp         \
-                     PDBSymbolTypeDimension.cpp      \
-                     PDBSymbolTypeEnum.cpp           \
-                     PDBSymbolTypeFriend.cpp         \
-                     PDBSymbolTypeFunctionArg.cpp    \
-                     PDBSymbolTypeFunctionSig.cpp    \
-                     PDBSymbolTypeManaged.cpp        \
-                     PDBSymbolTypePointer.cpp        \
-                     PDBSymbolTypeTypedef.cpp        \
-                     PDBSymbolTypeUDT.cpp            \
-                     PDBSymbolTypeVTable.cpp         \
-                     PDBSymbolTypeVTableShape.cpp    \
-                     PDBSymbolUnknown.cpp            \
-                     PDBSymbolUsingNamespace.cpp     \
-                     PDBSymDumper.cpp                \
+DebugInfoPDB_SRC = $(addprefix PDB/,               \
+                     GenericError.cpp              \
+                     IPDBSourceFile.cpp            \
+                     PDB.cpp                       \
+                     PDBContext.cpp                \
+                     PDBExtras.cpp                 \
+                     PDBInterfaceAnchors.cpp       \
+                     PDBSymbol.cpp                 \
+                     PDBSymbolAnnotation.cpp       \
+                     PDBSymbolBlock.cpp            \
+                     PDBSymbolCompiland.cpp        \
+                     PDBSymbolCompilandDetails.cpp \
+                     PDBSymbolCompilandEnv.cpp     \
+                     PDBSymbolCustom.cpp           \
+                     PDBSymbolData.cpp             \
+                     PDBSymbolExe.cpp              \
+                     PDBSymbolFunc.cpp             \
+                     PDBSymbolFuncDebugEnd.cpp     \
+                     PDBSymbolFuncDebugStart.cpp   \
+                     PDBSymbolLabel.cpp            \
+                     PDBSymbolPublicSymbol.cpp     \
+                     PDBSymbolThunk.cpp            \
+                     PDBSymbolTypeArray.cpp        \
+                     PDBSymbolTypeBaseClass.cpp    \
+                     PDBSymbolTypeBuiltin.cpp      \
+                     PDBSymbolTypeCustom.cpp       \
+                     PDBSymbolTypeDimension.cpp    \
+                     PDBSymbolTypeEnum.cpp         \
+                     PDBSymbolTypeFriend.cpp       \
+                     PDBSymbolTypeFunctionArg.cpp  \
+                     PDBSymbolTypeFunctionSig.cpp  \
+                     PDBSymbolTypeManaged.cpp      \
+                     PDBSymbolTypePointer.cpp      \
+                     PDBSymbolTypeTypedef.cpp      \
+                     PDBSymbolTypeUDT.cpp          \
+                     PDBSymbolTypeVTable.cpp       \
+                     PDBSymbolTypeVTableShape.cpp  \
+                     PDBSymbolUnknown.cpp          \
+                     PDBSymbolUsingNamespace.cpp   \
+                     PDBSymDumper.cpp              \
                      UDTLayout.cpp)
-
-VPATH += PDB/DIA
 
 DebugInfoPDB_SRC += $(addprefix PDB/DIA/,        \
                       DIADataStream.cpp          \
@@ -176,8 +171,6 @@ DebugInfoPDB_SRC += $(addprefix PDB/DIA/,        \
                       DIASourceFile.cpp          \
                       DIATable.cpp)
 
-VPATH += PDB/Native
-
 DebugInfoPDB_SRC += $(addprefix PDB/Native/,         \
                       DbiModuleDescriptor.cpp        \
                       DbiModuleDescriptorBuilder.cpp \
@@ -195,10 +188,15 @@ DebugInfoPDB_SRC += $(addprefix PDB/Native/,         \
                       NativeCompilandSymbol.cpp      \
                       NativeEnumGlobals.cpp          \
                       NativeEnumInjectedSources.cpp  \
+                      NativeEnumLineNumbers.cpp      \
                       NativeEnumModules.cpp          \
                       NativeEnumTypes.cpp            \
                       NativeExeSymbol.cpp            \
+                      NativeFunctionSymbol.cpp       \
+                      NativeLineNumber.cpp           \
+                      NativePublicSymbol.cpp         \
                       NativeRawSymbol.cpp            \
+                      NativeSourceFile.cpp           \
                       NativeSymbolEnumerator.cpp     \
                       NativeTypeArray.cpp            \
                       NativeTypeBuiltin.cpp          \
@@ -222,8 +220,6 @@ DebugInfoPDB_SRC += $(addprefix PDB/Native/,         \
                       TpiHashing.cpp                 \
                       TpiStream.cpp                  \
                       TpiStreamBuilder.cpp)
-
-VPATH += Symbolize
 
 Symbolize_SRC = $(addprefix Symbolize/,      \
                   DIPrinter.cpp              \

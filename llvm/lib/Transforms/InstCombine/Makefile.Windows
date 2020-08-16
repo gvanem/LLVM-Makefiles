@@ -6,8 +6,6 @@ TARGETS = $(BUILD_DIR)/lib/LLVMInstCombine.lib
 
 include $(TOP_DIR)/Common.Windows
 
-GENERATED += InstCombineTables.inc
-
 LIB_SRC = InstructionCombining.cpp        \
           InstCombineAddSub.cpp           \
           InstCombineAndOrXor.cpp         \
@@ -17,6 +15,7 @@ LIB_SRC = InstructionCombining.cpp        \
           InstCombineCompares.cpp         \
           InstCombineLoadStoreAlloca.cpp  \
           InstCombineMulDivRem.cpp        \
+          InstCombineNegator.cpp          \
           InstCombinePHI.cpp              \
           InstCombineSelect.cpp           \
           InstCombineShifts.cpp           \
@@ -36,9 +35,6 @@ endif
 
 $(BUILD_DIR)/lib/LLVMInstCombine.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
-
-InstCombineTables.inc: InstCombineTables.td $(INC_DEPS)
-	$(call llvm_tblgen, $@, -gen-searchable-tables $<)
 
 -include .depend.Windows
 

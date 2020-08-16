@@ -32,6 +32,7 @@ LIB_SRC = AliasAnalysis.cpp                 \
           AliasAnalysisSummary.cpp          \
           AliasSetTracker.cpp               \
           Analysis.cpp                      \
+          AssumeBundleQueries.cpp           \
           AssumptionCache.cpp               \
           BasicAliasAnalysis.cpp            \
           BlockFrequencyInfo.cpp            \
@@ -60,11 +61,15 @@ LIB_SRC = AliasAnalysis.cpp                 \
           DomTreeUpdater.cpp                \
           DominanceFrontier.cpp             \
           EHPersonalities.cpp               \
+          FunctionPropertiesAnalysis.cpp    \
           GlobalsModRef.cpp                 \
           GuardUtils.cpp                    \
+          HeatUtils.cpp                     \
+          InlineSizeEstimatorAnalysis.cpp   \
           IVDescriptors.cpp                 \
           IVUsers.cpp                       \
           IndirectCallPromotionAnalysis.cpp \
+          InlineAdvisor.cpp                 \
           InlineCost.cpp                    \
           InstCount.cpp                     \
           InstructionPrecedenceTracking.cpp \
@@ -99,7 +104,6 @@ LIB_SRC = AliasAnalysis.cpp                 \
           ObjCARCAnalysisUtils.cpp          \
           ObjCARCInstKind.cpp               \
           OptimizationRemarkEmitter.cpp     \
-          OrderedInstructions.cpp           \
           PHITransAddr.cpp                  \
           PhiValues.cpp                     \
           PostDominators.cpp                \
@@ -110,8 +114,9 @@ LIB_SRC = AliasAnalysis.cpp                 \
           RegionPrinter.cpp                 \
           ScalarEvolution.cpp               \
           ScalarEvolutionAliasAnalysis.cpp  \
-          ScalarEvolutionExpander.cpp       \
+          ScalarEvolutionDivision.cpp       \
           ScalarEvolutionNormalization.cpp  \
+          StackLifetime.cpp                 \
           StackSafetyAnalysis.cpp           \
           SyncDependenceAnalysis.cpp        \
           SyntheticCountsUtils.cpp          \

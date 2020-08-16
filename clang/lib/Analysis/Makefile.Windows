@@ -9,13 +9,46 @@ include $(TOP_DIR)/Common.Windows
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INCLUDE_DIR)/AST/Attrs.inc              \
-            $(CLANG_INCLUDE_DIR)/AST/AttrVisitor.inc        \
-            $(CLANG_INCLUDE_DIR)/AST/CommentCommandList.inc \
-            $(CLANG_INCLUDE_DIR)/AST/DeclNodes.inc          \
-            $(CLANG_INCLUDE_DIR)/AST/StmtNodes.inc          \
-            $(CLANG_INCLUDE_DIR)/AST/TypeNodes.inc          \
-            $(CLANG_INCLUDE_DIR)/Basic/AttrList.inc
+INC_FILES = $(addprefix $(CLANG_INCLUDE_DIR)/AST/,    \
+              AbstractBasicReader.inc                 \
+              AbstractBasicWriter.inc                 \
+              AbstractTypeReader.inc                  \
+              AbstractTypeWriter.inc                  \
+              AttrImpl.inc                            \
+              AttrNodeTraverse.inc                    \
+              Attrs.inc                               \
+              AttrTextNodeDump.inc                    \
+              AttrVisitor.inc                         \
+              CommentCommandInfo.inc                  \
+              CommentCommandList.inc                  \
+              CommentHTMLNamedCharacterReferences.inc \
+              CommentHTMLTags.inc                     \
+              CommentHTMLTagsProperties.inc           \
+              CommentNodes.inc                        \
+              DeclNodes.inc                           \
+              StmtDataCollectors.inc                  \
+              StmtNodes.inc                           \
+              TypeNodes.inc)                          \
+                                                      \
+            $(addprefix $(CLANG_INCLUDE_DIR)/Basic/,  \
+              AttrHasAttributeImpl.inc                \
+              AttrList.inc                            \
+              AttrSubMatchRulesList.inc               \
+              DiagnosticAnalysisKinds.inc             \
+              DiagnosticASTKinds.inc                  \
+              DiagnosticCommentKinds.inc              \
+              DiagnosticCommonKinds.inc               \
+              DiagnosticCrossTUKinds.inc              \
+              DiagnosticDriverKinds.inc               \
+              DiagnosticFrontendKinds.inc             \
+              DiagnosticGroups.inc                    \
+              DiagnosticIndexName.inc                 \
+              DiagnosticLexKinds.inc                  \
+              DiagnosticParseKinds.inc                \
+              DiagnosticRefactoringKinds.inc          \
+              DiagnosticSemaKinds.inc                 \
+              DiagnosticSerializationKinds.inc        \
+              Version.inc)
 
 LIB_SRC = AnalysisDeclContext.cpp     \
           BodyFarm.cpp                \

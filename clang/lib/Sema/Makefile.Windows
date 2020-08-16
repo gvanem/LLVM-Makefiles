@@ -7,10 +7,12 @@ TARGETS = $(BUILD_DIR)/lib/clangSema.lib
 include $(TOP_DIR)/Common.Windows
 
 #
-# .inc-files needed here:
+# We need these .inc-files needed here:
 #
 INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticSemaKinds.inc   \
+            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticLexKinds.inc    \
+            $(CLANG_INCLUDE_DIR)/Basic/arm_sve_sema_rangechecks.inc
 
 GENERATED += OpenCLBuiltins.inc
 
@@ -57,6 +59,7 @@ LIB_SRC = AnalysisBasedWarnings.cpp       \
           SemaStmt.cpp                    \
           SemaStmtAsm.cpp                 \
           SemaStmtAttr.cpp                \
+          SemaSYCL.cpp                    \
           SemaTemplate.cpp                \
           SemaTemplateDeduction.cpp       \
           SemaTemplateInstantiate.cpp     \
@@ -69,7 +72,7 @@ ALL_SOURCES = $(LIB_SRC)
 
 LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+all: $(GENERATED) inc_files $(TARGETS)
 
 ifeq ($(CXX),cl)
   CFLAGS += -bigobj
@@ -83,7 +86,7 @@ endif
 $(BUILD_DIR)/lib/clangSema.lib: $(LIB_OBJ) $(THIS_FILE)
 	 $(call create_lib, $@, $(LIB_OBJ))
 
-$(INC_FILES):
+inc_files::
 	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 OpenCLBuiltins.inc: OpenCLBuiltins.td $(BUILD_DIR)/bin/clang-tblgen.exe

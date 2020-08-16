@@ -13,15 +13,14 @@ LIB_SRC = CodeViewYAMLDebugSections.cpp \
           COFFEmitter.cpp               \
           COFFYAML.cpp                  \
           DWARFEmitter.cpp              \
-          DWARFVisitor.cpp              \
           DWARFYAML.cpp                 \
           ELFEmitter.cpp                \
           ELFYAML.cpp                   \
           MachOEmitter.cpp              \
           MachOYAML.cpp                 \
+          ObjectYAML.cpp                \
           MinidumpEmitter.cpp           \
           MinidumpYAML.cpp              \
-          ObjectYAML.cpp                \
           WasmEmitter.cpp               \
           WasmYAML.cpp                  \
           XCOFFYAML.cpp                 \

@@ -1,0 +1,345 @@
+#
+# GNU Makefile for 'clang-tools-extra/clangd'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clangd.exe       \
+          $(BUILD_DIR)/bin/clangd-bench.exe \
+          $(BUILD_DIR)/bin/clangd-dexp.exe  \
+          $(BUILD_DIR)/bin/clangd-indexer.exe
+
+VPATH = index          \
+        index/dex      \
+        index/dex/dexp \
+        indexer        \
+        refactor       \
+        support        \
+        tool           \
+        benchmarks
+
+GENERATED = Features.inc
+
+#
+# For 'benchmarks/IndexBenchmark.cpp'
+#
+CFLAGS += -I$(TOP_DIR)/llvm/utils/benchmark/include
+
+#
+# For 'index/remote/server/Server.cpp'
+#
+CFLAGS += -I./index/remote
+
+PROTOC_GENERATED = index/remote/Index.pb.cc \
+                   index/remote/Index.pb.h  \
+                   index/remote/Index.grpc.pb.h
+
+#
+# Clean these regardless of 'USE_CLANGD_REMOTE=[0|1]'
+#
+EXTRA_CLEAN = rm_protoc_generated
+
+#
+# Build the 'clangd' RPC server program.
+# And add remote feature for 'clangd' using 'index/remote/Client.cpp'
+#
+ifeq ($(USE_CLANGD_REMOTE),1)
+  VPATH += index/remote \
+           index/remote/server
+
+  CFLAGS    += -I$(PROTOBUF_ROOT)/include
+  TARGETS   += $(BUILD_DIR)/bin/clangd-index-server.exe
+  GENERATED += $(PROTOC_GENERATED)
+else
+  VPATH += index/remote/unimplemented
+endif
+
+include $(TOP_DIR)/Common.Windows
+
+base_SRC = AST.cpp                       \
+           ClangdLSPServer.cpp           \
+           ClangdServer.cpp              \
+           CodeComplete.cpp              \
+           CodeCompletionStrings.cpp     \
+           CollectMacros.cpp             \
+           CompileCommands.cpp           \
+           Compiler.cpp                  \
+           Config.cpp                    \
+           ConfigCompile.cpp             \
+           ConfigProvider.cpp            \
+           ConfigYAML.cpp                \
+           Diagnostics.cpp               \
+           DraftStore.cpp                \
+           ExpectedTypes.cpp             \
+           FileDistance.cpp              \
+           FindSymbols.cpp               \
+           FindTarget.cpp                \
+           Format.cpp                    \
+           FS.cpp                        \
+           FuzzyMatch.cpp                \
+           GlobalCompilationDatabase.cpp \
+           Headers.cpp                   \
+           HeaderSourceSwitch.cpp        \
+           Hover.cpp                     \
+           IncludeFixer.cpp              \
+           JSONTransport.cpp             \
+           ParsedAST.cpp                 \
+           PathMapping.cpp               \
+           Preamble.cpp                  \
+           Protocol.cpp                  \
+           Quality.cpp                   \
+           QueryDriverDatabase.cpp       \
+           RIFF.cpp                      \
+           Selection.cpp                 \
+           SemanticHighlighting.cpp      \
+           SemanticSelection.cpp         \
+           SourceCode.cpp                \
+           TUScheduler.cpp               \
+           URI.cpp                       \
+           XRefs.cpp
+
+index_SRC = $(addprefix index/,          \
+              Background.cpp             \
+              BackgroundIndexLoader.cpp  \
+              BackgroundIndexStorage.cpp \
+              BackgroundQueue.cpp        \
+              BackgroundRebuild.cpp      \
+              CanonicalIncludes.cpp      \
+              FileIndex.cpp              \
+              Index.cpp                  \
+              IndexAction.cpp            \
+              MemIndex.cpp               \
+              Merge.cpp                  \
+              Ref.cpp                    \
+              Relation.cpp               \
+              Serialization.cpp          \
+              Symbol.cpp                 \
+              SymbolCollector.cpp        \
+              SymbolID.cpp               \
+              SymbolLocation.cpp         \
+              SymbolOrigin.cpp           \
+              YAMLSerialization.cpp)
+
+index_SRC += $(addprefix index/dex/, \
+               Dex.cpp               \
+               Iterator.cpp          \
+               PostingList.cpp       \
+               Trigram.cpp)
+
+ifeq ($(USE_CLANGD_REMOTE),1)
+  index_SRC += index/remote/Client.cpp \
+               index/remote/Index.pb.cc
+else
+  index_SRC += index/remote/unimplemented/UnimplementedClient.cpp
+endif
+
+refactor_SRC = $(addprefix refactor/, \
+                 Rename.cpp           \
+                 Tweak.cpp)
+
+support_SRC = $(addprefix support/, \
+                Cancellation.cpp    \
+                Context.cpp         \
+                Logger.cpp          \
+                Markup.cpp          \
+                Shutdown.cpp        \
+                Threading.cpp       \
+                ThreadsafeFS.cpp    \
+                Trace.cpp)
+
+all: $(GENERATED) $(TARGETS)
+
+base_OBJ     = $(call cpp_to_obj, $(base_SRC))
+index_OBJ    = $(call cpp_to_obj, $(index_SRC))
+refactor_OBJ = $(call cpp_to_obj, $(refactor_SRC))
+support_OBJ  = $(call cpp_to_obj, $(support_SRC))
+
+common_OBJ = $(base_OBJ)     \
+             $(index_OBJ)    \
+             $(refactor_OBJ) \
+             $(support_OBJ)  \
+
+tidy_LIBS = $(addprefix $(BUILD_DIR)/lib/,         \
+              clangTidy.lib                        \
+              clangTidyAbseilModule.lib            \
+              clangTidyAndroidModule.lib           \
+              clangTidyBoostModule.lib             \
+              clangTidyBugproneModule.lib          \
+              clangTidyCERTModule.lib              \
+              clangTidyCppCoreGuidelinesModule.lib \
+              clangTidyDarwinModule.lib            \
+              clangTidyFuchsiaModule.lib           \
+              clangTidyGoogleModule.lib            \
+              clangTidyHICPPModule.lib             \
+              clangTidyLinuxKernelModule.lib       \
+              clangTidyLLVMLibcModule.lib          \
+              clangTidyLLVMModule.lib              \
+              clangTidyMiscModule.lib              \
+              clangTidyModernizeModule.lib         \
+              clangTidyObjCModule.lib              \
+              clangTidyOpenMPModule.lib            \
+              clangTidyPerformanceModule.lib       \
+              clangTidyPortabilityModule.lib       \
+              clangTidyReadabilityModule.lib       \
+              clangTidyUtils.lib                   \
+              clangTidyZirconModule.lib)
+
+clang_LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+               clangAnalysis.lib               \
+               clangAST.lib                    \
+               clangASTMatchers.lib            \
+               clangBasic.lib                  \
+               clangCrossTU.lib                \
+               clangDriver.lib                 \
+               clangEdit.lib                   \
+               clangFormat.lib                 \
+               clangFrontend.lib               \
+               clangIndex.lib                  \
+               clangLex.lib                    \
+               clangParse.lib                  \
+               clangRewrite.lib                \
+               clangSema.lib                   \
+               clangSerialization.lib          \
+               clangStaticAnalyzerCheckers.lib \
+               clangStaticAnalyzerCore.lib     \
+               clangStaticAnalyzerFrontend.lib \
+               clangTooling.lib                \
+               clangToolingCore.lib            \
+               clangToolingInclusions.lib      \
+               clangToolingRefactor.lib        \
+               clangToolingSyntax.lib          \
+               clangTransformer.lib)
+
+llvm_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+              LLVMBinaryFormat.lib         \
+              LLVMBitstreamReader.lib      \
+              LLVMCore.lib                 \
+              LLVMDemangle.lib             \
+              LLVMFrontendOpenMP.lib       \
+              LLVMMC.lib                   \
+              LLVMMCParser.lib             \
+              LLVMOption.lib               \
+              LLVMProfileData.lib          \
+              LLVMRemarks.lib              \
+              LLVMSupport.lib)
+
+llvm_info_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+                   LLVMAArch64Info.lib          \
+                   LLVMAMDGPUInfo.lib           \
+                   LLVMARMInfo.lib              \
+                   LLVMBPFInfo.lib              \
+                   LLVMHexagonInfo.lib          \
+                   LLVMLanaiInfo.lib            \
+                   LLVMMipsInfo.lib             \
+                   LLVMMSP430Info.lib           \
+                   LLVMNVPTXInfo.lib            \
+                   LLVMPowerPCInfo.lib          \
+                   LLVMSparcInfo.lib            \
+                   LLVMSystemZInfo.lib          \
+                   LLVMWebAssemblyInfo.lib      \
+                   LLVMX86Info.lib              \
+                   LLVMXCoreInfo.lib)
+
+#
+# For 'make depend'
+#
+ALL_SOURCES = $(base_SRC)             \
+              $(index_SRC)            \
+              index/dex/dexp/Dexp.cpp \
+              tool/ClangdMain.cpp     \
+              benchmarks/IndexBenchmark.cpp
+
+ifeq ($(USE_CLANGD_REMOTE),1)
+  ALL_SOURCES += index/remote/server/Server.cpp
+endif
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+Features.inc: Features.inc.in $(THIS_FILE)
+	$(call Generating, $@, //)
+	sed -e 's|@CLANGD_BUILD_XPC@|0|'                        \
+	    -e 's|@CLANGD_ENABLE_REMOTE@|$(USE_CLANGD_REMOTE)|' < $< >> $@
+
+ifeq ($(USE_MP_COMPILE),1)
+$(base_OBJ): $(base_SRC)
+	$(call MP_compile, $(base_SRC))
+
+$(index_OBJ): $(index_SRC)
+	$(call MP_compile, $(index_SRC))
+
+$(support_OBJ): $(support_SRC)
+	$(call MP_compile, $(support_SRC))
+endif
+
+$(BUILD_DIR)/bin/clangd.exe: $(common_OBJ)              \
+                             $(OBJ_DIR)/ClangdMain.obj  \
+                             $(OBJ_DIR)/clangd.res      \
+                             $(clang_LIBS) $(tidy_LIBS) \
+                             $(llvm_LIBS)  $(llvm_info_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(BUILD_DIR)/bin/clangd-bench.exe: $(common_OBJ)                 \
+                                   $(OBJ_DIR)/IndexBenchmark.obj \
+                                   $(OBJ_DIR)/clangd-bench.res   \
+                                   $(clang_LIBS) $(tidy_LIBS)    \
+                                   $(llvm_LIBS)  $(BUILD_DIR)/lib/benchmark.lib
+	$(call link_EXE, $@, $^ $(EX_LIBS) shlwapi.lib)
+
+$(BUILD_DIR)/bin/clangd-dexp.exe: $(common_OBJ)              \
+                                  $(OBJ_DIR)/Dexp.obj        \
+                                  $(OBJ_DIR)/clangd-dexp.res \
+                                  $(clang_LIBS) $(tidy_LIBS) \
+                                  $(llvm_LIBS)  $(BUILD_DIR)/lib/LLVMLineEditor.lib
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(BUILD_DIR)/bin/clangd-indexer.exe: $(common_OBJ)                 \
+                                     $(OBJ_DIR)/IndexerMain.obj    \
+                                     $(OBJ_DIR)/clangd-indexer.res \
+                                     $(clang_LIBS) $(tidy_LIBS) $(llvm_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clangd.rc: $(MDEPEND)
+	$(call make_rc, $@, clangd.exe, VFT_APP, A language server that can work with many editors via a plugin.)
+
+$(OBJ_DIR)/clangd-bench.rc: $(MDEPEND)
+	$(call make_rc, $@, clangd-bench.exe, VFT_APP, A benchmark test program for 'clangd'.)
+
+$(OBJ_DIR)/clangd-dexp.rc: $(MDEPEND)
+	$(call make_rc, $@, clangd-dexp.exe, VFT_APP, A tool to manually evaluate symbol search quality of 'clangd' index.)
+
+$(OBJ_DIR)/clangd-indexer.rc: $(MDEPEND)
+	$(call make_rc, $@, clangd-indexer.exe, VFT_APP, A tool to gather index data (symbols, xrefs) from source.)
+
+ifeq ($(USE_CLANGD_REMOTE),1)
+$(BUILD_DIR)/bin/clangd-index-server.exe: $(common_OBJ)                      \
+                                          $(OBJ_DIR)/Index.pb.obj            \
+                                          $(OBJ_DIR)/Server.obj              \
+                                          $(OBJ_DIR)/clangd-index-server.res \
+                                          $(clang_LIBS) $(tidy_LIBS) $(llvm_LIBS)
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clangd-index-server.rc: $(MDEPEND)
+	$(call make_rc, $@, clangd-index-server.exe, VFT_APP, An indexer that works remotely via RPC.)
+
+index/remote/Index.pb.h index/remote/Index.pb.cc: index/remote/Index.proto
+	$(call green_msg, Generating 'index/remote/Index.pb.h' and 'index/remote/Index.pb.cc' using Google's proto-buf compiler.)
+	$(PROTOBUF_ROOT)/bin/protoc.exe --cpp_out=. $<
+
+index/remote/Index.grpc.pb.h: $(THIS_FILE)
+	$(call Generating, $@, //)
+	$(file >> $@, // I have no idea how this should be generated.)
+endif
+
+$(tidy_LIBS):
+	$(call do_make, ../clang-tidy, all)
+
+rm_protoc_generated:
+	rm -f $(PROTOC_GENERATED)
+
+-include .depend.Windows
+

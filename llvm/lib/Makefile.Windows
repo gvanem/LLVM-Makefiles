@@ -1,5 +1,5 @@
 #
-# Top-level makefile for 'llvm/lib'.
+# Top-level GNU makefile for 'llvm/lib'.
 #
 TOP_DIR = ../..
 

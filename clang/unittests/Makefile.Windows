@@ -1,5 +1,5 @@
 #
-# Top-level makefile for 'clang/unittests'.
+# Top-level GNU makefile for 'clang/unittests'.
 #
 TOP_DIR = ../..
 

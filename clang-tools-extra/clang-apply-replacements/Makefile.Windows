@@ -1,0 +1,52 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-apply-replacements'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clang-apply-replacements.exe
+VPATH   = lib/Tooling \
+          tool
+
+include $(TOP_DIR)/Common.Windows
+
+CFLAGS += -I./include
+
+ALL_SOURCES = lib/Tooling/ApplyReplacements.cpp \
+              tool/ClangApplyReplacementsMain.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAST.lib                 \
+         clangBasic.lib               \
+         clangFormat.lib              \
+         clangLex.lib                 \
+         clangRewrite.lib             \
+         clangToolingCore.lib         \
+         clangToolingInclusions.lib   \
+         clangToolingRefactor.lib     \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMFrontendOpenMP.lib       \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-apply-replacements.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-apply-replacements.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-apply-replacements.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-apply-replacements.exe, VFT_APP, A tool for applying replacements.)
+
+-include .depend.Windows
+

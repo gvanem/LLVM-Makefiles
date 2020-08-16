@@ -38,7 +38,6 @@ LIBS += $(addprefix $(BUILD_DIR)/lib/,  \
           LLVMBitstreamReader.lib       \
           LLVMBitReader.lib             \
           LLVMBitWriter.lib             \
-          LLVMCodeGen.lib               \
           LLVMCore.lib                  \
           LLVMCoroutines.lib            \
           LLVMCoverage.lib              \
@@ -76,7 +75,18 @@ ifeq ($(USE_ZLIB),1)
 endif
 
 ifeq ($(USE_XML2),1)
-  CFLAGS  += -I$(XML2_ROOT)/include
+  CFLAGS += -I$(XML2_ROOT)/include
+
+  #
+  # In case 'libxml2' was configured with 'LIBXML_ICONV_ENABLED'
+  #
+  CFLAGS += -I$(ICONV_ROOT)/include
+
+  #
+  # Use the static 'xml2.lib'
+  #
+  CFLAGS += -DLIBXML_STATIC
+
   EX_LIBS += $(XML2_LIB) $(LZMA_LIB) $(ICONV_LIB) ws2_32.lib
 endif
 

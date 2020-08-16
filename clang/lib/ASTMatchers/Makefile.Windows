@@ -31,6 +31,7 @@ ASTMatchers_SRC = ASTMatchersInternal.cpp \
 
 DynamicASTMatchers_SRC = $(addprefix Dynamic/, \
                            Diagnostics.cpp     \
+                           Marshallers.cpp     \
                            Parser.cpp          \
                            Registry.cpp        \
                            VariantValue.cpp)

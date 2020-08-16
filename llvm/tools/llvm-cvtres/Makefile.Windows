@@ -32,7 +32,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
 EX_LIBS = advapi32.lib ole32.lib shell32.lib
 
 ifeq ($(USE_ZLIB),1)
-  EX_LIBS += $(ZLIB_LIB)
+  # EX_LIBS += $(ZLIB_LIB)
 endif
 
 $(BUILD_DIR)/bin/llvm-cvtres.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-cvtres.res

@@ -10,7 +10,8 @@ ALL_SOURCES = COFFDump.cpp     \
               ELFDump.cpp      \
               llvm-objdump.cpp \
               MachODump.cpp    \
-              WasmDump.cpp
+              WasmDump.cpp     \
+              XCOFFDump.cpp
 
 OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
 

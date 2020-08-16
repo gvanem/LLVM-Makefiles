@@ -6,66 +6,82 @@ TARGETS = $(BUILD_DIR)/lib/LLVMCore.lib
 
 include $(TOP_DIR)/Common.Windows
 
-GENERATED += $(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc   \
-             $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicImpl.inc \
-             $(TOP_DIR)/llvm/include/llvm/IR/IntrinsicEnums.inc
+GENERATED += $(TOP_DIR)/llvm/lib/IR/AttributesCompatFunc.inc \
+                                                             \
+             $(addprefix $(TOP_DIR)/llvm/include/llvm/IR/,   \
+               Attributes.inc                                \
+               IntrinsicImpl.inc                             \
+               IntrinsicEnums.inc                            \
+               IntrinsicsAArch64.h                           \
+               IntrinsicsAMDGPU.h                            \
+               IntrinsicsARM.h                               \
+               IntrinsicsBPF.h                               \
+               IntrinsicsHexagon.h                           \
+               IntrinsicsMips.h                              \
+               IntrinsicsNVPTX.h                             \
+               IntrinsicsPowerPC.h                           \
+               IntrinsicsR600.h                              \
+               IntrinsicsRISCV.h                             \
+               IntrinsicsS390.h                              \
+               IntrinsicsWebAssembly.h                       \
+               IntrinsicsX86.h                               \
+               IntrinsicsXCore.h)
 
-LIB_SRC =  AbstractCallSite.cpp    \
-           AsmWriter.cpp           \
-           Attributes.cpp          \
-           AutoUpgrade.cpp         \
-           BasicBlock.cpp          \
-           Comdat.cpp              \
-           ConstantFold.cpp        \
-           ConstantRange.cpp       \
-           Constants.cpp           \
-           Core.cpp                \
-           DIBuilder.cpp           \
-           DataLayout.cpp          \
-           DebugInfo.cpp           \
-           DebugInfoMetadata.cpp   \
-           DebugLoc.cpp            \
-           DiagnosticHandler.cpp   \
-           DiagnosticInfo.cpp      \
-           DiagnosticPrinter.cpp   \
-           Dominators.cpp          \
-           FPEnv.cpp               \
-           Function.cpp            \
-           GVMaterializer.cpp      \
-           Globals.cpp             \
-           IRBuilder.cpp           \
-           IRPrintingPasses.cpp    \
-           InlineAsm.cpp           \
-           Instruction.cpp         \
-           Instructions.cpp        \
-           IntrinsicInst.cpp       \
-           KnowledgeRetention.cpp  \
-           LLVMContext.cpp         \
-           LLVMContextImpl.cpp     \
-           LLVMRemarkStreamer.cpp  \
-           LegacyPassManager.cpp   \
-           MDBuilder.cpp           \
-           Mangler.cpp             \
-           Metadata.cpp            \
-           Module.cpp              \
-           ModuleSummaryIndex.cpp  \
-           Operator.cpp            \
-           OptBisect.cpp           \
-           Pass.cpp                \
-           PassInstrumentation.cpp \
-           PassManager.cpp         \
-           PassRegistry.cpp        \
-           PassTimingInfo.cpp      \
-           SafepointIRVerifier.cpp \
-           ProfileSummary.cpp      \
-           Statepoint.cpp          \
-           Type.cpp                \
-           TypeFinder.cpp          \
-           Use.cpp                 \
-           User.cpp                \
-           Value.cpp               \
-           ValueSymbolTable.cpp    \
-           Verifier.cpp
+LIB_SRC = AbstractCallSite.cpp    \
+          AsmWriter.cpp           \
+          Attributes.cpp          \
+          AutoUpgrade.cpp         \
+          BasicBlock.cpp          \
+          Comdat.cpp              \
+          ConstantFold.cpp        \
+          ConstantRange.cpp       \
+          Constants.cpp           \
+          Core.cpp                \
+          DIBuilder.cpp           \
+          DataLayout.cpp          \
+          DebugInfo.cpp           \
+          DebugInfoMetadata.cpp   \
+          DebugLoc.cpp            \
+          DiagnosticHandler.cpp   \
+          DiagnosticInfo.cpp      \
+          DiagnosticPrinter.cpp   \
+          Dominators.cpp          \
+          FPEnv.cpp               \
+          Function.cpp            \
+          GVMaterializer.cpp      \
+          Globals.cpp             \
+          IRBuilder.cpp           \
+          IRPrintingPasses.cpp    \
+          InlineAsm.cpp           \
+          Instruction.cpp         \
+          Instructions.cpp        \
+          IntrinsicInst.cpp       \
+          LLVMContext.cpp         \
+          LLVMContextImpl.cpp     \
+          LLVMRemarkStreamer.cpp  \
+          LegacyPassManager.cpp   \
+          MDBuilder.cpp           \
+          Mangler.cpp             \
+          Metadata.cpp            \
+          Module.cpp              \
+          ModuleSummaryIndex.cpp  \
+          Operator.cpp            \
+          OptBisect.cpp           \
+          Pass.cpp                \
+          PassInstrumentation.cpp \
+          PassManager.cpp         \
+          PassRegistry.cpp        \
+          PassTimingInfo.cpp      \
+          SafepointIRVerifier.cpp \
+          ProfileSummary.cpp      \
+          Statepoint.cpp          \
+          Type.cpp                \
+          TypeFinder.cpp          \
+          Use.cpp                 \
+          User.cpp                \
+          Value.cpp               \
+          ValueSymbolTable.cpp    \
+          Verifier.cpp
 
 ALL_SOURCES = $(LIB_SRC)
 

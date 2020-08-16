@@ -1,8 +1,9 @@
 #
 # GNU Makefile for 'llvm/tools/llvm-symbolizer'.
 #
-TOP_DIR = ../../..
-TARGETS = $(BUILD_DIR)/bin/llvm-symbolizer.exe
+TOP_DIR   = ../../..
+TARGETS   = $(BUILD_DIR)/bin/llvm-symbolizer.exe
+GENERATED = Opts.inc
 
 include $(TOP_DIR)/Common.Windows
 
@@ -24,6 +25,7 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMMC.lib                   \
          LLVMMCParser.lib             \
          LLVMObject.lib               \
+         LLVMOption.lib               \
          LLVMRemarks.lib              \
          LLVMSupport.lib              \
          LLVMSymbolize.lib            \
@@ -46,6 +48,9 @@ $(BUILD_DIR)/bin/llvm-symbolizer.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/llvm-symboli
 
 $(OBJ_DIR)/llvm-symbolizer.rc: $(MDEPEND)
 	$(call make_rc, $@, llvm-symbolizer.exe, VFT_APP, Address to symbol location tool.)
+
+Opts.inc: Opts.td $(BUILD_DIR)/bin/llvm-tblgen.exe
+	$(call llvm_tblgen, $@, -gen-opt-parser-defs $<)
 
 -include .depend.Windows
 

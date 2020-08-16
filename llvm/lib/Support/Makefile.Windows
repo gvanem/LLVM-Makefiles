@@ -41,19 +41,23 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
               CodeGenCoverage.cpp              \
               CommandLine.cpp                  \
               Compression.cpp                  \
+              CRC.cpp                          \
               ConvertUTF.cpp                   \
               ConvertUTFWrapper.cpp            \
               CrashRecoveryContext.cpp         \
-              CRC.cpp                          \
               DataExtractor.cpp                \
               Debug.cpp                        \
               DebugCounter.cpp                 \
               DeltaAlgorithm.cpp               \
               DAGDeltaAlgorithm.cpp            \
               DJB.cpp                          \
+              ELFAttributeParser.cpp           \
+              ELFAttributes.cpp                \
               Error.cpp                        \
               ErrorHandling.cpp                \
+              ExtensibleRTTI.cpp               \
               FileCheck.cpp                    \
+              FileCollector.cpp                \
               FileUtilities.cpp                \
               FileOutputBuffer.cpp             \
               FoldingSet.cpp                   \
@@ -75,16 +79,19 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
               LowLevelType.cpp                 \
               ManagedStatic.cpp                \
               MathExtras.cpp                   \
+              MemAlloc.cpp                     \
               MemoryBuffer.cpp                 \
               MD5.cpp                          \
               NativeFormatting.cpp             \
+              OptimizedStructLayout.cpp        \
               Optional.cpp                     \
-              OptimalLayout.cpp                \
               Parallel.cpp                     \
               PluginLoader.cpp                 \
               PrettyStackTrace.cpp             \
               RandomNumberGenerator.cpp        \
               Regex.cpp                        \
+              RISCVAttributes.cpp              \
+              RISCVAttributeParser.cpp         \
               ScaledNumber.cpp                 \
               ScopedPrinter.cpp                \
               SHA1.cpp                         \
@@ -96,9 +103,9 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
               Statistic.cpp                    \
               StringExtras.cpp                 \
               StringMap.cpp                    \
-              StringPool.cpp                   \
               StringSaver.cpp                  \
               StringRef.cpp                    \
+              SuffixTree.cpp                   \
               SymbolRemappingReader.cpp        \
               SystemUtils.cpp                  \
               TarWriter.cpp                    \
@@ -115,6 +122,7 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
               VersionTuple.cpp                 \
               VirtualFileSystem.cpp            \
               WithColor.cpp                    \
+              X86TargetParser.cpp              \
               YAMLParser.cpp                   \
               YAMLTraits.cpp                   \
               raw_os_ostream.cpp               \
@@ -128,7 +136,6 @@ LIB_CPP_SRC = AArch64TargetParser.cpp          \
 LIB_CPP_SRC += Atomic.cpp         \
                DynamicLibrary.cpp \
                Errno.cpp          \
-               FileCollector.cpp  \
                Host.cpp           \
                Memory.cpp         \
                Path.cpp           \

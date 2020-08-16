@@ -1,0 +1,769 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-tidy'.
+#
+TOP_DIR = ../..
+
+TARGETS = $(addprefix $(BUILD_DIR)/lib/,         \
+            clangTidy.lib                        \
+            clangTidyPlugin.lib                  \
+            clangTidyAbseilModule.lib            \
+            clangTidyAndroidModule.lib           \
+            clangTidyBoostModule.lib             \
+            clangTidyBugproneModule.lib          \
+            clangTidyCERTModule.lib              \
+            clangTidyCppCoreGuidelinesModule.lib \
+            clangTidyDarwinModule.lib            \
+            clangTidyFuchsiaModule.lib           \
+            clangTidyGoogleModule.lib            \
+            clangTidyHICPPModule.lib             \
+            clangTidyLLVMLibcModule.lib          \
+            clangTidyLLVMModule.lib              \
+            clangTidyLinuxKernelModule.lib       \
+            clangTidyMPIModule.lib               \
+            clangTidyMiscModule.lib              \
+            clangTidyModernizeModule.lib         \
+            clangTidyObjCModule.lib              \
+            clangTidyOpenMPModule.lib            \
+            clangTidyPerformanceModule.lib       \
+            clangTidyPortabilityModule.lib       \
+            clangTidyReadabilityModule.lib       \
+            clangTidyUtils.lib                   \
+            clangTidyZirconModule.lib)
+
+TARGETS += $(BUILD_DIR)/bin/clang-tidy.exe
+
+VPATH = abseil            \
+        android           \
+        bugprone          \
+        boost             \
+        cert              \
+        cppcoreguidelines \
+        darwin            \
+        fuchsia           \
+        google            \
+        hicpp             \
+        linuxkernel       \
+        llvm              \
+        llvmlibc          \
+        misc              \
+        modernize         \
+        mpi               \
+        objc              \
+        performance       \
+        plugin            \
+        portability       \
+        readability       \
+        tool              \
+        utils             \
+        zircon
+
+include $(TOP_DIR)/Common.Windows
+
+tidy_SRC = ClangTidy.cpp                       \
+           ClangTidyCheck.cpp                  \
+           ClangTidyDiagnosticConsumer.cpp     \
+           ClangTidyModule.cpp                 \
+           ClangTidyOptions.cpp                \
+           ClangTidyProfiling.cpp              \
+           ExpandModularHeadersPPCallbacks.cpp \
+           GlobList.cpp
+
+tidy_OBJ = $(call cpp_to_obj, $(tidy_SRC))
+
+abseil_SRC = $(addprefix abseil/,                     \
+               AbseilTidyModule.cpp                   \
+               DurationAdditionCheck.cpp              \
+               DurationComparisonCheck.cpp            \
+               DurationConversionCastCheck.cpp        \
+               DurationDivisionCheck.cpp              \
+               DurationFactoryFloatCheck.cpp          \
+               DurationFactoryScaleCheck.cpp          \
+               DurationRewriter.cpp                   \
+               DurationSubtractionCheck.cpp           \
+               DurationUnnecessaryConversionCheck.cpp \
+               FasterStrsplitDelimiterCheck.cpp       \
+               NoInternalDependenciesCheck.cpp        \
+               NoNamespaceCheck.cpp                   \
+               RedundantStrcatCallsCheck.cpp          \
+               StrCatAppendCheck.cpp                  \
+               StringFindStartswithCheck.cpp          \
+               StringFindStrContainsCheck.cpp         \
+               TimeComparisonCheck.cpp                \
+               TimeSubtractionCheck.cpp               \
+               UpgradeDurationConversionsCheck.cpp)
+
+abseil_OBJ = $(call cpp_to_obj, $(abseil_SRC))
+
+android_SRC = $(addprefix android/,           \
+                AndroidTidyModule.cpp         \
+                CloexecAccept4Check.cpp       \
+                CloexecAcceptCheck.cpp        \
+                CloexecCheck.cpp              \
+                CloexecCreatCheck.cpp         \
+                CloexecDupCheck.cpp           \
+                CloexecEpollCreate1Check.cpp  \
+                CloexecEpollCreateCheck.cpp   \
+                CloexecFopenCheck.cpp         \
+                CloexecInotifyInit1Check.cpp  \
+                CloexecInotifyInitCheck.cpp   \
+                CloexecMemfdCreateCheck.cpp   \
+                CloexecOpenCheck.cpp          \
+                CloexecPipe2Check.cpp         \
+                CloexecPipeCheck.cpp          \
+                CloexecSocketCheck.cpp        \
+                ComparisonInTempFailureRetryCheck.cpp)
+
+android_OBJ = $(call cpp_to_obj, $(android_SRC))
+
+boost_SRC = $(addprefix boost/,   \
+              BoostTidyModule.cpp \
+              UseToStringCheck.cpp)
+
+boost_OBJ = $(call cpp_to_obj, $(boost_SRC))
+
+bugprone_SRC = $(addprefix bugprone/,                       \
+                 ArgumentCommentCheck.cpp                   \
+                 AssertSideEffectCheck.cpp                  \
+                 BadSignalToKillThreadCheck.cpp             \
+                 BoolPointerImplicitConversionCheck.cpp     \
+                 BranchCloneCheck.cpp                       \
+                 BugproneTidyModule.cpp                     \
+                 CopyConstructorInitCheck.cpp               \
+                 DanglingHandleCheck.cpp                    \
+                 DynamicStaticInitializersCheck.cpp         \
+                 ExceptionEscapeCheck.cpp                   \
+                 FoldInitTypeCheck.cpp                      \
+                 ForwardDeclarationNamespaceCheck.cpp       \
+                 ForwardingReferenceOverloadCheck.cpp       \
+                 InaccurateEraseCheck.cpp                   \
+                 IncorrectRoundingsCheck.cpp                \
+                 InfiniteLoopCheck.cpp                      \
+                 IntegerDivisionCheck.cpp                   \
+                 LambdaFunctionNameCheck.cpp                \
+                 MacroParenthesesCheck.cpp                  \
+                 MacroRepeatedSideEffectsCheck.cpp          \
+                 MisplacedOperatorInStrlenInAllocCheck.cpp  \
+                 MisplacedPointerArithmeticInAllocCheck.cpp \
+                 MisplacedWideningCastCheck.cpp             \
+                 MoveForwardingReferenceCheck.cpp           \
+                 MultipleStatementMacroCheck.cpp            \
+                 NoEscapeCheck.cpp                          \
+                 NotNullTerminatedResultCheck.cpp           \
+                 ParentVirtualCallCheck.cpp                 \
+                 PosixReturnCheck.cpp                       \
+                 ReservedIdentifierCheck.cpp                \
+                 SignedCharMisuseCheck.cpp                  \
+                 SizeofContainerCheck.cpp                   \
+                 SizeofExpressionCheck.cpp                  \
+                 SpuriouslyWakeUpFunctionsCheck.cpp         \
+                 StringConstructorCheck.cpp                 \
+                 StringIntegerAssignmentCheck.cpp           \
+                 StringLiteralWithEmbeddedNulCheck.cpp      \
+                 SuspiciousEnumUsageCheck.cpp               \
+                 SuspiciousIncludeCheck.cpp                 \
+                 SuspiciousMemsetUsageCheck.cpp             \
+                 SuspiciousMissingCommaCheck.cpp            \
+                 SuspiciousSemicolonCheck.cpp               \
+                 SuspiciousStringCompareCheck.cpp           \
+                 SwappedArgumentsCheck.cpp                  \
+                 TerminatingContinueCheck.cpp               \
+                 ThrowKeywordMissingCheck.cpp               \
+                 TooSmallLoopVariableCheck.cpp              \
+                 UndefinedMemoryManipulationCheck.cpp       \
+                 UndelegatedConstructorCheck.cpp            \
+                 UnhandledSelfAssignmentCheck.cpp           \
+                 UnusedRaiiCheck.cpp                        \
+                 UnusedReturnValueCheck.cpp                 \
+                 UseAfterMoveCheck.cpp                      \
+                 VirtualNearMissCheck.cpp)
+
+bugprone_OBJ = $(call cpp_to_obj, $(bugprone_SRC))
+
+cert_SRC = $(addprefix cert/,                        \
+             CERTTidyModule.cpp                      \
+             CommandProcessorCheck.cpp               \
+             DefaultOperatorNewAlignmentCheck.cpp    \
+             DontModifyStdNamespaceCheck.cpp         \
+             FloatLoopCounter.cpp                    \
+             LimitedRandomnessCheck.cpp              \
+             MutatingCopyCheck.cpp                   \
+             NonTrivialTypesLibcMemoryCallsCheck.cpp \
+             PostfixOperatorCheck.cpp                \
+             ProperlySeededRandomGeneratorCheck.cpp  \
+             SetLongJmpCheck.cpp                     \
+             StaticObjectExceptionCheck.cpp          \
+             StrToNumCheck.cpp                       \
+             ThrownExceptionTypeCheck.cpp            \
+             VariadicFunctionDefCheck.cpp)
+
+cert_OBJ = $(call cpp_to_obj, $(cert_SRC))
+
+cppcoreguidelines_SRC = $(addprefix cppcoreguidelines/,         \
+                          AvoidGotoCheck.cpp                    \
+                          AvoidNonConstGlobalVariablesCheck.cpp \
+                          CppCoreGuidelinesTidyModule.cpp       \
+                          InitVariablesCheck.cpp                \
+                          InterfacesGlobalInitCheck.cpp         \
+                          MacroUsageCheck.cpp                   \
+                          NarrowingConversionsCheck.cpp         \
+                          NoMallocCheck.cpp                     \
+                          OwningMemoryCheck.cpp                 \
+                          ProBoundsArrayToPointerDecayCheck.cpp \
+                          ProBoundsConstantArrayIndexCheck.cpp  \
+                          ProBoundsPointerArithmeticCheck.cpp   \
+                          ProTypeConstCastCheck.cpp             \
+                          ProTypeCstyleCastCheck.cpp            \
+                          ProTypeMemberInitCheck.cpp            \
+                          ProTypeReinterpretCastCheck.cpp       \
+                          ProTypeStaticCastDowncastCheck.cpp    \
+                          ProTypeUnionAccessCheck.cpp           \
+                          ProTypeVarargCheck.cpp                \
+                          SlicingCheck.cpp                      \
+                          SpecialMemberFunctionsCheck.cpp)
+
+cppcoreguidelines_OBJ = $(call cpp_to_obj, $(cppcoreguidelines_SRC))
+
+darwin_SRC = $(addprefix darwin/,     \
+               AvoidSpinlockCheck.cpp \
+               DarwinTidyModule.cpp   \
+               DispatchOnceNonstaticCheck.cpp)
+
+darwin_OBJ = $(call cpp_to_obj, $(darwin_SRC))
+
+fuchsia_SRC = $(addprefix fuchsia/,                   \
+                DefaultArgumentsCallsCheck.cpp        \
+                DefaultArgumentsDeclarationsCheck.cpp \
+                FuchsiaTidyModule.cpp                 \
+                MultipleInheritanceCheck.cpp          \
+                OverloadedOperatorCheck.cpp           \
+                StaticallyConstructedObjectsCheck.cpp \
+                TrailingReturnCheck.cpp               \
+                VirtualInheritanceCheck.cpp)
+
+fuchsia_OBJ = $(call cpp_to_obj, $(fuchsia_SRC))
+
+google_SRC = $(addprefix google/,                       \
+               AvoidCStyleCastsCheck.cpp                \
+               AvoidNSObjectNewCheck.cpp                \
+               AvoidThrowingObjCExceptionCheck.cpp      \
+               AvoidUnderscoreInGoogletestNameCheck.cpp \
+               DefaultArgumentsCheck.cpp                \
+               ExplicitConstructorCheck.cpp             \
+               ExplicitMakePairCheck.cpp                \
+               FunctionNamingCheck.cpp                  \
+               GlobalNamesInHeadersCheck.cpp            \
+               GlobalVariableDeclarationCheck.cpp       \
+               GoogleTidyModule.cpp                     \
+               IntegerTypesCheck.cpp                    \
+               NonConstReferences.cpp                   \
+               OverloadedUnaryAndCheck.cpp              \
+               TodoCommentCheck.cpp                     \
+               UnnamedNamespaceInHeaderCheck.cpp        \
+               UpgradeGoogletestCaseCheck.cpp           \
+               UsingNamespaceDirectiveCheck.cpp)
+
+google_OBJ = $(call cpp_to_obj, $(google_SRC))
+
+hicpp_SRC = $(addprefix hicpp/,             \
+              ExceptionBaseclassCheck.cpp   \
+              HICPPTidyModule.cpp           \
+              MultiwayPathsCoveredCheck.cpp \
+              NoAssemblerCheck.cpp          \
+              SignedBitwiseCheck.cpp)
+
+hicpp_OBJ = $(call cpp_to_obj, $(hicpp_SRC))
+
+linuxkernel_SRC = $(addprefix linuxkernel/,   \
+                    LinuxKernelTidyModule.cpp \
+                    MustCheckErrsCheck.cpp)
+
+linuxkernel_OBJ = $(call cpp_to_obj, $(linuxkernel_SRC))
+
+llvm_SRC = $(addprefix llvm/,                          \
+             HeaderGuardCheck.cpp                      \
+             IncludeOrderCheck.cpp                     \
+             LLVMTidyModule.cpp                        \
+             PreferIsaOrDynCastInConditionalsCheck.cpp \
+             PreferRegisterOverUnsignedCheck.cpp       \
+             TwineLocalCheck.cpp)
+
+llvm_OBJ = $(call cpp_to_obj, $(llvm_SRC))
+
+llvmlibc_SRC = $(addprefix llvmlibc/,               \
+                 CalleeNamespaceCheck.cpp           \
+                 ImplementationInNamespaceCheck.cpp \
+                 LLVMLibcTidyModule.cpp             \
+                 RestrictSystemLibcHeadersCheck.cpp)
+
+llvmlibc_OBJ = $(call cpp_to_obj, $(llvmlibc_SRC))
+
+misc_SRC = $(addprefix misc/,                            \
+             DefinitionsInHeadersCheck.cpp               \
+             MiscTidyModule.cpp                          \
+             MisplacedConstCheck.cpp                     \
+             NewDeleteOverloadsCheck.cpp                 \
+             NonCopyableObjects.cpp                      \
+             NonPrivateMemberVariablesInClassesCheck.cpp \
+             NoRecursionCheck.cpp                        \
+             RedundantExpressionCheck.cpp                \
+             StaticAssertCheck.cpp                       \
+             ThrowByValueCatchByReferenceCheck.cpp       \
+             UnconventionalAssignOperatorCheck.cpp       \
+             UniqueptrResetReleaseCheck.cpp              \
+             UnusedAliasDeclsCheck.cpp                   \
+             UnusedParametersCheck.cpp                   \
+             UnusedUsingDeclsCheck.cpp)
+
+misc_OBJ = $(call cpp_to_obj, $(misc_SRC))
+
+modernize_SRC = $(addprefix modernize/,                      \
+                  AvoidBindCheck.cpp                         \
+                  AvoidCArraysCheck.cpp                      \
+                  ConcatNestedNamespacesCheck.cpp            \
+                  DeprecatedHeadersCheck.cpp                 \
+                  DeprecatedIosBaseAliasesCheck.cpp          \
+                  LoopConvertCheck.cpp                       \
+                  LoopConvertUtils.cpp                       \
+                  MakeSharedCheck.cpp                        \
+                  MakeSmartPtrCheck.cpp                      \
+                  MakeUniqueCheck.cpp                        \
+                  ModernizeTidyModule.cpp                    \
+                  PassByValueCheck.cpp                       \
+                  RawStringLiteralCheck.cpp                  \
+                  RedundantVoidArgCheck.cpp                  \
+                  ReplaceAutoPtrCheck.cpp                    \
+                  ReplaceDisallowCopyAndAssignMacroCheck.cpp \
+                  ReplaceRandomShuffleCheck.cpp              \
+                  ReturnBracedInitListCheck.cpp              \
+                  ShrinkToFitCheck.cpp                       \
+                  UnaryStaticAssertCheck.cpp                 \
+                  UseAutoCheck.cpp                           \
+                  UseBoolLiteralsCheck.cpp                   \
+                  UseDefaultMemberInitCheck.cpp              \
+                  UseEmplaceCheck.cpp                        \
+                  UseEqualsDefaultCheck.cpp                  \
+                  UseEqualsDeleteCheck.cpp                   \
+                  UseNodiscardCheck.cpp                      \
+                  UseNoexceptCheck.cpp                       \
+                  UseNullptrCheck.cpp                        \
+                  UseOverrideCheck.cpp                       \
+                  UseTrailingReturnTypeCheck.cpp             \
+                  UseTransparentFunctorsCheck.cpp            \
+                  UseUncaughtExceptionsCheck.cpp             \
+                  UseUsingCheck.cpp)
+
+modernize_OBJ = $(call cpp_to_obj, $(modernize_SRC))
+
+mpi_SRC = $(addprefix mpi/,      \
+            BufferDerefCheck.cpp \
+            MPITidyModule.cpp    \
+            TypeMismatchCheck.cpp)
+
+mpi_OBJ = $(call cpp_to_obj, $(mpi_SRC))
+
+objc_SRC = $(addprefix objc/,                      \
+             AvoidNSErrorInitCheck.cpp             \
+             DeallocInCategoryCheck.cpp            \
+             ForbiddenSubclassingCheck.cpp         \
+             MissingHashCheck.cpp                  \
+             NSInvocationArgumentLifetimeCheck.cpp \
+             ObjCTidyModule.cpp                    \
+             PropertyDeclarationCheck.cpp          \
+             SuperSelfCheck.cpp)
+
+objc_OBJ = $(call cpp_to_obj, $(objc_SRC))
+
+openmp_SRC = $(addprefix openmp/,       \
+               ExceptionEscapeCheck.cpp \
+               OpenMPTidyModule.cpp     \
+               UseDefaultNoneCheck.cpp)
+
+#
+# Because there are 2 'ExceptionEscapeCheck.cpp' files.
+# Hence 'openmp' is NOT in 'VPATH'; use the special rule at the bottom.
+#
+openmp_OBJ = $(call cpp_to_obj, $(openmp_SRC), openmp_)
+
+performance_SRC = $(addprefix performance/,                 \
+                    FasterStringFindCheck.cpp               \
+                    ForRangeCopyCheck.cpp                   \
+                    ImplicitConversionInLoopCheck.cpp       \
+                    InefficientAlgorithmCheck.cpp           \
+                    InefficientStringConcatenationCheck.cpp \
+                    InefficientVectorOperationCheck.cpp     \
+                    MoveConstArgCheck.cpp                   \
+                    MoveConstructorInitCheck.cpp            \
+                    NoAutomaticMoveCheck.cpp                \
+                    NoexceptMoveConstructorCheck.cpp        \
+                    PerformanceTidyModule.cpp               \
+                    TriviallyDestructibleCheck.cpp          \
+                    TypePromotionInMathFnCheck.cpp          \
+                    UnnecessaryCopyInitialization.cpp       \
+                    UnnecessaryValueParamCheck.cpp)
+
+performance_OBJ = $(call cpp_to_obj, $(performance_SRC))
+
+portability_SRC = $(addprefix portability/,         \
+                    PortabilityTidyModule.cpp       \
+                    RestrictSystemIncludesCheck.cpp \
+                    SIMDIntrinsicsCheck.cpp)
+
+portability_OBJ = $(call cpp_to_obj, $(portability_SRC))
+
+readability_SRC = $(addprefix readability/,                       \
+                    AvoidConstParamsInDecls.cpp                   \
+                    BracesAroundStatementsCheck.cpp               \
+                    ConstReturnTypeCheck.cpp                      \
+                    ContainerSizeEmptyCheck.cpp                   \
+                    ConvertMemberFunctionsToStatic.cpp            \
+                    DeletedDefaultCheck.cpp                       \
+                    DeleteNullPointerCheck.cpp                    \
+                    ElseAfterReturnCheck.cpp                      \
+                    FunctionSizeCheck.cpp                         \
+                    IdentifierNamingCheck.cpp                     \
+                    ImplicitBoolConversionCheck.cpp               \
+                    InconsistentDeclarationParameterNameCheck.cpp \
+                    IsolateDeclarationCheck.cpp                   \
+                    MagicNumbersCheck.cpp                         \
+                    MakeMemberFunctionConstCheck.cpp              \
+                    MisleadingIndentationCheck.cpp                \
+                    MisplacedArrayIndexCheck.cpp                  \
+                    NamedParameterCheck.cpp                       \
+                    NamespaceCommentCheck.cpp                     \
+                    NonConstParameterCheck.cpp                    \
+                    QualifiedAutoCheck.cpp                        \
+                    ReadabilityTidyModule.cpp                     \
+                    RedundantAccessSpecifiersCheck.cpp            \
+                    RedundantControlFlowCheck.cpp                 \
+                    RedundantDeclarationCheck.cpp                 \
+                    RedundantFunctionPtrDereferenceCheck.cpp      \
+                    RedundantMemberInitCheck.cpp                  \
+                    RedundantPreprocessorCheck.cpp                \
+                    RedundantSmartptrGetCheck.cpp                 \
+                    RedundantStringCStrCheck.cpp                  \
+                    RedundantStringInitCheck.cpp                  \
+                    SimplifyBooleanExprCheck.cpp                  \
+                    SimplifySubscriptExprCheck.cpp                \
+                    StaticAccessedThroughInstanceCheck.cpp        \
+                    StaticDefinitionInAnonymousNamespaceCheck.cpp \
+                    StringCompareCheck.cpp                        \
+                    UniqueptrDeleteReleaseCheck.cpp               \
+                    UppercaseLiteralSuffixCheck.cpp               \
+                    UseAnyOfAllOfCheck.cpp)
+
+readability_OBJ = $(call cpp_to_obj, $(readability_SRC))
+
+tool_SRC = $(addprefix tool/,  \
+             ClangTidyMain.cpp \
+             ClangTidyToolMain.cpp)
+
+tool_OBJ = $(call cpp_to_obj, $(tool_SRC))
+
+utils_SRC = $(addprefix utils/,             \
+              Aliasing.cpp                  \
+              ASTUtils.cpp                  \
+              DeclRefExprUtils.cpp          \
+              ExceptionAnalyzer.cpp         \
+              ExprSequence.cpp              \
+              FileExtensionsUtils.cpp       \
+              FixItHintUtils.cpp            \
+              HeaderGuard.cpp               \
+              IncludeInserter.cpp           \
+              IncludeSorter.cpp             \
+              LexerUtils.cpp                \
+              NamespaceAliaser.cpp          \
+              OptionsUtils.cpp              \
+              RenamerClangTidyCheck.cpp     \
+              TransformerClangTidyCheck.cpp \
+              TypeTraits.cpp                \
+              UsingInserter.cpp)
+
+utils_OBJ = $(call cpp_to_obj, $(utils_SRC))
+
+zircon_SRC = $(addprefix zircon/,        \
+               TemporaryObjectsCheck.cpp \
+               ZirconTidyModule.cpp)
+
+zircon_OBJ = $(call cpp_to_obj, $(zircon_SRC))
+
+ALL_SOURCES = plugin/ClangTidyPlugin.cpp \
+              $(abseil_SRC)              \
+              $(android_SRC)             \
+              $(tidy_SRC)                \
+              $(boost_SRC)               \
+              $(bugprone_SRC)            \
+              $(cert_SRC)                \
+              $(cppcoreguidelines_SRC)   \
+              $(darwin_SRC)              \
+              $(fuchsia_SRC)             \
+              $(google_SRC)              \
+              $(hicpp_SRC)               \
+              $(linuxkernel_SRC)         \
+              $(llvm_SRC)                \
+              $(llvmlibc_SRC)            \
+              $(misc_SRC)                \
+              $(modernize_SRC)           \
+              $(mpi_SRC)                 \
+              $(objc_SRC)                \
+              $(openmp_SRC)              \
+              $(performance_SRC)         \
+              $(portability_SRC)         \
+              $(readability_SRC)         \
+              $(tool_SRC)                \
+              $(utils_SRC)               \
+              $(zircon_SRC)
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/,    \
+         clangAnalysis.lib               \
+         clangAST.lib                    \
+         clangASTMatchers.lib            \
+         clangBasic.lib                  \
+         clangCrossTU.lib                \
+         clangDriver.lib                 \
+         clangEdit.lib                   \
+         clangFormat.lib                 \
+         clangFrontend.lib               \
+         clangIndex.lib                  \
+         clangLex.lib                    \
+         clangParse.lib                  \
+         clangRewrite.lib                \
+         clangSema.lib                   \
+         clangSerialization.lib          \
+         clangStaticAnalyzerCheckers.lib \
+         clangStaticAnalyzerCore.lib     \
+         clangStaticAnalyzerFrontend.lib \
+         clangTooling.lib                \
+         clangToolingCore.lib            \
+         clangToolingInclusions.lib      \
+         clangTransformer.lib)
+
+#
+# We must link with all .lib-files generated here.
+# Except '$(BUILD_DIR)/lib/clangTidyPlugin.lib'.
+#
+LIBS += $(filter %.lib, $(TARGETS))
+LIBS := $(filter-out $(BUILD_DIR)/lib/clangTidyPlugin.lib, $(LIBS))
+
+#
+# And these too:
+#
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMAArch64AsmParser.lib     \
+          LLVMAArch64Desc.lib          \
+          LLVMAArch64Info.lib          \
+          LLVMAArch64Utils.lib         \
+          LLVMAMDGPUAsmParser.lib      \
+          LLVMAMDGPUDesc.lib           \
+          LLVMAMDGPUInfo.lib           \
+          LLVMAMDGPUUtils.lib          \
+          LLVMARMAsmParser.lib         \
+          LLVMARMDesc.lib              \
+          LLVMARMInfo.lib              \
+          LLVMARMUtils.lib             \
+          LLVMBinaryFormat.lib         \
+          LLVMBitstreamReader.lib      \
+          LLVMBPFAsmParser.lib         \
+          LLVMBPFDesc.lib              \
+          LLVMBPFInfo.lib              \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
+          LLVMHexagonAsmParser.lib     \
+          LLVMHexagonDesc.lib          \
+          LLVMHexagonInfo.lib          \
+          LLVMLanaiAsmParser.lib       \
+          LLVMLanaiDesc.lib            \
+          LLVMLanaiInfo.lib            \
+          LLVMMC.lib                   \
+          LLVMMCDisassembler.lib       \
+          LLVMMCParser.lib             \
+          LLVMMipsAsmParser.lib        \
+          LLVMMipsDesc.lib             \
+          LLVMMipsInfo.lib             \
+          LLVMMSP430AsmParser.lib      \
+          LLVMMSP430Desc.lib           \
+          LLVMMSP430Info.lib           \
+          LLVMNVPTXDesc.lib            \
+          LLVMNVPTXInfo.lib            \
+          LLVMOption.lib               \
+          LLVMPowerPCAsmParser.lib     \
+          LLVMPowerPCDesc.lib          \
+          LLVMPowerPCInfo.lib          \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSparcAsmParser.lib       \
+          LLVMSparcDesc.lib            \
+          LLVMSparcInfo.lib            \
+          LLVMSupport.lib              \
+          LLVMSystemZAsmParser.lib     \
+          LLVMSystemZDesc.lib          \
+          LLVMSystemZInfo.lib          \
+          LLVMWebAssemblyAsmParser.lib \
+          LLVMWebAssemblyDesc.lib      \
+          LLVMWebAssemblyInfo.lib      \
+          LLVMX86AsmParser.lib         \
+          LLVMX86Desc.lib              \
+          LLVMX86Info.lib              \
+          LLVMX86Utils.lib             \
+          LLVMXCoreDesc.lib            \
+          LLVMXCoreInfo.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/lib/clangTidy.lib: $(tidy_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyPlugin.lib: $(OBJ_DIR)/ClangTidyPlugin.obj
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyAbseilModule.lib: $(abseil_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyAndroidModule.lib: $(android_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyBoostModule.lib: $(boost_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyBugproneModule.lib: $(bugprone_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyCERTModule.lib: $(cert_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyCppCoreGuidelinesModule.lib: $(cppcoreguidelines_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyDarwinModule.lib: $(darwin_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyFuchsiaModule.lib: $(fuchsia_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyGoogleModule.lib: $(google_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyHICPPModule.lib: $(hicpp_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyLLVMLibcModule.lib: $(llvmlibc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyLLVMModule.lib: $(llvm_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyLinuxKernelModule.lib: $(linuxkernel_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyMPIModule.lib: $(mpi_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyMiscModule.lib: $(misc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyModernizeModule.lib: $(modernize_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyObjCModule.lib: $(objc_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyOpenMPModule.lib: $(openmp_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyPerformanceModule.lib: $(performance_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyPortabilityModule.lib: $(portability_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyReadabilityModule.lib: $(readability_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyUtils.lib: $(utils_OBJ)
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/clangTidyZirconModule.lib: $(zircon_OBJ)
+	$(call create_lib, $@, $^)
+
+ifeq ($(USE_MP_COMPILE),1)
+$(tidy_OBJ): $(tidy_SRC)
+	$(call MP_compile, $(tidy_SRC))
+	@echo
+
+$(abseil_OBJ): $(abseil_SRC)
+	$(call MP_compile, $(abseil_SRC))
+	@echo
+
+$(android_OBJ): $(android_SRC)
+	$(call MP_compile, $(android_SRC))
+	@echo
+
+$(bugprone_OBJ): $(bugprone_SRC)
+	$(call MP_compile, $(bugprone_SRC))
+	@echo
+
+$(cert_OBJ): $(cert_SRC)
+	$(call MP_compile, $(cert_SRC))
+	@echo
+
+$(cppcoreguidelines_OBJ): $(cppcoreguidelines_SRC)
+	$(call MP_compile, $(cppcoreguidelines_SRC))
+	@echo
+
+$(fuchsia_OBJ): $(fuchsia_SRC)
+	$(call MP_compile, $(fuchsia_SRC))
+	@echo
+
+$(google_OBJ): $(google_SRC)
+	$(call MP_compile, $(google_SRC))
+	@echo
+
+$(llvm_OBJ): $(llvm_SRC)
+	$(call MP_compile, $(llvm_SRC))
+	@echo
+
+$(misc_OBJ): $(misc_SRC)
+	$(call MP_compile, $(misc_SRC))
+	@echo
+
+$(modernize_OBJ): $(modernize_SRC)
+	$(call MP_compile, $(modernize_SRC))
+	@echo
+
+$(objc_OBJ): $(objc_SRC)
+	$(call MP_compile, $(objc_SRC))
+	@echo
+
+$(performance_OBJ): $(performance_SRC)
+	$(call MP_compile, $(performance_SRC))
+	@echo
+
+$(readability_OBJ): $(readability_SRC)
+	$(call MP_compile, $(readability_SRC))
+	@echo
+
+$(utils_OBJ): $(utils_SRC)
+	$(call MP_compile, $(utils_SRC))
+	@echo
+endif
+
+$(BUILD_DIR)/bin/clang-tidy.exe: $(tool_OBJ) $(LIBS) $(OBJ_DIR)/clang-tidy.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-tidy.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-tidy.exe, VFT_APP, A tool for diagnosing and fixing typical C++ programming errors.)
+
+$(OBJ_DIR)/openmp_%.obj: openmp/%.cpp
+	$(CXX) @$(CXX).args -Fo$@ $<
+
+-include .depend.Windows
+

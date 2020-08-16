@@ -1,10 +1,12 @@
 #
-# Top-level makefile for the 'LLVM-Project'.
+# Top-level GNU makefile for the 'LLVM-Project'.
 #
 DO_MAKE = $(MAKE) -f Makefile.Windows
 
 DIRS = $(addprefix llvm/,  lib tools utils unittests) \
        $(addprefix clang/, lib tools utils unittests)
+
+DIRS += clang-tools-extra
 
 default: all
 

@@ -1,5 +1,5 @@
 #
-# Top-level makefile for 'llvm/unittests'.
+# Top-level GNU makefile for 'llvm/unittests'.
 #
 TOP_DIR = ../..
 

@@ -5,14 +5,13 @@ TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/clangDriver.lib
 VPATH   = ToolChains ToolChains/Arch
 
-EXTRA_CFLAGS = -DCLANG_DEFAULT_UNWINDLIB=\"none\"
-
 include $(TOP_DIR)/Common.Windows
 
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc
+INC_FILES = $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommonKinds.inc \
+            $(CLANG_INCLUDE_DIR)/Config/config.h
 
 LIB_SRC = Action.cpp        \
           Compilation.cpp   \
@@ -68,6 +67,7 @@ LIB_SRC += $(addprefix ToolChains/, \
              RISCVToolchain.cpp     \
              Solaris.cpp            \
              TCE.cpp                \
+             VEToolChain.cpp        \
              WebAssembly.cpp        \
              XCore.cpp)
 
@@ -79,13 +79,14 @@ LIB_SRC += $(addprefix ToolChains/Arch/, \
              RISCV.cpp                   \
              Sparc.cpp                   \
              SystemZ.cpp                 \
+             VE.cpp                      \
              X86.cpp)
 
 ALL_SOURCES = $(LIB_SRC)
 
 LIB_OBJ = $(call cpp_to_obj, $(LIB_SRC))
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+all: $(GENERATED) inc_files $(TARGETS)
 
 ifeq ($(USE_MP_COMPILE),1)
 $(LIB_OBJ): $(LIB_SRC)
@@ -95,7 +96,7 @@ endif
 $(BUILD_DIR)/lib/clangDriver.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(INC_FILES):
+inc_files::
 	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows

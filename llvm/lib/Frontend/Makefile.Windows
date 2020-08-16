@@ -3,14 +3,24 @@
 #
 TOP_DIR = ../../..
 TARGETS = $(BUILD_DIR)/lib/LLVMFrontendOpenMP.lib
-VPATH   = OpenMP
+VPATH   = OpenACC OpenMP
+
+GENERATED = OpenACC/ACC.cpp \
+            OpenMP/OMP.cpp
+
+GENERATED += $(addprefix ../../include/llvm/Frontend/, \
+               OpenACC/ACC.h.inc                       \
+               OpenMP/OMP.h.inc                        \
+               OpenMP/OMP.cpp.inc)
 
 include $(TOP_DIR)/Common.Windows
 
-LIB_SRC = $(addprefix OpenMP/, \
-            OMPConstants.cpp   \
-            OMPContext.cpp     \
-            OMPIRBuilder.cpp)
+LIB_SRC = OpenACC/ACC.cpp
+
+LIB_SRC += $(addprefix OpenMP/, \
+             OMP.cpp            \
+             OMPContext.cpp     \
+             OMPIRBuilder.cpp)
 
 ALL_SOURCES = $(LIB_SRC)
 
@@ -20,6 +30,21 @@ all: $(GENERATED) $(TARGETS)
 
 $(BUILD_DIR)/lib/LLVMFrontendOpenMP.lib: $(LIB_OBJ)
 	 $(call create_lib, $@, $^)
+
+OpenACC/ACC.cpp: ../../include/llvm/Frontend/OpenACC/ACC.td
+	$(call llvm_tblgen, $@, -gen-directive-impl $<)
+
+../../include/llvm/Frontend/OpenACC/ACC.h.inc: ../../include/llvm/Frontend/OpenACC/ACC.td
+	$(call llvm_tblgen, $@, -gen-directive-decl $<)
+
+OpenMP/OMP.cpp: ../../include/llvm/Frontend/OpenMP/OMP.td
+	$(call llvm_tblgen, $@, -gen-directive-impl $<)
+
+../../include/llvm/Frontend/OpenMP/OMP.cpp.inc: ../../include/llvm/Frontend/OpenMP/OMP.td
+	$(call llvm_tblgen, $@, -gen-directive-gen $<)
+
+../../include/llvm/Frontend/OpenMP/OMP.h.inc: ../../include/llvm/Frontend/OpenMP/OMP.td
+	$(call llvm_tblgen, $@, -gen-directive-decl $<)
 
 -include .depend.Windows
 

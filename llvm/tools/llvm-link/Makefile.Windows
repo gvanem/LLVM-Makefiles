@@ -29,8 +29,8 @@ LIBS = $(addprefix $(BUILD_DIR)/lib/, \
          LLVMProfileData.lib          \
          LLVMRemarks.lib              \
          LLVMSupport.lib              \
+         LLVMTextAPI.lib              \
          LLVMTransformUtils.lib)
-
 
 #
 # External libraries needed:

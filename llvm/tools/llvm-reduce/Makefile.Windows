@@ -8,17 +8,20 @@ VPATH = deltas
 
 include $(TOP_DIR)/Common.Windows
 
-ALL_SOURCES = llvm-reduce.cpp          \
-              TestRunner.cpp           \
-                                       \
-              $(addprefix deltas/,     \
-                Delta.cpp              \
-                ReduceArguments.cpp    \
-                ReduceBasicBlocks.cpp  \
-                ReduceFunctions.cpp    \
-                ReduceGlobalVars.cpp   \
-                ReduceInstructions.cpp \
-                ReduceMetadata.cpp)
+ALL_SOURCES = llvm-reduce.cpp            \
+              TestRunner.cpp             \
+                                         \
+              $(addprefix deltas/,       \
+                Delta.cpp                \
+                ReduceArguments.cpp      \
+                ReduceAttributes.cpp     \
+                ReduceBasicBlocks.cpp    \
+                ReduceFunctionBodies.cpp \
+                ReduceFunctions.cpp      \
+                ReduceGlobalVars.cpp     \
+                ReduceInstructions.cpp   \
+                ReduceMetadata.cpp       \
+                ReduceOperandBundles.cpp)
 
 OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
 

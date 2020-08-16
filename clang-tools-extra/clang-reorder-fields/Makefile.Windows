@@ -1,0 +1,63 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-reorder-fields'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clang-reorder-fields.exe
+VPATH   = tool
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = tool/ClangReorderFields.cpp \
+              ReorderFieldsAction.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAnalysis.lib            \
+         clangAST.lib                 \
+         clangASTMatchers.lib         \
+         clangBasic.lib               \
+         clangDriver.lib              \
+         clangEdit.lib                \
+         clangFormat.lib              \
+         clangFrontend.lib            \
+         clangLex.lib                 \
+         clangParse.lib               \
+         clangRewrite.lib             \
+         clangSema.lib                \
+         clangSerialization.lib       \
+         clangTooling.lib             \
+         clangToolingCore.lib         \
+         clangToolingInclusions.lib   \
+                                      \
+         LLVMBinaryFormat.lib         \
+         LLVMBitstreamReader.lib      \
+         LLVMCore.lib                 \
+         LLVMDemangle.lib             \
+         LLVMFrontendOpenMP.lib       \
+         LLVMMC.lib                   \
+         LLVMMCParser.lib             \
+         LLVMOption.lib               \
+         LLVMProfileData.lib          \
+         LLVMRemarks.lib              \
+         LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-reorder-fields.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-reorder-fields.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-reorder-fields.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-reorder-fields.exe, VFT_APP, Another Clang mystery tool.)
+
+-include .depend.Windows
+

@@ -7,8 +7,9 @@ TARGETS = $(BUILD_DIR)/lib/LLVMWindowsManifest.lib
 include $(TOP_DIR)/Common.Windows
 
 ifeq ($(USE_XML2),1)
-  CFLAGS += -I$(XML2_ROOT)/include \
-            -I$(ICONV_ROOT)/include
+  CFLAGS += -I$(XML2_ROOT)/include  \
+            -I$(ICONV_ROOT)/include \
+            -DLIBXML_STATIC
 endif
 
 ALL_SOURCES = WindowsManifestMerger.cpp

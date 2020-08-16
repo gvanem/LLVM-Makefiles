@@ -11,20 +11,23 @@ include $(TOP_DIR)/Common.Windows
 #
 # .inc-files needed here:
 #
-INC_FILES = $(CLANG_INCLUDE_DIR)/AST/Attrs.inc                     \
-            $(CLANG_INCLUDE_DIR)/AST/AttrNodeTraverse.inc          \
-            $(CLANG_INCLUDE_DIR)/AST/AttrTextNodeDump.inc          \
-            $(CLANG_INCLUDE_DIR)/AST/AttrVisitor.inc               \
-            $(CLANG_INCLUDE_DIR)/AST/DeclNodes.inc                 \
-            $(CLANG_INCLUDE_DIR)/AST/StmtNodes.inc                 \
-            $(CLANG_INCLUDE_DIR)/AST/CommentCommandList.inc        \
-            $(CLANG_INCLUDE_DIR)/Basic/AttrList.inc                \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticASTKinds.inc      \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticCommentKinds.inc  \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticFrontendKinds.inc \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticGroups.inc        \
-            $(CLANG_INCLUDE_DIR)/Basic/DiagnosticSemaKinds.inc     \
-            $(CLANG_INCLUDE_DIR)/Basic/Version.inc
+INC_FILES = $(addprefix $(CLANG_INCLUDE_DIR)/AST/,   \
+              Attrs.inc                              \
+              AttrImpl.inc                           \
+              AttrNodeTraverse.inc                   \
+              AttrTextNodeDump.inc                   \
+              AttrVisitor.inc                        \
+              DeclNodes.inc                          \
+              StmtNodes.inc                          \
+              CommentCommandList.inc)                \
+            $(addprefix $(CLANG_INCLUDE_DIR)/Basic/, \
+              AttrList.inc                           \
+              DiagnosticASTKinds.inc                 \
+              DiagnosticCommentKinds.inc             \
+              DiagnosticFrontendKinds.inc            \
+              DiagnosticGroups.inc                   \
+              DiagnosticSemaKinds.inc                \
+              Version.inc)
 
 #
 # .inc-files generated here:
@@ -134,10 +137,10 @@ INTERP_SRC = $(addprefix Interp/,   \
 
 ALL_SOURCES = $(BASE_SRC) $(INTERP_SRC)
 
-BASE_OBJ = $(call cpp_to_obj, $(BASE_SRC))
+BASE_OBJ   = $(call cpp_to_obj, $(BASE_SRC))
 INTERP_OBJ = $(call cpp_to_obj, $(INTERP_SRC))
 
-all: $(GENERATED) $(INC_FILES) $(TARGETS)
+all: $(GENERATED) inc_files $(TARGETS)
 
 ifeq ($(USE_MP_COMPILE),1)
 $(BASE_OBJ): $(BASE_SRC)
@@ -150,11 +153,11 @@ endif
 $(BUILD_DIR)/lib/clangAST.lib: $(BASE_OBJ) $(INTERP_OBJ)
 	 $(call create_lib, $@, $^)
 
-$(INC_FILES):
-	$(call do_make, $(CLANG_INCLUDE_DIR), all)
-
 OpCodes.inc: Interp/Opcodes.td $(BUILD_DIR)/bin/clang-tblgen.exe
 	$(call clang_tblgen, $@, -gen-clang-opcodes $<)
+
+inc_files::
+	$(call do_make, $(CLANG_INCLUDE_DIR), all)
 
 -include .depend.Windows
 

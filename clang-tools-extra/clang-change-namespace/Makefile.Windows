@@ -1,0 +1,64 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-change-namespace'.
+#
+TOP_DIR = ../..
+TARGETS = $(BUILD_DIR)/bin/clang-change-namespace.exe
+VPATH   = tool
+
+include $(TOP_DIR)/Common.Windows
+
+ALL_SOURCES = ChangeNamespace.cpp \
+              tool/ClangChangeNamespace.cpp
+
+OBJECTS = $(call cpp_to_obj, $(ALL_SOURCES))
+
+all: $(GENERATED) $(TARGETS)
+
+LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+         clangAnalysis.lib            \
+         clangAST.lib                 \
+         clangASTMatchers.lib         \
+         clangBasic.lib               \
+         clangDriver.lib              \
+         clangEdit.lib                \
+         clangFormat.lib              \
+         clangFrontend.lib            \
+         clangLex.lib                 \
+         clangParse.lib               \
+         clangRewrite.lib             \
+         clangSema.lib                \
+         clangSerialization.lib       \
+         clangTooling.lib             \
+         clangToolingCore.lib         \
+         clangToolingInclusions.lib)
+
+LIBS += $(addprefix $(BUILD_DIR)/lib/, \
+          LLVMBinaryFormat.lib         \
+          LLVMBitstreamReader.lib      \
+          LLVMCore.lib                 \
+          LLVMDemangle.lib             \
+          LLVMFrontendOpenMP.lib       \
+          LLVMOption.lib               \
+          LLVMMC.lib                   \
+          LLVMMCParser.lib             \
+          LLVMProfileData.lib          \
+          LLVMRemarks.lib              \
+          LLVMSupport.lib)
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/bin/clang-change-namespace.exe: $(OBJECTS) $(LIBS) $(OBJ_DIR)/clang-change-namespace.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-change-namespace.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-change-namespace.exe, VFT_APP, A tool for changing the surrounding namespaces of class/function.)
+
+-include .depend.Windows
+

@@ -1,0 +1,84 @@
+#
+# GNU Makefile for 'clang-tools-extra/test'.
+#
+# Unfinished.
+#
+TOP_DIR = ../..
+TARGETS =
+
+VPATH = clang-reorder-fields \
+        clang-tidy/checkers  \
+        clang-tidy/infrastructure
+
+test_SRC = clang-tidy/infrastructure/run-clang-tidy.cpp
+
+test_SRC += $(addprefix clang-reorder-fields/,   \
+              AggregatePartialInitialization.cpp \
+              CStructAmbiguousName.cpp           \
+              CStructFieldsOrder.cpp             \
+              ClassDifferentFieldsAccesses.cpp   \
+              ClassMixedInitialization.cpp       \
+              ClassSimpleCtor.cpp                \
+              FieldDependencyWarning.cpp)
+
+test_SRC += $(addprefix clang-tidy/checkers/,                        \
+              bugprone-assert-side-effect.cpp                        \
+              bugprone-bad-signal-to-kill-thread.cpp                 \
+              bugprone-exception-escape.cpp                          \
+              bugprone-inaccurate-erase.cpp                          \
+              bugprone-string-integer-assignment.cpp                 \
+              bugprone-suspicious-semicolon-constexpr.cpp            \
+              cppcoreguidelines-avoid-goto.cpp                       \
+              cppcoreguidelines-avoid-non-const-global-variables.cpp \
+              cppcoreguidelines-owning-memory-containers.cpp         \
+              fuchsia-default-arguments-calls.cpp                    \
+              fuchsia-trailing-return.cpp                            \
+              fuchsia-virtual-inheritance.cpp                        \
+              llvm-twine-local.cpp                                   \
+              misc-misplaced-const-cxx17.cpp                         \
+              misc-static-assert.cpp                                 \
+              modernize-avoid-c-arrays-ignores-main.cpp              \
+              modernize-avoid-c-arrays-ignores-three-arg-main.cpp    \
+              modernize-concat-nested-namespaces.cpp                 \
+              modernize-replace-random-shuffle.cpp                   \
+              modernize-use-bool-literals-ignore-macros.cpp          \
+              modernize-use-bool-literals.cpp                        \
+              modernize-use-transparent-functors.cpp                 \
+              performance-inefficient-algorithm.cpp                  \
+              performance-inefficient-string-concatenation.cpp       \
+              portability-restrict-system-includes-transitive.cpp    \
+              readability-container-size-empty.cpp                   \
+              readability-identifier-naming-member-decl-usage.cpp    \
+              readability-isolate-declaration-no-infinite-loop.cpp   \
+              zircon-temporary-objects.cpp)
+
+test_OBJ = $(call cpp_to_obj, $(test_SRC))
+
+.SECONDARY: $(test_OBJ)
+
+TARGETS     = $(notdir $(test_OBJ:.obj=.exe))
+ALL_SOURCES = $(test_SRC)
+GENERATED   = hacks.h
+
+include $(TOP_DIR)/Common.Windows
+
+CFLAGS += -FI./hacks.h \
+          -I./clang-tidy/checkers/Inputs/portability-restrict-system-includes
+
+all: $(GENERATED) $(TARGETS)
+
+hacks.h: $(THIS_FILE)
+	$(call Generating, $@, //)
+	$(file >> $@, $(hacks_h))
+
+define hacks_h
+  #if defined(_MSC_VER) && !defined(__clang__)
+  #define __builtin_expect(e,c) (e)
+  #endif
+endef
+
+%.exe: $(OBJ_DIR)/%.obj
+	$(call link_EXE, $@, $^)
+
+-include .depend.Windows
+

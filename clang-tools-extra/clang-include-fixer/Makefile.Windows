@@ -1,0 +1,129 @@
+#
+# GNU Makefile for 'clang-tools-extra/clang-include-fixer'.
+#
+TOP_DIR = ../..
+
+TARGETS = $(BUILD_DIR)/lib/clangIncludeFixerPlugin.lib \
+          $(BUILD_DIR)/bin/clang-include-fixer.exe     \
+          $(BUILD_DIR)/bin/find-all-symbols.exe
+
+VPATH = plugin           \
+        tool             \
+        find-all-symbols \
+        find-all-symbols/tool
+
+include $(TOP_DIR)/Common.Windows
+
+clang-include-fixer_SRC = FuzzySymbolIndex.cpp    \
+                          IncludeFixer.cpp        \
+                          IncludeFixerContext.cpp \
+                          InMemorySymbolIndex.cpp \
+                          SymbolIndexManager.cpp  \
+                          YamlSymbolIndex.cpp     \
+                          find-all-symbols/SymbolInfo.cpp \
+                          tool/ClangIncludeFixer.cpp
+
+find-all-symbols_SRC = $(addprefix find-all-symbols/, \
+                         FindAllMacros.cpp            \
+                         FindAllSymbols.cpp           \
+                         FindAllSymbolsAction.cpp     \
+                         HeaderMapCollector.cpp       \
+                         PathConfig.cpp               \
+                         PragmaCommentHandler.cpp     \
+                         STLPostfixHeaderMap.cpp      \
+                         SymbolInfo.cpp               \
+                         tool/FindAllSymbolsMain.cpp)
+
+CFLAGS += -I./find-all-symbols
+
+clang-include-fixer_OBJ = $(call cpp_to_obj, $(clang-include-fixer_SRC))
+find-all-symbols_OBJ    = $(call cpp_to_obj, $(find-all-symbols_SRC))
+
+ALL_SOURCES = $(clang-include-fixer_SRC) \
+              $(find-all-symbols_SRC)    \
+              plugin/IncludeFixerPlugin.cpp
+
+all: $(GENERATED) $(TARGETS)
+
+clang-include-fixer_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+                             clangAnalysis.lib            \
+                             clangAST.lib                 \
+                             clangBasic.lib               \
+                             clangDriver.lib              \
+                             clangEdit.lib                \
+                             clangFormat.lib              \
+                             clangFrontend.lib            \
+                             clangSerialization.lib       \
+                             clangLex.lib                 \
+                             clangParse.lib               \
+                             clangRewrite.lib             \
+                             clangSema.lib                \
+                             clangTooling.lib             \
+                             clangToolingCore.lib         \
+                             clangToolingInclusions.lib   \
+                                                          \
+                             LLVMBinaryFormat.lib         \
+                             LLVMBitstreamReader.lib      \
+                             LLVMCore.lib                 \
+                             LLVMDemangle.lib             \
+                             LLVMFrontendOpenMP.lib       \
+                             LLVMMC.lib                   \
+                             LLVMMCParser.lib             \
+                             LLVMProfileData.lib          \
+                             LLVMOption.lib               \
+                             LLVMRemarks.lib              \
+                             LLVMSupport.lib)
+
+find-all-symbols_LIBS = $(addprefix $(BUILD_DIR)/lib/, \
+                          clangAnalysis.lib            \
+                          clangAST.lib                 \
+                          clangASTMatchers.lib         \
+                          clangBasic.lib               \
+                          clangDriver.lib              \
+                          clangEdit.lib                \
+                          clangFrontend.lib            \
+                          clangSerialization.lib       \
+                          clangLex.lib                 \
+                          clangParse.lib               \
+                          clangSema.lib                \
+                          clangTooling.lib             \
+                                                       \
+                          LLVMBinaryFormat.lib         \
+                          LLVMBitstreamReader.lib      \
+                          LLVMCore.lib                 \
+                          LLVMDemangle.lib             \
+                          LLVMFrontendOpenMP.lib       \
+                          LLVMMC.lib                   \
+                          LLVMMCParser.lib             \
+                          LLVMProfileData.lib          \
+                          LLVMOption.lib               \
+                          LLVMRemarks.lib              \
+                          LLVMSupport.lib)
+
+
+#
+# External libraries needed here:
+#
+EX_LIBS = advapi32.lib ole32.lib shell32.lib version.lib
+
+ifeq ($(USE_ZLIB),1)
+  EX_LIBS += $(ZLIB_LIB)
+endif
+
+$(BUILD_DIR)/lib/clangIncludeFixerPlugin.lib: $(OBJ_DIR)/IncludeFixerPlugin.obj
+	$(call create_lib, $@, $^)
+
+$(BUILD_DIR)/bin/clang-include-fixer.exe: $(clang-include-fixer_OBJ) $(clang-include-fixer_LIBS) $(OBJ_DIR)/clang-include-fixer.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(BUILD_DIR)/bin/find-all-symbols.exe: $(find-all-symbols_OBJ) $(find-all-symbols_LIBS) $(OBJ_DIR)/find-all-symbols.res
+	$(call link_EXE, $@, $^ $(EX_LIBS))
+
+$(OBJ_DIR)/clang-include-fixer.rc: $(MDEPEND)
+	$(call make_rc, $@, clang-include-fixer.exe, VFT_APP, A tool for adding '#include' statements.)
+
+$(OBJ_DIR)/find-all-symbols.rc: $(MDEPEND)
+	$(call make_rc, $@, find-all-symbols.exe, VFT_APP, A tool for finding symbols.)
+
+-include .depend.Windows
+

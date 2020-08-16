@@ -194,7 +194,7 @@ endif
 $(BUILD_DIR)/lib/libclang.lib: $(BUILD_DIR)/bin/libclang.dll
 
 $(BUILD_DIR)/bin/libclang.dll: $(OBJECTS) $(OBJ_DIR)/libclang.res $(LIBS)
-	$(call green_msg,This will take a $(BRIGHT_RED)long time.)
+	$(call green_msg, This will take a $(BRIGHT_RED)long time.)
 	$(call link_DLL, $@, $(BUILD_DIR)/lib/libclang.lib, $^ $(EX_LIBS))
 
 $(OBJ_DIR)/libclang.rc: $(MDEPEND)

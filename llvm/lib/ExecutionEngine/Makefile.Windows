@@ -3,7 +3,8 @@
 #
 TOP_DIR = ../../..
 
-VPATH = Interpreter     \
+VPATH = IntelJITEvents  \
+        Interpreter     \
         JITLink         \
         MCJIT           \
         OProfileJIT Orc \
@@ -12,12 +13,14 @@ VPATH = Interpreter     \
         RuntimeDyld/Targets
 
 TARGETS = $(BUILD_DIR)/lib/LLVMExecutionEngine.lib \
-          $(BUILD_DIR)/lib/LLVMInterpreter.lib     \
-          $(BUILD_DIR)/lib/LLVMJITLink.lib         \
-          $(BUILD_DIR)/lib/LLVMMCJIT.lib           \
-          $(BUILD_DIR)/lib/LLVMOrcJIT.lib          \
-          $(BUILD_DIR)/lib/LLVMOrcError.lib        \
-          $(BUILD_DIR)/lib/LLVMRuntimeDyld.lib
+        # $(BUILD_DIR)/lib/LLVMIntelJITEvents.lib
+
+TARGETS += $(BUILD_DIR)/lib/LLVMInterpreter.lib     \
+           $(BUILD_DIR)/lib/LLVMJITLink.lib         \
+           $(BUILD_DIR)/lib/LLVMMCJIT.lib           \
+           $(BUILD_DIR)/lib/LLVMOrcJIT.lib          \
+           $(BUILD_DIR)/lib/LLVMOrcError.lib        \
+           $(BUILD_DIR)/lib/LLVMRuntimeDyld.lib
 
 #
 # Needs 'opagent.h' which is nowhere.
@@ -37,16 +40,21 @@ ExecutionEngine_SRC = ExecutionEngine.cpp         \
                       SectionMemoryManager.cpp    \
                       TargetSelect.cpp
 
+IntelJITEvents_CPP_SRC = IntelJITEvents/IntelJITEventListener.cpp
+IntelJITEvents_C_SRC   = IntelJITEvents/jitprofiling.c
+
 Interpreter_SRC = $(addprefix Interpreter/, \
                     Execution.cpp           \
                     ExternalFunctions.cpp   \
                     Interpreter.cpp)
 
 JITLink_SRC = $(addprefix JITLink/,      \
+                EHFrameSupport.cpp       \
+                ELF.cpp                  \
+                ELF_x86_64.cpp           \
                 JITLink.cpp              \
                 JITLinkGeneric.cpp       \
                 JITLinkMemoryManager.cpp \
-                EHFrameSupport.cpp       \
                 MachO.cpp                \
                 MachO_arm64.cpp          \
                 MachO_x86_64.cpp         \
@@ -58,32 +66,35 @@ OProfileJIT_SRC = $(addprefix OProfileJIT/,      \
                     OProfileJITEventListener.cpp \
                     OProfileWrapper.cpp)
 
-OrcJIT_SRC = $(addprefix Orc/,              \
-               CompileOnDemandLayer.cpp     \
-               CompileUtils.cpp             \
-               Core.cpp                     \
-               DebugUtils.cpp               \
-               ExecutionUtils.cpp           \
-               IndirectionUtils.cpp         \
-               IRCompileLayer.cpp           \
-               IRTransformLayer.cpp         \
-               JITTargetMachineBuilder.cpp  \
-               LazyReexports.cpp            \
-               Legacy.cpp                   \
-               Layer.cpp                    \
-               LLJIT.cpp                    \
-               MachOPlatform.cpp            \
-               Mangling.cpp                 \
-               NullResolver.cpp             \
-               ObjectLinkingLayer.cpp       \
-               ObjectTransformLayer.cpp     \
-               OrcABISupport.cpp            \
-               OrcCBindings.cpp             \
-               OrcV2CBindings.cpp           \
-               OrcMCJITReplacement.cpp      \
-               RTDyldObjectLinkingLayer.cpp \
-               ThreadSafeModule.cpp         \
-               Speculation.cpp              \
+OrcJIT_SRC = $(addprefix Orc/,                      \
+               CompileOnDemandLayer.cpp             \
+               CompileUtils.cpp                     \
+               Core.cpp                             \
+               DebugUtils.cpp                       \
+               ExecutionUtils.cpp                   \
+               IndirectionUtils.cpp                 \
+               IRCompileLayer.cpp                   \
+               IRTransformLayer.cpp                 \
+               JITTargetMachineBuilder.cpp          \
+               LazyReexports.cpp                    \
+               Legacy.cpp                           \
+               Layer.cpp                            \
+               LLJIT.cpp                            \
+               MachOPlatform.cpp                    \
+               Mangling.cpp                         \
+               NullResolver.cpp                     \
+               ObjectLinkingLayer.cpp               \
+               ObjectTransformLayer.cpp             \
+               OrcABISupport.cpp                    \
+               OrcCBindings.cpp                     \
+               OrcV2CBindings.cpp                   \
+               OrcMCJITReplacement.cpp              \
+               RTDyldObjectLinkingLayer.cpp         \
+               TargetProcessControl.cpp             \
+               ThreadSafeModule.cpp                 \
+               TPCDynamicLibrarySearchGenerator.cpp \
+               TPCIndirectionUtils.cpp              \
+               Speculation.cpp                      \
                SpeculateAnalyses.cpp)
 
 OrcError_SRC = $(addprefix OrcError/, \
@@ -110,6 +121,7 @@ ALL_SOURCES = $(ExecutionEngine_SRC) \
               $(RuntimeDyld_SRC)
 
 ExecutionEngine_OBJ = $(call cpp_to_obj, $(ExecutionEngine_SRC))
+IntelJITEvents_OBJ  = $(call cpp_to_obj, $(IntelJITEvents_CPP_SRC)) $(call c_to_obj, $(IntelJITEvents_C_SRC))
 Interpreter_OBJ     = $(call cpp_to_obj, $(Interpreter_SRC))
 JITLink_OBJ         = $(call cpp_to_obj, $(JITLink_SRC))
 MCJIT_OBJ           = $(call cpp_to_obj, $(MCJIT_SRC))
@@ -138,6 +150,9 @@ $(RuntimeDyld_OBJ): $(RuntimeDyld_SRC)
 endif
 
 $(BUILD_DIR)/lib/LLVMExecutionEngine.lib: $(ExecutionEngine_OBJ)
+	 $(call create_lib, $@, $^)
+
+$(BUILD_DIR)/lib/LLVMIntelJITEvents.lib: $(IntelJITEvents_OBJ)
 	 $(call create_lib, $@, $^)
 
 $(BUILD_DIR)/lib/LLVMInterpreter.lib: $(Interpreter_OBJ)
